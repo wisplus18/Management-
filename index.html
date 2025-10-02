@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eFootball League Manager PRO (Dark Theme)</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- FIREBASE MODULE IMPORTS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, updateDoc, deleteDoc, runTransaction, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // =========================================================================
+        // === CRITICAL STEP: PASTE YOUR FIREBASE CONFIGURATION HERE (Line 28) ===
+        // 
+        // Replace the placeholder values inside the { ... } below with the 
+        // configuration object you copied from the Firebase Console.
+        // =========================================================================
+
+        const firebaseConfig = {
+  apiKey: "AIzaSyCLycBxpQ3MMIDLYjmBqMZv32FIu2eDXF4",
+  authDomain: "efootball-app-ce90b.firebaseapp.com",
+  projectId: "efootball-app-ce90b",
+  storageBucket: "efootball-app-ce90b.firebasestorage.app",
+  messagingSenderId: "387933114333",
+  appId: "1:387933114333:web:1c85dbadacf70d0406b034"
+};
+      
+
+        // If running in the Gemini Canvas, use its environment config if the keys above are empty.
+        if (typeof __firebase_config !== 'undefined' && firebaseConfig.projectId === "") {
+             console.log("Using Canvas environment Firebase configuration.");
+             // Attempt to use global credentials first if available
+             try {
+                const envConfig = JSON.parse(__firebase_config);
+                Object.assign(firebaseConfig, envConfig);
+             } catch(e) {
+                console.error("Could not parse __firebase_config:", e);
+             }
+        }
+        
+        // --- GLOBAL FIREBASE/AUTH VARIABLES ---
+        
+        let app, db, auth;
+        let userId = 'loading';
+        let isAdmin = false;
+
+        // The document ID for the league data. 
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId || 'portable-league-manager';
+        
+        // Firestore pathing constants
+        const PUBLIC_PATH = `artifacts/${appId}/public/data/league_data`;
+        const PUBLIC_DOC_ID = 'league_manager_v1';
+        
+        // --- DATA MANAGEMENT ---
+        
+        // Current state variables (mirroring Firestore data structure)
+        let teams = [];
+        let fixtures = [];
+        let results = [];
+        let maxMatchDays = 0;
+
+        // The single document reference for the entire league
+        let leagueDocRef;
+
+        /**
+         * Calculates the league table, including points, goal differences, and custom ranking.
+         * @param {Array<Object>} currentTeams - The list of teams.
+         * @param {Array<Object>} currentFixtures - The list of fixtures with results.
+         * @returns {Array<Object>} The sorted league table.
+         */
+        function calculateLeagueTable(currentTeams, currentFixtures) {
+            const table = {};
+            const teamNames = currentTeams.map(t => t.teamName);
+
+            // Initialize table structure
+            teamNames.forEach(name => {
+                table[name] = { 
+                    teamName: name, 
+                    played: 0, 
+                    won: 0, 
+                    drawn: 0, 
+                    lost: 0, 
+                    goalsFor: 0, 
+                    goalsAgainst: 0, 
+                    points: 0,
+                    players: currentTeams.find(t => t.teamName === name)?.players || [],
+                };
+            });
+
+            // Process results
+            currentFixtures.filter(f => f.homeScore !== null && f.awayScore !== null).forEach(f => {
+                const home = table[f.homeTeam];
+                const away = table[f.awayTeam];
+
+                if (!home || !away) return; // Skip if teams are missing from current roster
+
+                home.played++;
+                away.played++;
+                home.goalsFor += f.homeScore;
+                home.goalsAgainst += f.awayScore;
+                away.goalsFor += f.awayScore;
+                away.goalsAgainst += f.homeScore;
+
+                if (f.homeScore > f.awayScore) {
+                    home.won++; home.points += 3;
+                    away.lost++;
+                } else if (f.homeScore < f.awayScore) {
+                    away.won++; away.points += 3;
+                    home.lost++;
+                } else {
+                    home.drawn++; home.points += 1;
+                    away.drawn++; away.points += 1;
+                }
+            });
+
+            const sortedTable = Object.values(table);
+            
+            // Custom sorting logic: 1. Points, 2. Goal Difference, 3. Goals For
+            sortedTable.sort((a, b) => {
+                if (b.points !== a.points) return b.points - a.points;
+                const gdA = a.goalsFor - a.goalsAgainst;
+                const gdB = b.goalsFor - b.goalsAgainst;
+                if (gdB !== gdA) return gdB - gdA;
+                return b.goalsFor - a.goalsFor;
+            });
+
+            return sortedTable;
+        }
+
+        /**
+         * Renders a transient message in the UI.
+         * @param {string} message The message to display.
+         * @param {string} classes Tailwind classes for styling (e.g., 'bg-green-100 text-green-700').
+         */
+        function displayMessage(message, classes) {
+            const messageEl = document.getElementById('message-box');
+            messageEl.textContent = message;
+            // Dark theme adapted classes
+            messageEl.className = `p-3 my-4 rounded-xl text-sm font-semibold transition-all duration-300 ${classes}`;
+            messageEl.style.opacity = '1';
+
+            setTimeout(() => {
+                messageEl.style.opacity = '0';
+                setTimeout(() => messageEl.className = 'hidden', 300);
+            }, 5000);
+        }
+
+        /**
+         * Updates the global league document in Firestore. Only works if isAdmin is true.
+         * @param {Object} data The data to update in the document.
+         */
+        async function updateLeagueData(data) {
+            if (!isAdmin) {
+                displayMessage('🛑 Permission Denied: Only the Administrator can save changes.', 'bg-yellow-800 text-yellow-100');
+                console.warn('Attempted to write to Firestore without Admin privileges.');
+                return;
+            }
+
+            // Check if Firebase is configured/ready
+            if (!leagueDocRef) {
+                 displayMessage('❌ Cannot save. Firebase is not initialized. Did you paste your configuration?', 'bg-red-800 text-red-100');
+                 return;
+            }
+
+            try {
+                // Use setDoc with merge to update fields without overwriting the entire document
+                await setDoc(leagueDocRef, data, { merge: true });
+                displayMessage('✅ League data saved to the cloud!', 'bg-green-800 text-green-100');
+            } catch (error) {
+                console.error('Firestore Write Error:', error);
+                displayMessage(`❌ Failed to save data. Error: ${error.message}`, 'bg-red-800 text-red-100');
+            }
+        }
+        
+        /**
+         * Adds a player to a team or creates a new team.
+         */
+        window.addPlayer = async function() {
+            const playerName = document.getElementById('player-name').value.trim();
+            const teamName = document.getElementById('team-name').value.trim();
+            
+            if (!playerName || !teamName) {
+                displayMessage('Please enter both a player name and a team name.', 'bg-red-800 text-red-100');
+                return;
+            }
+
+            const existingTeam = teams.find(t => t.teamName === teamName);
+            
+            if (existingTeam) {
+                if (existingTeam.players.some(p => p.name === playerName)) {
+                    displayMessage(`Player ${playerName} is already on ${teamName}.`, 'bg-yellow-800 text-yellow-100');
+                    return;
+                }
+                existingTeam.players.push({ name: playerName });
+            } else {
+                teams.push({
+                    teamName: teamName,
+                    players: [{ name: playerName }]
+                });
+            }
+
+            // Clear inputs and save to cloud
+            document.getElementById('player-name').value = '';
+            document.getElementById('team-name').value = '';
+            
+            renderRoster();
+            await updateLeagueData({ teams: teams });
+        }
+
+        /**
+         * Removes a team and clears all related fixtures/results.
+         * @param {string} teamToRemove Name of the team to remove.
+         */
+        window.removeTeam = async function(teamToRemove) {
+            if (!confirm(`Are you sure you want to remove the team "${teamToRemove}"? This will clear all existing fixtures and results.`)) {
+                return;
+            }
+
+            teams = teams.filter(t => t.teamName !== teamToRemove);
+
+            // Clear all fixtures and results as the league structure is now invalid
+            fixtures = [];
+            results = [];
+            maxMatchDays = 0;
+
+            renderRoster();
+            await updateLeagueData({ 
+                teams: teams, 
+                fixtures: fixtures, 
+                results: results 
+            });
+            switchTab('roster-tab', document.querySelector('.tab-button[data-tab="roster-tab"]'));
+        }
+
+        /**
+         * Clears all league data (teams, fixtures, results).
+         */
+        window.clearAllData = async function() {
+            if (!confirm('DANGER! This will permanently delete ALL league data (teams, fixtures, results) from the cloud. Continue?')) {
+                return;
+            }
+            teams = [];
+            fixtures = [];
+            results = [];
+            maxMatchDays = 0;
+            
+            renderRoster();
+            renderFixtures();
+            renderTable();
+
+            await setDoc(leagueDocRef, { teams: [], fixtures: [], results: [] });
+            displayMessage('All league data has been permanently cleared!', 'bg-red-800 text-red-100');
+        }
+
+
+        // --- UI RENDERING ---
+
+        /**
+         * Renders the team roster and the input form.
+         */
+        function renderRoster() {
+            const rosterList = document.getElementById('roster-list');
+            const teamCountEl = document.getElementById('team-count');
+            
+            if (!rosterList) return;
+
+            // Sort teams alphabetically
+            teams.sort((a, b) => a.teamName.localeCompare(b.teamName));
+            
+            rosterList.innerHTML = '';
+            let playerCount = 0;
+
+            teams.forEach(team => {
+                playerCount += team.players.length;
+                const teamEl = document.createElement('div');
+                // Dark theme classes: bg-gray-700, shadow-lg
+                teamEl.className = 'p-4 bg-gray-700 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 border border-indigo-500';
+                
+                const teamInfo = document.createElement('div');
+                teamInfo.className = 'flex-grow mb-2 sm:mb-0';
+                
+                const teamHeader = document.createElement('h3');
+                // Dark theme text: text-indigo-400
+                teamHeader.className = 'font-bold text-lg text-indigo-400';
+                teamHeader.textContent = team.teamName;
+                teamInfo.appendChild(teamHeader);
+                
+                const playersList = document.createElement('p');
+                // Dark theme text: text-gray-400
+                playersList.className = 'text-gray-400 text-sm italic';
+                playersList.textContent = 'Players: ' + team.players.map(p => p.name).join(', ');
+                teamInfo.appendChild(playersList);
+
+                teamEl.appendChild(teamInfo);
+
+                const removeButton = document.createElement('button');
+                removeButton.className = 'px-3 py-1 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors shadow-md';
+                removeButton.textContent = 'Remove Team';
+                removeButton.onclick = () => window.removeTeam(team.teamName);
+                
+                if (isAdmin) {
+                    teamEl.appendChild(removeButton);
+                }
+
+                rosterList.appendChild(teamEl);
+            });
+            
+            teamCountEl.textContent = `${teams.length} Teams (${playerCount} Players)`;
+            document.getElementById('generate-fixtures-button').disabled = teams.length < 2 || !isAdmin;
+            document.getElementById('clear-data-button').disabled = !isAdmin;
+        }
+
+        /**
+         * Renders the league table.
+         */
+        function renderTable() {
+            const tableEl = document.getElementById('league-table-container');
+
+            if (!tableEl) return;
+
+            if (teams.length < 2) {
+                tableEl.innerHTML = '<div class="p-6 text-center text-gray-400">Need at least 2 teams to generate a league table.</div>';
+                return;
+            }
+            
+            tableEl.innerHTML = `
+                <table class="min-w-full divide-y divide-gray-600 shadow-xl rounded-2xl overflow-hidden">
+                    <thead class="bg-indigo-700 text-white">
+                        <tr>
+                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">#</th>
+                            <th class="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider">Team</th>
+                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">P</th>
+                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">W</th>
+                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">D</th>
+                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">L</th>
+                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">GF</th>
+                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">GA</th>
+                            <th class="px-3 py-3 text-center text-xs font-bold uppercase tracking-wider">GD</th>
+                            <th class="px-3 py-3 text-center text-xs font-extrabold uppercase tracking-wider bg-indigo-800 rounded-tr-xl">Pts</th>
+                        </tr>
+                    </thead>
+                    <tbody id="league-table-body" class="divide-y divide-gray-600">
+                    </tbody>
+                </table>
+            `;
+            
+            const sortedTable = calculateLeagueTable(teams, fixtures);
+            const body = document.getElementById('league-table-body');
+            body.innerHTML = '';
+            
+            sortedTable.forEach((team, index) => {
+                const row = body.insertRow();
+                // Dark theme stripes: bg-gray-700 and bg-gray-800
+                const bgColor = index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700';
+                row.className = `${bgColor} hover:bg-indigo-900 transition-colors`;
+                
+                // Position
+                let rankCell = row.insertCell();
+                rankCell.className = 'px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-100 text-center';
+                rankCell.textContent = index + 1;
+
+                // Team Name (with players)
+                let nameCell = row.insertCell();
+                nameCell.className = 'px-3 py-2 whitespace-nowrap text-sm font-semibold text-indigo-400';
+                nameCell.innerHTML = `
+                    <div>${team.teamName}</div>
+                    <div class="text-xs font-normal text-gray-400 italic">Players: ${team.players.map(p => p.name).join(', ')}</div>
+                `;
+
+                // Stats
+                [team.played, team.won, team.drawn, team.lost, team.goalsFor, team.goalsAgainst].forEach(val => {
+                    let cell = row.insertCell();
+                    cell.className = 'px-3 py-2 whitespace-nowrap text-sm text-gray-200 text-center';
+                    cell.textContent = val;
+                });
+
+                // GD
+                let gdCell = row.insertCell();
+                gdCell.className = 'px-3 py-2 whitespace-nowrap text-sm font-bold text-gray-100 text-center';
+                gdCell.textContent = team.goalsFor - team.goalsAgainst;
+
+                // Points
+                let pointsCell = row.insertCell();
+                pointsCell.className = 'px-3 py-2 whitespace-nowrap text-sm font-extrabold text-white text-center bg-indigo-600';
+                pointsCell.textContent = team.points;
+            });
+        }
+
+        /**
+         * Renders the fixtures list for the current match day.
+         */
+        function renderFixtures() {
+            const fixtureContainer = document.getElementById('fixtures-container');
+            const matchDayHeader = document.getElementById('match-day-header');
+            const navButtons = document.getElementById('fixture-nav-buttons');
+            const table = calculateLeagueTable(teams, fixtures);
+
+            if (!fixtureContainer) return;
+
+            if (fixtures.length === 0) {
+                fixtureContainer.innerHTML = '<div class="p-6 text-center text-gray-400">No fixtures generated yet. Go to the Roster tab to add teams and generate fixtures.</div>';
+                matchDayHeader.textContent = 'Match Day 0';
+                navButtons.classList.add('hidden');
+                document.getElementById('generate-fixtures-button').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('generate-fixtures-button').classList.add('hidden');
+            navButtons.classList.remove('hidden');
+
+            const currentFixtures = fixtures.filter(f => f.matchDay === window.currentMatchDay);
+            matchDayHeader.textContent = `Match Day ${window.currentMatchDay} of ${maxMatchDays}`;
+            
+            document.getElementById('prev-match-day-btn').disabled = window.currentMatchDay <= 1;
+            document.getElementById('next-match-day-btn').disabled = window.currentMatchDay >= maxMatchDays;
+
+            fixtureContainer.innerHTML = '';
+
+            currentFixtures.forEach((f, index) => {
+                const homeStats = table.find(t => t.teamName === f.homeTeam);
+                const awayStats = table.find(t => t.teamName === f.awayTeam);
+                const homeWinProb = f.odds?.homeWinProb ? `${(f.odds.homeWinProb * 100).toFixed(0)}%` : 'N/A';
+                const drawProb = f.odds?.drawProb ? `${(f.odds.drawProb * 100).toFixed(0)}%` : 'N/A';
+                const awayWinProb = f.odds?.awayWinProb ? `${(f.odds.awayWinProb * 100).toFixed(0)}%` : 'N/A';
+
+
+                let status = '';
+                let resultText = 'Enter Result';
+                let resultClasses = 'bg-indigo-500 hover:bg-indigo-600';
+                let scoreDisplay = '';
+
+                if (f.homeScore !== null && f.awayScore !== null) {
+                    status = f.homeScore > f.awayScore ? `Winner: ${f.homeTeam}` : f.awayScore > f.homeScore ? `Winner: ${f.awayTeam}` : 'Status: Draw';
+                    resultText = 'Edit Result';
+                    resultClasses = 'bg-green-600 hover:bg-green-700'; // Dark theme green
+                    scoreDisplay = `<span class="font-extrabold text-2xl text-white">${f.homeScore}</span> - <span class="font-extrabold text-2xl text-white">${f.awayScore}</span>`;
+                }
+                
+                const fixtureEl = document.createElement('div');
+                // Dark theme classes: bg-gray-700, text-white
+                fixtureEl.className = 'p-5 bg-gray-700 rounded-xl shadow-lg mb-4 transition-all duration-300 transform hover:scale-[1.01] border border-gray-600';
+                fixtureEl.innerHTML = `
+                    <div class="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 md:space-x-4">
+                        
+                        <!-- Match Info -->
+                        <div class="flex items-center space-x-3 w-full md:w-1/2">
+                            <span class="text-lg font-bold text-gray-500 w-6 text-center">${index + 1}</span>
+                            <div class="flex-grow">
+                                <p class="text-xl font-bold text-indigo-400">${f.homeTeam}</p>
+                                <p class="text-sm text-gray-400">P: ${homeStats?.played || 0}, Pts: ${homeStats?.points || 0}</p>
+                            </div>
+                            <span class="text-2xl font-extrabold text-gray-500 mx-4">vs</span>
+                            <div class="flex-grow text-right">
+                                <p class="text-xl font-bold text-indigo-400">${f.awayTeam}</p>
+                                <p class="text-sm text-gray-400">P: ${awayStats?.played || 0}, Pts: ${awayStats?.points || 0}</p>
+                            </div>
+                        </div>
+
+                        <!-- Score Display / Button -->
+                        <div class="flex items-center space-x-4 w-full md:w-1/4 justify-center">
+                            ${scoreDisplay ? scoreDisplay : `<button data-fixture-index="${f.id}" class="px-4 py-2 text-sm font-semibold rounded-lg text-white ${resultClasses} transition-colors shadow-lg" onclick="window.showResultModal(${f.id})">${resultText}</button>`}
+                        </div>
+
+                        <!-- Odds -->
+                        <div class="text-sm text-gray-400 w-full md:w-1/4 text-center md:text-right p-2 rounded-lg bg-gray-800">
+                            <p class="font-semibold text-indigo-400 mb-1">Match Odds</p>
+                            <span class="font-bold text-green-500">${f.homeTeam}: ${homeWinProb}</span> / 
+                            <span class="font-bold text-gray-400">Draw: ${drawProb}</span> / 
+                            <span class="font-bold text-red-500">${f.awayTeam}: ${awayWinProb}</span>
+                        </div>
+                    </div>
+                `;
+                if (f.homeScore !== null && f.awayScore !== null) {
+                    const editButtonContainer = document.createElement('div');
+                    editButtonContainer.className = 'mt-3 flex justify-end';
+                    editButtonContainer.innerHTML = `<button data-fixture-index="${f.id}" class="px-4 py-2 text-xs font-semibold rounded-lg text-white ${resultClasses} transition-colors shadow-lg" onclick="window.showResultModal(${f.id})">Edit Result</button>`;
+                    fixtureEl.appendChild(editButtonContainer);
+                }
+                
+                fixtureContainer.appendChild(fixtureEl);
+            });
+        }
+        
+        /**
+         * Switches the active content tab.
+         * @param {string} tabId The ID of the tab content to show (e.g., 'table-tab').
+         * @param {HTMLElement} clickedButton The button that was clicked.
+         */
+        window.switchTab = function(tabId, clickedButton) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active', 'bg-gray-800', 'text-indigo-400', 'shadow-md');
+                button.classList.add('bg-indigo-700', 'text-white', 'hover:bg-indigo-600');
+            });
+            
+            if (clickedButton) {
+                // Dark theme active tab: bg-gray-800, text-indigo-400
+                clickedButton.classList.add('active', 'bg-gray-800', 'text-indigo-400', 'shadow-md');
+                clickedButton.classList.remove('bg-indigo-700', 'text-white', 'hover:bg-indigo-600');
+            }
+
+            // Re-render the content of the active tab
+            if (tabId === 'table-tab') {
+                renderTable();
+            } else if (tabId === 'fixtures-tab') {
+                if (!window.currentMatchDay && fixtures.length > 0) {
+                    window.currentMatchDay = 1;
+                }
+                renderFixtures();
+            }
+        }
+
+        // --- FIXTURE MANAGEMENT ---
+
+        /**
+         * Generates all fixtures for a double round-robin tournament.
+         */
+        window.generateFixtures = async function() {
+            if (teams.length < 2) {
+                displayMessage('Need at least 2 teams to generate fixtures.', 'bg-red-800 text-red-100');
+                return;
+            }
+            if (fixtures.length > 0 && !confirm('Fixtures already exist. Generating new ones will clear all previous results. Continue?')) {
+                return;
+            }
+
+            const teamNames = teams.map(t => t.teamName);
+            const n = teamNames.length;
+            const newFixtures = [];
+            let fixtureIdCounter = 1;
+
+            if (n % 2 !== 0) teamNames.push('BYE'); // Add BYE team for odd number of teams
+
+            const numTeams = teamNames.length;
+            const numRounds = numTeams - 1;
+
+            // Round Robin Algorithm (Single set)
+            for (let round = 0; round < numRounds; round++) {
+                // First Leg
+                for (let i = 0; i < numTeams / 2; i++) {
+                    const home = teamNames[i];
+                    const away = teamNames[numTeams - 1 - i];
+
+                    if (home !== 'BYE' && away !== 'BYE') {
+                        newFixtures.push({
+                            id: fixtureIdCounter++,
+                            matchDay: round + 1,
+                            homeTeam: home,
+                            awayTeam: away,
+                            homeScore: null,
+                            awayScore: null,
+                            odds: generateMatchOdds(home, away)
+                        });
+                    }
+                }
+                
+                // Double Leg (Second Leg)
+                for (let i = 0; i < numTeams / 2; i++) {
+                    const home = teamNames[numTeams - 1 - i];
+                    const away = teamNames[i];
+
+                    if (home !== 'BYE' && away !== 'BYE') {
+                        newFixtures.push({
+                            id: fixtureIdCounter++,
+                            matchDay: round + 1 + numRounds, // Match days continue after the first leg
+                            homeTeam: home,
+                            awayTeam: away,
+                            homeScore: null,
+                            awayScore: null,
+                            odds: generateMatchOdds(home, away)
+                        });
+                    }
+                }
+
+                // Rotate teams (except the first team, which remains fixed)
+                const last = teamNames.pop();
+                teamNames.splice(1, 0, last);
+            }
+
+            fixtures = newFixtures;
+            results = [];
+            maxMatchDays = numRounds * 2;
+            window.currentMatchDay = 1;
+
+            await updateLeagueData({ fixtures: fixtures, results: results });
+            renderFixtures();
+            switchTab('fixtures-tab', document.querySelector('.tab-button[data-tab="fixtures-tab"]'));
+        }
+        
+        /**
+         * Generates simple, random match odds.
+         * @param {string} teamA Name of the first team.
+         * @param {string} teamB Name of the second team.
+         * @returns {Object} Odds object {homeWinProb, drawProb, awayWinProb}.
+         */
+        window.generateMatchOdds = function(teamA, teamB) {
+            // Placeholder: Generates random probabilities that sum to 1.
+            let p1 = Math.random() * 0.7 + 0.1; // 10% to 80%
+            let p2 = Math.random() * (1 - p1) * 0.7 + 0.1; // 10% of remaining
+            let p3 = 1 - p1 - p2;
+            
+            // Re-normalize to ensure they sum perfectly to 1
+            const sum = p1 + p2 + p3;
+            p1 /= sum;
+            p2 /= sum;
+            p3 /= sum;
+
+            // Randomly assign which team gets which win probability (p1 or p3)
+            if (Math.random() < 0.5) {
+                return { homeWinProb: p1, drawProb: p2, awayWinProb: p3 };
+            } else {
+                return { homeWinProb: p3, drawProb: p2, awayWinProb: p1 };
+            }
+        }
+
+
+        // --- RESULT INPUT ---
+        
+        let currentFixtureId = null;
+
+        /**
+         * Shows the modal for entering or editing a result.
+         * @param {number} fixtureId The ID of the fixture to update.
+         */
+        window.showResultModal = function(fixtureId) {
+            if (!isAdmin) {
+                displayMessage('🛑 You must be logged in as an Administrator to enter or edit results.', 'bg-yellow-800 text-yellow-100');
+                return;
+            }
+
+            currentFixtureId = fixtureId;
+            const fixture = fixtures.find(f => f.id === fixtureId);
+            
+            if (!fixture) return;
+
+            document.getElementById('modal-title').textContent = `${fixture.homeTeam} vs ${fixture.awayTeam}`;
+            document.getElementById('home-score-input').value = fixture.homeScore !== null ? fixture.homeScore : '';
+            document.getElementById('away-score-input').value = fixture.awayScore !== null ? fixture.awayScore : '';
+            
+            document.getElementById('result-modal').classList.remove('hidden');
+        }
+
+        /**
+         * Hides the result modal.
+         */
+        window.closeModal = function() {
+            document.getElementById('result-modal').classList.add('hidden');
+        }
+        
+        /**
+         * Saves the entered score and updates Firestore.
+         */
+        window.saveResult = async function() {
+            const homeScore = parseInt(document.getElementById('home-score-input').value, 10);
+            const awayScore = parseInt(document.getElementById('away-score-input').value, 10);
+
+            if (isNaN(homeScore) || isNaN(awayScore) || homeScore < 0 || awayScore < 0) {
+                displayMessage('Please enter valid, non-negative scores.', 'bg-red-800 text-red-100');
+                return;
+            }
+
+            const fixtureIndex = fixtures.findIndex(f => f.id === currentFixtureId);
+
+            if (fixtureIndex !== -1) {
+                fixtures[fixtureIndex].homeScore = homeScore;
+                fixtures[fixtureIndex].awayScore = awayScore;
+                
+                await updateLeagueData({ fixtures: fixtures });
+                renderTable(); // Update table immediately
+                renderFixtures(); // Update fixture display
+            }
+
+            closeModal();
+        }
+
+        // --- MATCH DAY NAVIGATION ---
+        
+        window.currentMatchDay = 1;
+
+        window.goToNextMatchDay = function() {
+            if (window.currentMatchDay < maxMatchDays) {
+                window.currentMatchDay++;
+                renderFixtures();
+            }
+        }
+
+        window.goToPreviousMatchDay = function() {
+            if (window.currentMatchDay > 1) {
+                window.currentMatchDay--;
+                renderFixtures();
+            }
+        }
+
+
+        // --- AUTH & INITIALIZATION ---
+
+        /**
+         * Sets the application's role and updates the UI.
+         * @param {boolean} status If true, user is Admin.
+         */
+        function setAdminStatus(status) {
+            isAdmin = status;
+            const adminButton = document.getElementById('admin-access-btn');
+            const adminStatusEl = document.getElementById('admin-status');
+            const teamInput = document.getElementById('add-player-team-form');
+            const adminControls = document.getElementById('admin-controls');
+            
+            if (status) {
+                adminStatusEl.innerHTML = `<span class="font-extrabold text-green-500">Administrator</span> (ID: ${userId})`;
+                adminButton.textContent = 'Log Out Admin';
+                adminButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                adminButton.classList.add('bg-red-600', 'hover:bg-red-700');
+                teamInput.classList.remove('opacity-50', 'pointer-events-none');
+                adminControls.classList.remove('hidden');
+            } else {
+                adminStatusEl.innerHTML = `<span class="font-semibold text-gray-400">Viewer</span> (ID: ${userId})`;
+                adminButton.textContent = 'Admin Access';
+                adminButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+                adminButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+                teamInput.classList.add('opacity-50', 'pointer-events-none');
+                adminControls.classList.add('hidden');
+            }
+            renderRoster(); // Re-render to show/hide remove buttons
+        }
+
+        /**
+         * Handles the Admin PIN logic.
+         */
+        window.toggleAdminAccess = function() {
+            if (isAdmin) {
+                setAdminStatus(false);
+                displayMessage('Admin privileges removed.', 'bg-red-800 text-red-100');
+                return;
+            }
+
+            const pinModal = document.getElementById('pin-modal');
+            pinModal.classList.remove('hidden');
+        }
+
+        /**
+         * Checks the PIN entered by the user.
+         */
+        window.checkPin = function() {
+            const pinInput = document.getElementById('pin-input');
+            const pin = pinInput.value.toUpperCase().trim();
+            const correctPin = 'EFB'; // eFootball
+
+            if (pin === correctPin) {
+                setAdminStatus(true);
+                displayMessage('Administrator access granted!', 'bg-green-800 text-green-100');
+                document.getElementById('pin-modal').classList.add('hidden');
+                pinInput.value = '';
+            } else {
+                displayMessage('Incorrect PIN. Try again.', 'bg-red-800 text-red-100');
+                pinInput.value = '';
+            }
+        }
+        
+        /**
+         * The main function to set up Firebase, authentication, and the real-time listener.
+         */
+        async function initializeFirebaseApp() {
+            if (!firebaseConfig || !firebaseConfig.projectId) {
+                // Dark theme error message
+                document.getElementById('app-container').innerHTML = '<div class="p-8 text-center bg-red-800 text-red-100 rounded-xl m-8">🛑 CRITICAL: Data will NOT save or share! Please paste your Firebase Configuration into the code before running.</div>';
+                return;
+            }
+
+            try {
+                // Initialize Firebase services
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+                setLogLevel('Debug');
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                leagueDocRef = doc(db, PUBLIC_PATH, PUBLIC_DOC_ID);
+
+                // 2. Authenticate the user
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        setAdminStatus(false);
+                        
+                        // 3. Set up Real-Time Data Listener
+                        onSnapshot(leagueDocRef, (docSnap) => {
+                            if (docSnap.exists()) {
+                                const data = docSnap.data();
+                                // Update local state from Firestore
+                                teams = data.teams || [];
+                                fixtures = data.fixtures || [];
+                                results = data.results || [];
+
+                                // Update max match day for navigation
+                                maxMatchDays = fixtures.reduce((max, f) => Math.max(max, f.matchDay || 0), 0);
+                                
+                                // Set initial match day if none is set
+                                if (fixtures.length > 0 && !window.currentMatchDay) {
+                                    window.currentMatchDay = 1;
+                                }
+
+                                // Update UI
+                                renderRoster();
+                                renderFixtures();
+                                renderTable();
+                                
+                                console.log('Data loaded/updated from Firestore.');
+                            } else {
+                                // Document does not exist, create a new one with default data
+                                console.log('League document not found. Creating a new one.');
+                                if (isAdmin) {
+                                    setDoc(leagueDocRef, { teams: [], fixtures: [], results: [] })
+                                        .catch(e => console.error("Error creating initial document:", e));
+                                }
+                                // Ensure UI is reset if document is empty
+                                teams = []; fixtures = []; results = []; maxMatchDays = 0;
+                                renderRoster(); renderFixtures(); renderTable();
+                            }
+                        }, (error) => {
+                            console.error('Firestore Snapshot Error:', error);
+                            displayMessage(`❌ Real-time data failed to load: ${error.message}`, 'bg-red-800 text-red-100');
+                        });
+                        
+                    } else {
+                        // User is signed out or auth failed
+                        userId = 'unauthenticated';
+                        setAdminStatus(false);
+                    }
+                });
+
+                // Use the custom token for sign-in if available, otherwise sign in anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+            } catch (error) {
+                console.error('Firebase Initialization Error:', error);
+                document.getElementById('app-container').innerHTML = `<div class="p-8 text-center bg-red-800 text-red-100 rounded-xl m-8">Critical Error: Failed to initialize Firebase. Check your network or configuration. ${error.message}</div>`;
+            }
+        }
+
+        // --- INITIAL UI SETUP ---
+        
+        window.onload = function() {
+            // Start Firebase initialization
+            initializeFirebaseApp();
+            
+            // Set initial tab and match day
+            window.currentMatchDay = 1;
+            const defaultButton = document.querySelector('.tab-button[data-tab="table-tab"]');
+            window.switchTab('table-tab', defaultButton);
+        };
+
+        // Exposed global functions are implicitly handled by setting them on window.
+    </script>
+    <style>
+        /* Base styles for Dark Theme */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1f2937; /* bg-gray-800 */
+        }
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            min-height: 400px;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+        }
+        .tab-button {
+            transition: all 0.2s ease-in-out;
+            border-radius: 0.5rem 0.5rem 0 0;
+            position: relative;
+        }
+        .tab-button.active {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        /* Custom input style for dark mode */
+        input[type="text"], input[type="number"], input[type="password"] {
+            background-color: #374151; /* bg-gray-700 */
+            color: #f3f4f6; /* text-gray-100 */
+            border-color: #4b5563; /* border-gray-600 */
+        }
+        input::placeholder {
+            color: #9ca3af; /* text-gray-400 */
+        }
+        /* Scrollbar styling for a cleaner look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #374151; }
+        ::-webkit-scrollbar-thumb { background: #6b7280; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+    </style>
+</head>
+<body class="p-4 sm:p-6 md:p-10 bg-gray-900 text-gray-100">
+
+    <!-- Main Container -->
+    <div id="app-container" class="max-w-4xl mx-auto">
+        <header class="bg-gray-800 p-6 sm:p-8 rounded-t-3xl shadow-2xl border-t-8 border-indigo-600">
+            <h1 class="text-4xl font-extrabold text-indigo-400">eFootball League Manager PRO</h1>
+            <p class="text-gray-400 mt-1">Cloud-synced, real-time management for your league.</p>
+            
+            <div class="mt-4 pt-4 border-t border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center text-sm">
+                <div class="text-gray-300">
+                    Your Role: <span id="admin-status" class="font-semibold text-gray-500">Loading...</span>
+                </div>
+                <button id="admin-access-btn" onclick="window.toggleAdminAccess()" class="mt-3 sm:mt-0 px-4 py-2 text-white font-bold rounded-lg shadow-md bg-yellow-500 hover:bg-yellow-600 transition-colors">
+                    Admin Access
+                </button>
+            </div>
+            
+            <!-- Global Message Box -->
+            <div id="message-box" class="hidden mt-4 transition-all duration-300"></div>
+
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="flex mt-1 bg-indigo-700 rounded-t-xl overflow-hidden shadow-lg">
+            <!-- Active tab uses the main app background for seamless transition -->
+            <button class="tab-button active bg-gray-800 text-indigo-400 shadow-md flex-1 px-4 py-3 font-semibold text-sm sm:text-base" data-tab="table-tab" onclick="window.switchTab('table-tab', this)">
+                League Table
+            </button>
+            <button class="tab-button bg-indigo-700 text-white hover:bg-indigo-600 flex-1 px-4 py-3 font-semibold text-sm sm:text-base" data-tab="fixtures-tab" onclick="window.switchTab('fixtures-tab', this)">
+                Fixtures & Results
+            </button>
+            <button class="tab-button bg-indigo-700 text-white hover:bg-indigo-600 flex-1 px-4 py-3 font-semibold text-sm sm:text-base" data-tab="roster-tab" onclick="window.switchTab('roster-tab', this)">
+                Roster & Teams
+            </button>
+        </nav>
+
+        <!-- Tab Content -->
+        <main class="bg-gray-800 p-6 sm:p-8 rounded-b-3xl shadow-2xl mb-10 border-b-8 border-indigo-600">
+
+            <!-- 1. League Table Tab -->
+            <div id="table-tab" class="tab-content active">
+                <h2 class="text-2xl font-bold text-gray-200 mb-4">Current Standings</h2>
+                <div id="league-table-container" class="overflow-x-auto">
+                    <div class="p-6 text-center text-gray-400">Loading table...</div>
+                </div>
+            </div>
+
+            <!-- 2. Fixtures Tab -->
+            <div id="fixtures-tab" class="tab-content">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="match-day-header" class="text-2xl font-bold text-gray-200">Match Day 1</h2>
+                    <div id="fixture-nav-buttons" class="space-x-2">
+                        <!-- Dark theme buttons -->
+                        <button id="prev-match-day-btn" onclick="window.goToPreviousMatchDay()" class="px-4 py-2 bg-indigo-800 text-indigo-300 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50" disabled>
+                            &lt; Prev
+                        </button>
+                        <button id="next-match-day-btn" onclick="window.goToNextMatchDay()" class="px-4 py-2 bg-indigo-800 text-indigo-300 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                            Next &gt;
+                        </button>
+                    </div>
+                </div>
+                <button id="generate-fixtures-button" onclick="window.generateFixtures()" class="w-full px-4 py-3 mb-4 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors shadow-lg disabled:opacity-50">
+                    Generate Fixtures (Double Round Robin)
+                </button>
+                <div id="fixtures-container">
+                    <div class="p-6 text-center text-gray-400">Loading fixtures...</div>
+                </div>
+            </div>
+
+            <!-- 3. Roster & Teams Tab -->
+            <div id="roster-tab" class="tab-content">
+                <h2 class="text-2xl font-bold text-gray-200 mb-4">Manage Teams & Roster</h2>
+                
+                <!-- Add Player/Team Form -->
+                <!-- Dark theme form: bg-gray-700 border-indigo-600 -->
+                <form id="add-player-team-form" onsubmit="event.preventDefault(); window.addPlayer();" class="p-5 mb-6 bg-gray-700 border border-indigo-600 rounded-xl shadow-inner transition-opacity duration-300">
+                    <p class="text-lg font-bold text-indigo-400 mb-3">Add Player to Team</p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <!-- Dark theme input fields defined in CSS -->
+                        <input type="text" id="player-name" placeholder="Player Name (e.g., Jane Doe)" required class="flex-1 p-3 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        <input type="text" id="team-name" placeholder="Team Name (e.g., Man Utd)" required class="flex-1 p-3 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        <button type="submit" class="sm:w-auto px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors shadow-lg">
+                            Add Player/Team
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">If the team name doesn't exist, a new team will be created.</p>
+                </form>
+                
+                <!-- Team List -->
+                <div class="mb-4">
+                    <h3 class="text-xl font-semibold text-gray-200 mb-2">Team List (<span id="team-count">0 Teams</span>)</h3>
+                    <div id="roster-list">
+                        <!-- Roster items will be injected here -->
+                        <div class="p-6 text-center text-gray-400">No teams added yet.</div>
+                    </div>
+                </div>
+
+                <!-- Admin Controls (Danger Zone) -->
+                <div id="admin-controls" class="mt-8 pt-6 border-t border-gray-700 hidden">
+                    <h3 class="text-xl font-bold text-red-500 mb-4">Admin Danger Zone</h3>
+                    <button id="clear-data-button" onclick="window.clearAllData()" class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-lg disabled:opacity-50">
+                        Clear ALL League Data
+                    </button>
+                    <p class="text-sm text-gray-400 mt-2">Warning: This action is irreversible and clears all data from the cloud for this league.</p>
+                </div>
+            </div>
+
+        </main>
+        
+        <!-- Result Modal (Hidden by Default) -->
+        <!-- Dark theme modal: bg-gray-800 -->
+        <div id="result-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 transition-opacity" onclick="window.closeModal()">
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300" onclick="event.stopPropagation()">
+                <h3 id="modal-title" class="text-xl font-bold text-indigo-400 mb-4">Enter Match Result</h3>
+                
+                <div class="flex justify-between items-center space-x-4 mb-6">
+                    <label class="text-lg font-semibold text-gray-300">Home Score:</label>
+                    <input type="number" id="home-score-input" min="0" required class="w-24 p-3 border rounded-lg text-center text-xl font-bold">
+                </div>
+                
+                <div class="flex justify-between items-center space-x-4 mb-8">
+                    <label class="text-lg font-semibold text-gray-300">Away Score:</label>
+                    <input type="number" id="away-score-input" min="0" required class="w-24 p-3 border rounded-lg text-center text-xl font-bold">
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <!-- Dark theme buttons -->
+                    <button onclick="window.closeModal()" class="px-4 py-2 bg-gray-600 text-gray-200 font-semibold rounded-lg hover:bg-gray-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="window.saveResult()" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors">
+                        Save Result
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin PIN Modal (Hidden by Default) -->
+        <div id="pin-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 transition-opacity">
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl w-full max-w-sm transform transition-all duration-300" onclick="event.stopPropagation()">
+                <h3 class="text-xl font-bold text-indigo-400 mb-2">Admin Access Required</h3>
+                <p class="text-gray-400 mb-4">Enter the PIN to gain Administrator privileges.</p>
+                
+                <label for="pin-input" class="block text-sm font-medium text-gray-300 mb-1">
+                    What is the name of the popular Konami soccer franchise this league is played on?
+                </label>
+                <input type="password" id="pin-input" placeholder="Hint: Three letters" required class="w-full p-3 border rounded-lg mb-6 text-center text-xl font-mono tracking-widest uppercase">
+
+                <div class="flex justify-end space-x-3">
+                    <button onclick="document.getElementById('pin-modal').classList.add('hidden')" class="px-4 py-2 bg-gray-600 text-gray-200 font-semibold rounded-lg hover:bg-gray-700 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="window.checkPin()" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors">
+                        Enter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
