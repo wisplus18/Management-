@@ -3,365 +3,636 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Football Tournament</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>E-Football Mobile League</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
+    
     <style>
         :root {
+            --primary-color: #007bff;
+            --secondary-color: #00c6ff;
+            --gold-accent: #ffd700;
+            --stadium-green: #28a745;
+            --danger-red: #dc3545;
+            --grey: #6c757d;
+
+            /* --- Theme Variables (DEFAULT: DARK) --- */
+            --bg-main: #121212;
+            --bg-light: #1e1e1e;
+            --bg-lighter: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border-color: #444;
+            --hero-bg-url: url('stadium.jpg'); /* Default background */
+        }
+
+        body[data-theme="light"] {
             --bg-main: #f0f2f5;
             --bg-light: #ffffff;
             --bg-lighter: #f8f9fa;
             --text-primary: #212529;
             --text-secondary: #6c757d;
             --border-color: #dee2e6;
-            --hero-bg-url: url('stadium.jpg');
-        }
-
-        [data-theme="dark"] {
-            --bg-main: #1a1a1a;
-            --bg-light: #2c2c2c;
-            --bg-lighter: #3a3a3a;
-            --text-primary: #f8f9fa;
-            --text-secondary: #adb5bd;
-            --border-color: #495057;
         }
 
         body {
+            font-family: 'Roboto', sans-serif;
             background-color: var(--bg-main);
             color: var(--text-primary);
-            font-family: Arial, sans-serif;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+            min-height: 100vh;
         }
 
-        .navbar {
-            background-color: var(--bg-light);
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.3s ease;
-        }
-
-        .navbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: bold;
-        }
-
-        .navbar-brand svg {
-            width: 30px;
-            height: 30px;
-        }
-
-        .hero {
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), var(--hero-bg-url);
-            background-size: cover;
-            background-position: center;
-            color: white;
-            text-align: center;
-            padding: 100px 0;
-        }
-
-        .section-title {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 1.5rem;
-            color: var(--text-primary);
-        }
-
-        .card {
-            background-color: var(--bg-light);
-            border: 1px solid var(--border-color);
-            transition: background-color 0.3s ease;
-        }
-
-        .league-table {
-            width: 100%;
-        }
-
-        .league-table th, .league-table td {
-            text-align: center;
-            padding: 10px;
-        }
-
-        .player-name-cell {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .player-name-cell img {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-        }
-
-        .form-cell {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        .form-bubble {
-            width: 20px;
-            height: 20px;
-            line-height: 20px;
-            text-align: center;
-            border-radius: 50%;
-            color: white;
-            font-size: 12px;
-        }
-
-        .form-bubble-W { background-color: #28a745; }
-        .form-bubble-D { background-color: #6c757d; }
-        .form-bubble-L { background-color: #dc3545; }
-
-        .top-team-row { background-color: #d4edda; }
-        .bottom-team-row { background-color: #f8d7da; }
-
-        .match-card, .result-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background-color: var(--bg-light);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            transition: background-color 0.3s ease;
-        }
-
-        .match-player, .result-player {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 30%;
-        }
-
-        .match-player img, .result-player img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-        }
-
-        .match-info, .result-info {
-            text-align: center;
-        }
-
-        .match-info .vs {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .result-info .score {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .result-info .score .winner {
-            color: #28a745;
-        }
-
-        .admin-controls {
-            display: flex;
-            gap: 5px;
-        }
-
-        .player-card {
-            background-color: var(--bg-light);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            transition: background-color 0.3s ease;
-        }
-
-        .player-card img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
-
-        .prize-card {
-            background-color: var(--bg-light);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            transition: background-color 0.3s ease;
-        }
-
-        .prize-card-1 { background-color: #ffd700; }
-        .prize-card-2 { background-color: #c0c0c0; }
-        .prize-card-3 { background-color: #cd7f32; }
-
-        .prize-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .live-ticker {
-            background-color: var(--bg-lighter);
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-            overflow: hidden;
-            transition: background-color 0.3s ease;
-        }
-
-        .live-ticker-content {
-            display: inline-block;
-            white-space: nowrap;
-            animation: ticker 20s linear infinite;
-        }
-
-        @keyframes ticker {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-
-        .matchday-nav {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-        }
-
-        /* --- FIX: Black Screen Issue --- */
+        /* --- NEW: Intro Overlay Styles (Image + Text) --- */
         #intro-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #000;
-            z-index: 9999;
+            background-color: var(--bg-main);
+            z-index: 99999;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.5s ease;
-            /* Start invisible and hidden by default, JS will show it */
-            opacity: 0; 
-            display: none; 
+            overflow: hidden; 
+            opacity: 1;
+            transition: opacity 5s ease-out;
         }
 
+        /* 1. Scrolling Text Marquee */
         #intro-text-marquee {
-            font-size: 2rem;
-            color: #fff;
-            font-weight: bold;
             position: absolute;
             top: 50%;
             white-space: nowrap;
-            transform: translateY(-50%);
-            display: none;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+            padding: 0 100vw; 
+            display: none; 
+            animation: marquee 0.01s linear forwards; 
+        }
+        @keyframes marquee {
+            0% { transform: translate(100%, -50%); } 
+            100% { transform: translate(-100%, -50%); } 
         }
 
+        /* 2. Intro Image Container */
         #intro-image-container {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            justify-content: center;
-            align-items: center;
+            display: none; 
             width: 100%;
             height: 100%;
-        }
-
-        #intro-image {
-            max-width: 80%;
-            max-height: 80%;
-            object-fit: contain;
-        }
-        /* -------------------------------- */
-
-        .knockout-bracket {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding: 20px;
-        }
-
-        .knockout-round {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .knockout-match {
-            background-color: var(--bg-light);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
+            background-color: var(--bg-main);
+            justify-content: center;
             align-items: center;
+            opacity: 0;
+            transition: opacity 0.1s ease-in-out;
+        }
+        #intro-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Changed from cover to contain for better image display */
+            opacity: 0.9; 
+        }
+        /* --- End Intro Overlay --- */
+        
+        /* --- Navbar --- */
+        .navbar {
+            background-color: var(--bg-light);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color) !important;
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-brand img, .navbar-brand svg {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .nav-link {
+            color: var(--text-secondary) !important;
+            font-weight: 500;
+            padding: 10px 15px;
+            transition: color 0.3s;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-color) !important;
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            color: #fff;
+            background-color: var(--primary-color);
+        }
+        
+        #theme-toggle {
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+        /* --- Live Ticker --- */
+        .live-ticker {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 10px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .live-ticker-content {
+            display: inline-block;
+            animation: tickerSlide 35s linear infinite;
+        }
+
+        @keyframes tickerSlide {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            /* Now uses the CSS variable which will be set by JS */
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), var(--hero-bg-url);
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 100px 20px 80px 20px;
+            border-bottom: 2px solid var(--primary-color);
+            min-height: 400px; /* FIX: Ensure minimum height to prevent 'broken pixels' on load */
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+            text-transform: uppercase;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 650px;
+            margin: 20px auto 30px auto;
+            font-weight: 300;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 12px 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);
+        }
+        .btn-secondary {
+            background-color: var(--grey);
+            border-color: var(--grey);
+        }
+
+        /* --- Section Styling --- */
+        section {
+            padding: 60px 0;
             transition: background-color 0.3s ease;
         }
+        section:nth-of-type(odd) {
+            background-color: var(--bg-light);
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        
+        /* --- Card Styling --- */
+        .card {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        .card-header {
+            background-color: var(--bg-lighter);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        /* --- Promotion Section / Carousel Styles --- */
+        #promotions {
+            background-color: var(--bg-main);
+            padding: 30px 0;
+        }
+        .promotion-card {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-height: 450px; /* Ensure card has height */
+        }
+        .promotion-image-container {
+            width: 100%;
+            max-height: 200px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        .promotion-card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .promotion-details {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+        }
+        .promotion-price-block {
+            margin: 10px 0;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--gold-accent);
+        }
+        .promotion-discount {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--danger-red);
+            text-decoration: line-through;
+            margin-right: 10px;
+        }
+        .promotion-contact a {
+            color: var(--primary-color);
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .carousel-control-prev-icon, .carousel-control-next-icon {
+            filter: invert(1);
+        }
+        .carousel-indicators [data-bs-target] {
+            background-color: var(--primary-color);
+        }
+        
+        @media (min-width: 768px) {
+            .promotion-card {
+                flex-direction: row;
+                text-align: left;
+                align-items: flex-start;
+                gap: 30px;
+                min-height: 300px; /* Adjust height for desktop */
+            }
+            .promotion-image-container {
+                width: 40%;
+                max-height: 250px;
+                flex-shrink: 0;
+            }
+            .promotion-card-img {
+                height: 250px;
+                object-fit: cover;
+            }
+            .promotion-details {
+                width: 60%;
+                align-items: flex-start;
+            }
+            .promotion-price-block {
+                display: flex;
+                align-items: center;
+            }
+        }
+        /* --- End Promotion Section Styles --- */
 
-        .admin-mode {
-            display: none;
+
+        /* --- Standings Table --- */
+        .league-table {
+            background-color: var(--bg-light);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
 
+        .league-table thead th {
+            background-color: var(--bg-lighter);
+            color: var(--primary-color);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .league-table tbody tr:hover {
+            background-color: var(--bg-lighter);
+        }
+        
+        .league-table th, .league-table td {
+            vertical-align: middle;
+            padding: 0.9rem 0.75rem;
+            border-bottom-color: var(--border-color);
+        }
+        
+        .player-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+        
+        .player-name-cell img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-color);
+        }
+        
+        .player-profile-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .player-profile-link:hover {
+            color: var(--primary-color);
+        }
+
+        .pos-cell { font-weight: 700; font-size: 1.1rem; width: 40px; text-align: center; }
+        .pts-cell { font-weight: 700; font-size: 1.1rem; }
+
+        .form-cell .form-bubble {
+            display: inline-block;
+            width: 22px;
+            height: 22px;
+            line-height: 22px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #fff;
+            margin: 0 1px;
+        }
+        .form-bubble-W { background-color: var(--stadium-green); }
+        .form-bubble-D { background-color: var(--grey); }
+        .form-bubble-L { background-color: var(--danger-red); }
+
+        .top-team-row { border-left: 4px solid var(--gold-accent); }
+        .mid-team-row { border-left: 4px solid var(--primary-color); }
+        .bottom-team-row { border-left: 4px solid var(--danger-red); }
+
+        /* --- Fixtures/Results Combined Card --- */
+        .matchday-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .matchday-nav h4 { color: var(--text-primary); font-weight: 500; margin: 0; width: 250px; text-align: center; }
+        
+        .match-card, .result-card {
+            background-color: var(--bg-lighter);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .match-card:hover, .result-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-color);
+        }
+        /* Style for played matches */
+        .result-card {
+             border-left: 5px solid var(--primary-color);
+        }
+        
+        .match-player, .result-player {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 40%;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        .match-player img, .result-player img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: var(--bg-main);
+        }
+        .match-player:last-of-type, .result-player:last-of-type {
+            justify-content: flex-end;
+            text-align: right;
+        }
+        
+        .match-info, .result-info { text-align: center; width: 20%; }
+        /* Fixture VS */
+        .match-info .vs { font-size: 1.2rem; font-weight: 700; color: var(--primary-color); }
+        .match-info .date { font-size: 0.85rem; color: var(--text-secondary); }
+        /* Result Score */
+        .result-info .score { font-size: 2rem; font-weight: 900; color: var(--text-primary); letter-spacing: 2px; }
+        .result-info .score .winner { color: var(--gold-accent); }
+
+        .admin-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        /* --- Players Section --- */
+        .player-card {
+            background-color: var(--bg-lighter);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            text-align: center;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.15);
+        }
+        .player-card img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 1rem auto;
+            border: 3px solid var(--primary-color);
+            background-color: var(--bg-main);
+        }
+        .player-card .card-title { font-size: 1.3rem; font-weight: 700; color: var(--primary-color); }
+        .player-card .card-text { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
+        
+        /* --- Admin / Modals --- */
+        .admin-mode { display: none; }
+        
+        .modal-content {
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .modal-header, .modal-footer {
+            border-bottom-color: var(--border-color);
+            border-top-color: var(--border-color);
+            transition: border-color 0.3s ease;
+        }
+        .btn-close {
+            /* Fix for light theme */
+            filter: var(--text-primary) == '#ffffff' ? invert(1) : none;
+        }
+        body[data-theme="light"] .btn-close {
+             filter: none;
+        }
+
+        .form-control, .form-select {
+            background-color: var(--bg-main);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: var(--bg-main);
+            border-color: var(--primary-color);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+        }
+        .form-control::placeholder { color: var(--text-secondary); }
+        .form-control:disabled { background-color: var(--bg-lighter); }
+        
+        .result-modal-scores { display: flex; justify-content: center; align-items: center; gap: 1rem; }
+        .result-modal-scores label { font-size: 1.1rem; font-weight: 500; }
+        .result-modal-scores input { width: 80px; font-size: 2rem; font-weight: 700; text-align: center; }
+        .result-modal-vs { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); }
+        
+        /* Toast Styling */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1090;
+        }
+
+        /* Footer Style */
+        .league-footer {
+            background-color: #000 !important;
+            color: #ccc;
+            padding: 20px 0;
+            font-size: 0.9rem;
+            border-top: 3px solid var(--primary-color);
+        }
+
+        /* Mobile Optimization */
         @media (max-width: 768px) {
-            .match-card, .result-card, .knockout-match {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
+            .hero h1 { font-size: 2.2rem; }
+            .hero p { font-size: 1rem; }
+            .navbar-brand { font-size: 1.2rem; }
+            .nav-link { font-size: 0.9rem; padding: 8px 12px; }
+            
+            #intro-text-marquee { font-size: 1.5rem; }
 
-            .match-player, .result-player {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .navbar-nav {
-                text-align: center;
+            .match-card, .result-card { flex-direction: column; gap: 1rem; padding: 1rem; }
+            .match-player, .result-player { width: 100%; font-size: 1rem; }
+            .match-player:last-of-type, .result-player:last-of-type { justify-content: flex-start; text-align: left; }
+            .match-info, .result-info { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+            .result-info .score { font-size: 1.8rem; }
+            .match-info .vs { order: 2; }
+            .match-info .date { order: 1; }
+            
+            .table-responsive { border-radius: 10px; }
+            .table { font-size: 0.85rem; }
+            .player-name-cell img { width: 30px; height: 30px; }
+            
+            /* Hide columns on mobile to save space */
+            .table th:nth-child(7), .table td:nth-child(7), /* GF */
+            .table th:nth-child(8), .table td:nth-child(8), /* GA */
+            .table th:nth-child(10), .table td:nth-child(10) /* Form */
+            {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
     <div id="intro-overlay">
-        <div id="intro-text-marquee">WELCOME TO THE EFOOTBALL TOURNAMENT</div>
+        <div id="intro-text-marquee">WELCOME TO THE EFOOTBALL LEAGUE</div>
         <div id="intro-image-container">
-            <img id="intro-image" src="https://i.imgur.com/8Qj9Y0b.png" alt="Tournament Intro Image">
+            <img id="intro-image" src="" alt="League Intro Image">
         </div>
     </div>
     <div class="toast-container" id="toast-container"></div>
-    
-    <div class="alert alert-info text-center m-0 p-2" role="alert">
-        **Admin Password:** Genie. Use the "Admin" button to log in.
-    </div>
+
+
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="#007bff">
                     <path d="M50,0A50,50,0,1,0,50,100,50,50,0,0,0,50,0ZM76.4,26.66l-6.85,6.85a28,28,0,0,1-13.7,11.37L50,50,44.15,44.88a28,28,0,0,1-11.37-13.7L25.93,23.6A38.56,38.56,0,0,1,50,11.5a38.16,38.16,0,0,1,26.4,15.16ZM23.6,74.07l6.85-6.85a28,28,0,0,1,13.7-11.37L50,50,55.85,55.12a28,28,0,0,1,11.37,13.7l6.85,6.85A38.56,38.56,0,0,1,50,88.5,38.16,38.16,0,0,1,23.6,74.07Z"/>
                 </svg>
-                E-FOOTBALL TOURNAMENT
+                E-FOOTBALL LEAGUE
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#promotions">Promotions</a></li>
                     <li class="nav-item"><a class="nav-link" href="#standings">Standings</a></li>
                     <li class="nav-item"><a class="nav-link" href="#fixtures">Fixtures</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#results">Results</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#knockout">Knockout</a></li>
                     <li class="nav-item"><a class="nav-link" href="#players">Players</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#prizes">Prizes</a></li>
                     <li class="nav-item">
                         <button class="btn nav-link" id="theme-toggle" aria-label="Toggle theme">
-                            <i class="fa-solid fa-sun"></i>
-                        </button>
+                            <i class="fa-solid fa-sun"></i> </button>
                     </li>
                     <li class="nav-item">
                         <button class="btn btn-outline-primary ms-2" id="admin-login-button">
@@ -379,8 +650,8 @@
 
     <section class="hero">
         <div class="container">
-            <h1>HALOTEL TOURNAMENT</h1>
-            <p>Join the exciting Halotel tournament! Win data prizes from a pool of 12 GB. Check the group standings, fixtures, knockout bracket, and results here.</p>
+            <h1>EFOOTBALL LEAGUE  SEASON 1</h1>
+            <p> karibu kwenye efootball league </p>
             <a href="#standings" class="btn btn-primary">View Standings</a>
         </div>
     </section>
@@ -402,7 +673,103 @@
             </div>
         </div>
     </div>
+    
+    <div class="modal fade" id="editBackgroundModal" tabindex="-1" aria-labelledby="editBackgroundModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editBackgroundModalLabel">Edit Hero Background</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="backgroundFile" class="form-label">Upload Image from Gallery (Requires Firebase Storage)</label>
+                        <input type="file" id="backgroundFile" class="form-control" accept="image/png, image/jpeg, image/webp">
+                        <small class="text-info">Optional Gallery upload (requires Firebase Storage setup).</small>
+                    </div>
+                    <div class="text-center text-secondary my-2">OR (URL takes precedence)</div>
+                    <div class="mb-3">
+                        <label for="backgroundUrl" class="form-label">Background Image URL</label>
+                        <input type="url" id="backgroundUrl" class="form-control" placeholder="Paste image URL (e.g., https://example.com/stadium.jpg)" aria-label="Background URL">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-warning" onclick="resetBackground()">Reset to Default</button>
+                    <button type="button" class="btn btn-primary" onclick="submitBackground()">Set Background</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <div class="modal fade" id="editIntroImageModal" tabindex="-1" aria-labelledby="editIntroImageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editIntroImageModalLabel">Edit Intro Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="introImageFile" class="form-label">Upload Image from Gallery (Requires Firebase Storage)</label>
+                        <input type="file" id="introImageFile" class="form-control" accept="image/png, image/jpeg, image/webp">
+                        <small class="text-info">Optional Gallery upload (requires Firebase Storage setup).</small>
+                    </div>
+                    <div class="text-center text-secondary my-2">OR (URL takes precedence)</div>
+                    <div class="mb-3">
+                        <label for="introImageUrl" class="form-label">Intro Image URL</label>
+                        <input type="url" id="introImageUrlInput" class="form-control" placeholder="Paste image URL (e.g., https://example.com/league_logo.png)" aria-label="Intro Image URL">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-warning" onclick="resetIntroImage()">Reset to Default</button>
+                    <button type="button" class="btn btn-primary" onclick="submitIntroImage()">Set Intro Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="addPromotionModal" tabindex="-1" aria-labelledby="addPromotionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addPromotionModalLabel">Add New Promotion/Ad</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="promotionImage" class="form-label">Image URL</label>
+                        <input type="url" id="promotionImageUrl" class="form-control mb-2" placeholder="Paste image URL (e.g., https://example.com/ad.jpg)" aria-label="Promotion Image URL">
+                        <input type="file" id="promotionImageFile" class="form-control" accept="image/png, image/jpeg, image/webp">
+                        <small class="text-info">Optional Gallery upload (requires Firebase Storage setup).</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="promotionDescription" class="form-label">Description</label>
+                        <textarea id="promotionDescription" class="form-control" rows="3" placeholder="Describe the product/service"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label for="promotionPrice" class="form-label">Price (e.g., $50)</label>
+                            <input type="text" id="promotionPrice" class="form-control" placeholder="Required Price">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label for="promotionDiscount" class="form-label">Optional Discount (e.g., $75)</label>
+                            <input type="text" id="promotionDiscount" class="form-control" placeholder="Optional original price for discount">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="promotionContact" class="form-label">Contact (e.g., +255-XXX-XXX)</label>
+                        <input type="text" id="promotionContact" class="form-control" placeholder="Contact information (e.g., phone, email, WhatsApp link)">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitPromotion()">Add Promotion</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="addPlayerModal" tabindex="-1" aria-labelledby="addPlayerModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -416,12 +783,14 @@
                         <input type="text" id="playerName" class="form-control" placeholder="Enter name" aria-label="Player Name">
                     </div>
                     <div class="mb-3">
+                        <label for="playerAvatarFile" class="form-label">Upload Avatar (Requires Firebase Storage)</label>
+                        <input type="file" id="playerAvatarFile" class="form-control" accept="image/png, image/jpeg, image/webp">
+                        <small class="text-info">Optional Gallery upload (requires Firebase Storage setup).</small>
+                    </div>
+                    <div class="text-center text-secondary my-2">OR</div>
+                    <div class="mb-3">
                         <label for="playerAvatarUrl" class="form-label">Avatar URL</label>
                         <input type="url" id="playerAvatarUrl" class="form-control" placeholder="Paste image URL" aria-label="Player Avatar URL">
-                    </div>
-                    <div class="mb-3">
-                        <label for="playerGroup" class="form-label">Group</label>
-                        <select id="playerGroup" class="form-select" aria-label="Select Group"></select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -453,26 +822,8 @@
                         <input type="date" id="fixtureDate" class="form-control" aria-label="Fixture Date">
                     </div>
                     <div class="mb-3">
-                        <label for="fixtureStage" class="form-label">Stage</label>
-                        <select id="fixtureStage" class="form-select" aria-label="Stage">
-                            <option value="group">Group Stage</option>
-                            <option value="knockout">Knockout Stage</option>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="groupStageFields">
-                        <label for="fixtureGroup" class="form-label">Group</label>
-                        <select id="fixtureGroup" class="form-select" aria-label="Select Group"></select>
                         <label for="fixtureMatchday" class="form-label">Matchday</label>
                         <input type="number" id="fixtureMatchday" class="form-control" min="1" value="1" aria-label="Matchday">
-                    </div>
-                    <div class="mb-3" id="knockoutStageFields" style="display: none;">
-                        <label for="knockoutRound" class="form-label">Round</label>
-                        <select id="knockoutRound" class="form-select" aria-label="Knockout Round">
-                            <option value="Quarterfinals">Quarterfinals</option>
-                            <option value="Semifinals">Semifinals</option>
-                            <option value="Final">Final</option>
-                            <option value="Third Place">Third Place Playoff</option>
-                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -495,98 +846,86 @@
                     <div class="text-center mb-3">
                         <h6 id="resultModalPlayer1Name">Player 1</h6>
                     </div>
-                    <div class="result-modal-scores d-flex justify-content-center align-items-center gap-3">
+                    <div class="result-modal-scores">
                         <input type="number" id="resultScore1" class="form-control" min="0" aria-label="Player 1 Score">
                         <span class="result-modal-vs">-</span>
                         <input type="number" id="resultScore2" class="form-control" min="0" aria-label="Player 2 Score">
                     </div>
-                    <div class="text-center mt-3">
+                     <div class="text-center mt-3">
                         <h6 id="resultModalPlayer2Name">Player 2</h6>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="submitResult()">Submit Result</button>
+                    <button type="button" class="btn btn-primary" onclick="submitResult()">Update Result</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="modal fade" id="manageGroupsModal" tabindex="-1" aria-labelledby="manageGroupsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="manageGroupsModalLabel">Manage Groups</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="numGroups" class="form-label">Number of Groups</label>
-                        <input type="number" id="numGroups" class="form-control" min="1" value="4" aria-label="Number of Groups">
+    <section id="promotions" class="py-5">
+        <div class="container">
+            <h2 class="section-title">Promotions</h2>
+            
+            <div id="promotionsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+                <div class="carousel-indicators" id="promotionIndicators">
                     </div>
-                    <button type="button" class="btn btn-primary" onclick="generateGroups()">Generate Groups</button>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="editBackgroundModal" tabindex="-1" aria-labelledby="editBackgroundModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editBackgroundModalLabel">Edit Hero Background</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="backgroundUrl" class="form-label">Background Image URL</label>
-                        <input type="url" id="backgroundUrl" class="form-control" placeholder="Paste image URL" aria-label="Background URL">
+                <div class="carousel-inner" id="promotionCarouselInner">
+                    <div class="carousel-item active">
+                         <div class="promotion-card">
+                            <div class="promotion-details w-100 text-center text-secondary py-5">
+                                No promotions available yet. Check back soon!
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-warning" onclick="resetBackground()">Reset to Default</button>
-                    <button type="button" class="btn btn-primary" onclick="submitBackground()">Set Background</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="editIntroImageModal" tabindex="-1" aria-labelledby="editIntroImageModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editIntroImageModalLabel">Edit Intro Image</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="introImageUrlInput" class="form-label">Intro Image URL</label>
-                        <input type="url" id="introImageUrlInput" class="form-control" placeholder="Paste image URL" aria-label="Intro Image URL">
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-warning" onclick="resetIntroImage()">Reset to Default</button>
-                    <button type="button" class="btn btn-primary" onclick="submitIntroImage()">Set Intro Image</button>
-                </div>
+                
+                <button class="carousel-control-prev" type="button" data-bs-target="#promotionsCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#promotionsCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+            
+            <div class="admin-mode mt-4 text-center">
+                <button class="btn btn-primary me-2" onclick="showAddPromotionModal()">
+                    <i class="fa-solid fa-bullhorn me-1"></i> Add Promotion
+                </button>
             </div>
         </div>
-    </div>
-
+    </section>
     <section id="standings" class="py-5">
         <div class="container">
-            <h2 class="section-title">Group Stage Standings</h2>
-            <div id="groupStandings"></div>
+            <h2 class="section-title">Standings</h2>
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table league-table table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="pos-cell">#</th>
+                                    <th scope="col" style="width: 30%;">Player</th>
+                                    <th scope="col">MP</th>
+                                    <th scope="col">W</th>
+                                    <th scope="col">D</th>
+                                    <th scope="col">L</th>
+                                    <th scope="col">GF</th>
+                                    <th scope="col">GA</th>
+                                    <th scope="col">GD</th>
+                                    <th scope="col" class="form-cell">Form</th>
+                                    <th scope="col" class="pts-cell">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody id="standingsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
             <div class="admin-mode mt-4 text-center">
                 <button class="btn btn-primary me-2" onclick="showAddPlayerModal()">
                     <i class="fa-solid fa-user-plus me-1"></i> Add Player
-                </button>
-                <button class="btn btn-primary me-2" onclick="showManageGroupsModal()">
-                    <i class="fa-solid fa-users me-1"></i> Manage Groups
                 </button>
                 <button class="btn btn-info me-2 text-white" onclick="showEditBackgroundModal()">
                     <i class="fa-solid fa-image me-1"></i> Edit Background
@@ -594,16 +933,16 @@
                 <button class="btn btn-success me-2 text-white" onclick="showEditIntroImageModal()">
                     <i class="fa-solid fa-camera me-1"></i> Edit Intro Image
                 </button>
-                <button class="btn btn-danger" onclick="resetTournament()">
-                    <i class="fa-solid fa-trash me-1"></i> Reset Tournament
+                <button class="btn btn-danger" onclick="resetLeague()">
+                    <i class="fa-solid fa-trash me-1"></i> Reset League
                 </button>
             </div>
         </div>
     </section>
 
-    <section id="fixtures" class="py-5">
+    <section id="fixtures" class="py-5 bg-light">
         <div class="container">
-            <h2 class="section-title">Fixtures</h2>
+            <h2 class="section-title">Fixtures & Results</h2>
             <div class="matchday-nav">
                 <button class="btn btn-primary" id="prevMatchday" onclick="changeMatchday(-1)">
                     <i class="fa-solid fa-arrow-left"></i>
@@ -613,40 +952,14 @@
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
-            <div id="fixturesContainer"></div>
+            <div id="fixturesContainer"> 
+                </div>
             <div class="admin-mode mt-4 text-center">
                 <button class="btn btn-primary me-2" onclick="showAddFixtureModal()">
                     <i class="fa-solid fa-calendar-plus me-1"></i> Add Fixture
                 </button>
-                <button class="btn btn-success" onclick="generateGroupFixtures()">
-                    <i class="fa-solid fa-cogs me-1"></i> Generate Group Fixtures
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <section id="results" class="py-5">
-        <div class="container">
-            <h2 class="section-title">Results</h2>
-            <div class="row justify-content-center mb-4">
-                <div class="col-md-6">
-                    <label for="teamSelector" class="form-label">Filter by Player</label>
-                    <select id="teamSelector" class="form-select" onchange="filterTeamResults()" aria-label="Select Player">
-                        <option value="">Show All</option>
-                    </select>
-                </div>
-            </div>
-            <div id="resultsContainer"></div>
-        </div>
-    </section>
-
-    <section id="knockout" class="py-5">
-        <div class="container">
-            <h2 class="section-title">Knockout Stage</h2>
-            <div id="knockoutBracket"></div>
-            <div class="admin-mode mt-4 text-center">
-                <button class="btn btn-success" onclick="generateKnockoutFixtures()">
-                    <i class="fa-solid fa-trophy me-1"></i> Generate Knockout Fixtures
+                <button class="btn btn-success" onclick="generateFixtures()">
+                    <i class="fa-solid fa-cogs me-1"></i> Generate Fixtures
                 </button>
             </div>
         </div>
@@ -655,47 +968,38 @@
     <section id="players" class="py-5">
         <div class="container">
             <h2 class="section-title">Players</h2>
-            <div class="row" id="playersContainer"></div>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="playersContainer">
+                </div>
         </div>
     </section>
 
-    <section id="prizes" class="py-5">
+    <section id="data" class="py-5 bg-light">
         <div class="container">
-            <h2 class="section-title">Tournament Prizes</h2>
-            <p class="prize-total">Total prize pool: <strong>12 GB</strong> of Halotel data!</p>
-            <div class="row g-4">
-                <div class="col-md-4"><div class="prize-card prize-card-1"><div class="prize-icon"><i class="fa-solid fa-trophy"></i></div><h3>Champion</h3><p>1.7 GB</p></div></div>
-                <div class="col-md-4"><div class="prize-card prize-card-2"><div class="prize-icon"><i class="fa-solid fa-medal"></i></div><h3>Runner-Up</h3><p>1.5 GB</p></div></div>
-                <div class="col-md-4"><div class="prize-card prize-card-3"><div class="prize-icon"><i class="fa-solid fa-award"></i></div><h3>3rd Place</h3><p>1.3 GB</p></div></div>
-                <div class="col-md-4"><div class="prize-card"><h3>4th Place</h3><p>1.0 GB</p></div></div>
-                <div class="col-md-4"><div class="prize-card"><h3>Quarterfinalists</h3><p>900 MB</p></div></div>
-                <div class="col-md-4"><div class="prize-card"><h3>Quarterfinalists</h3><p>600 MB</p></div></div>
-            </div>
-            <p class="text-center text-secondary mt-4">
-                <em>Data prizes will be applied to your Halotel number. Validity may vary.</em>
-            </p>
-        </div>
-    </section>
-
-    <section id="import-export" class="py-5">
-        <div class="container">
-            <h2 class="section-title">Import/Export Data (Admin)</h2>
-            <div class="card">
-                <div class="card-body">
-                    <textarea id="dataJson" class="form-control" rows="5" placeholder="Paste JSON here to import" aria-label="JSON Data"></textarea>
-                    <div class="mt-3 text-center">
-                        <button class="btn btn-primary me-2" onclick="importData()">Import Data</button>
-                        <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
-                    </div>
+            <h2 class="section-title">Admin Data Tools</h2>
+            <div class="card p-4 admin-mode">
+                <p>Use these tools to import or export your league data (including players, fixtures, results, and promotions).</p>
+                <textarea id="dataJson" class="form-control" rows="10" placeholder="Paste JSON data here to import" aria-label="JSON Data"></textarea>
+                <div class="mt-3 text-center">
+                    <button class="btn btn-primary me-2" onclick="importData()">Import Data</button>
+                    <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
                 </div>
             </div>
         </div>
     </section>
 
+    <footer class="league-footer">
+        <div class="container">
+            <p class="mb-0">&copy; 2024 E-Football League. All rights reserved.</p>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script>
-        // Firebase Configuration (Replace with your actual config)
-        /
+        // ================================================================
+        // FIREBASE CONFIGURATION (REPLACE WITH YOUR OWN)
+        // ================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCLycBxpQ3MMIDLYjmBqMZv32FIu2eDXF4", // <--- REPLACE
             authDomain: "efootball-app-ce90b.firebaseapp.com", // <--- REPLACE
@@ -707,96 +1011,70 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        /
+        const password = "Genie"; // Your admin password
 
-        const password = "Genie";
-        let defaultData = {
-            players: [
-                { id: 'p1', name: 'Ronaldo', avatar: 'https://i.imgur.com/k9b8Z8L.png', groupId: 'group-1', mp: 2, w: 2, d: 0, l: 0, gf: 5, ga: 1, gd: 4, pts: 6, form: ['W', 'W'] },
-                { id: 'p2', name: 'Messi', avatar: 'https://i.imgur.com/8Qj9Y0b.png', groupId: 'group-1', mp: 2, w: 1, d: 0, l: 1, gf: 2, ga: 3, gd: -1, pts: 3, form: ['L', 'W'] },
-                { id: 'p3', name: 'Neymar', avatar: 'https://i.imgur.com/dK7Yj7a.png', groupId: 'group-1', mp: 2, w: 0, d: 0, l: 2, gf: 1, ga: 4, gd: -3, pts: 0, form: ['L', 'L'] },
-                { id: 'p4', name: 'Mbappe', avatar: 'https://i.imgur.com/hO5rT0Z.png', groupId: 'group-2', mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0, form: [] },
-            ],
-            groups: [
-                { id: 'group-1', name: 'A' },
-                { id: 'group-2', name: 'B' }
-            ],
-            fixtures: [
-                { id: 'f1', player1Id: 'p1', player2Id: 'p2', date: '2025-10-20', stage: 'group', groupId: 'group-1', matchday: 1, isPlayed: true },
-                { id: 'f2', player1Id: 'p3', player2Id: 'p1', date: '2025-10-20', stage: 'group', groupId: 'group-1', matchday: 1, isPlayed: true },
-                { id: 'f3', player1Id: 'p2', player2Id: 'p3', date: '2025-10-21', stage: 'group', groupId: 'group-1', matchday: 2, isPlayed: true },
-                { id: 'f4', player1Id: 'p1', player2Id: 'p4', date: '2025-10-22', stage: 'group', groupId: 'group-1', matchday: 3, isPlayed: false },
-                { id: 'f5', player1Id: 'p4', player2Id: 'p2', date: '2025-10-23', stage: 'knockout', knockoutRound: 'Quarterfinals', isPlayed: false },
-            ],
-            results: [
-                { fixtureId: 'f1', player1Id: 'p1', player2Id: 'p2', score1: 3, score2: 1, matchday: 1, timestamp: Date.now() - 10000 },
-                { fixtureId: 'f2', player1Id: 'p3', player2Id: 'p1', score1: 1, score2: 2, matchday: 1, timestamp: Date.now() - 5000 },
-                { fixtureId: 'f3', player1Id: 'p2', player2Id: 'p3', score1: 1, score2: 0, matchday: 2, timestamp: Date.now() },
-            ],
+        let leagueData = {
+            players: [],
+            fixtures: [],
+            results: [],
             backgroundUrl: 'url("stadium.jpg")',
-            introImageUrl: 'https://i.imgur.com/8Qj9Y0b.png'
+            introImageUrl: 'https://i.imgur.com/8Qj9Y0b.png',
+            promotions: []
         };
-
-        // Use local storage for temporary persistence
-        let tournamentData = JSON.parse(localStorage.getItem('tournamentData')) || defaultData;
-        
         let currentMatchday = 1;
         let totalMatchdays = 1;
         let isAdmin = false;
-        const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%236c757d'%3E%3Cpath d='M50,0A50,50,0,1,0,50,100,50,50,0,0,0,50,0ZM50,15A35,35,0,1,1,15,50,35,35,0,0,1,50,15ZM50,25A10,10,0,1,1,40,35,10,10,0,0,1,50,25ZM50,80a27,27,0,0,1-25-12.87c.2-8.3,16.72-12.93,25-12.93s24.8,4.63,25,12.93A27,27,0,0,1,50,80Z'/%3E%3C/svg%3E";
 
-        // Theme Toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        function applyTheme(theme) {
-            document.body.dataset.theme = theme === 'light' ? 'light' : 'dark';
-            themeToggle.innerHTML = theme === 'light' ? '<i class="fa-solid fa-moon"></i>' : '<i class="fa-solid fa-sun"></i>';
-            localStorage.setItem('theme', theme);
-        }
-        function toggleTheme() {
-            const currentTheme = localStorage.getItem('theme') || 'light';
-            applyTheme(currentTheme === 'light' ? 'dark' : 'light');
-        }
-        themeToggle.addEventListener('click', toggleTheme);
+        // Default SVG avatar
+        const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%236c757d'%3E%3Cpath d='M50,0A50,50,0,1,0,50,100,50,50,0,0,0,50,0ZM76.4,26.66l-6.85,6.85a28,28,0,0,1-13.7,11.37L50,50,44.15,44.88a28,28,0,0,1-11.37-13.7L25.93,23.6A38.56,38.56,0,0,1,50,11.5a38.16,38.16,0,0,1,26.4,15.16ZM23.6,74.07l6.85-6.85a28,28,0,0,1,13.7-11.37L50,50,55.85,55.12a28,28,0,0,1,11.37,13.7l6.85,6.85A38.56,38.56,0,0,1,50,88.5,38.16,38.16,0,0,1,23.6,74.07Z'/%3E%3C/svg%3E";
 
-        // Firebase Data Operations (Replaced with Local Storage for quick fix)
+        // --- Core Functions ---
         async function loadData() {
-            // Check if there is local storage data, otherwise use defaultData
-            const storedData = localStorage.getItem('tournamentData');
-            if (storedData) {
-                tournamentData = JSON.parse(storedData);
-            } else {
-                // If no stored data, initialize with default, and save it
-                tournamentData = defaultData;
-                localStorage.setItem('tournamentData', JSON.stringify(tournamentData));
+            try {
+                const doc = await db.collection('league').doc('data').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    leagueData = { ...leagueData, ...data }; // Merge and keep defaults if missing
+                    // Ensure promotions array exists after load
+                    if (!leagueData.promotions) leagueData.promotions = [];
+                    applyBackground();
+                    startIntroSequence();
+                    calculateTotalMatchdays();
+                    updateViews();
+                    updateLiveTicker();
+                } else {
+                    console.log("No initial data found, using defaults.");
+                    applyBackground();
+                    startIntroSequence();
+                    updateViews();
+                    updateLiveTicker();
+                }
+            } catch (error) {
+                console.error("Error loading data: ", error);
+                // Fallback to defaults
+                applyBackground();
+                startIntroSequence();
+                updateViews();
+                updateLiveTicker();
             }
-
-            // Ensure all necessary properties exist
-            if (!tournamentData.players) tournamentData.players = [];
-            if (!tournamentData.groups) tournamentData.groups = [];
-            if (!tournamentData.fixtures) tournamentData.fixtures = [];
-            if (!tournamentData.results) tournamentData.results = [];
-            if (!tournamentData.backgroundUrl) tournamentData.backgroundUrl = 'url("stadium.jpg")';
-            if (!tournamentData.introImageUrl) tournamentData.introImageUrl = 'https://i.imgur.com/8Qj9Y0b.png';
-
-            applyBackground();
-            updateViews();
-            populateTeamSelector();
-            populateFixtureSelectors();
-            calculateTotalMatchdays();
-            updateLiveTicker();
-            startIntroSequence();
         }
 
         async function saveData(showSuccessToast = true) {
-            localStorage.setItem('tournamentData', JSON.stringify(tournamentData));
-            updateViews();
-            if (isAdmin && showSuccessToast) {
-                showToast('Data saved successfully! (Local Storage)', 'success');
+            try {
+                // Remove the complex objects before the rest is saved
+                const dataToSave = { ...leagueData };
+                await db.collection('league').doc('data').set(dataToSave);
+                updateViews();
+                if(isAdmin && showSuccessToast) {
+                    showToast('Data saved successfully! 💾', 'success');
+                }
+            } catch (error) {
+                console.error("Error saving data: ", error);
+                showToast('Error saving data! Check Firebase rules.', 'danger');
             }
         }
-        /* End of Local Storage replacement */
 
-        // Toast Notification
+        // Generic Toast Notification
         function showToast(message, type = 'info') {
             const toastHtml = `
                 <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
@@ -813,57 +1091,250 @@
             toastContainer.appendChild(toastEl);
             const toast = new bootstrap.Toast(toastEl);
             toast.show();
-            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+            toastEl.addEventListener('hidden.bs.toast', () => {
+                toastEl.remove();
+            });
         }
 
-        // Intro Sequence
-        function dismissIntro() {
-            const overlay = document.getElementById('intro-overlay');
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                document.body.style.overflowY = 'auto';
-            }, 500);
-            sessionStorage.setItem('introPlayed', 'true');
-        }
-        
+        // --- NEW INTRO LOGIC ---
         function startIntroSequence() {
             const overlay = document.getElementById('intro-overlay');
             const textMarquee = document.getElementById('intro-text-marquee');
             const imageContainer = document.getElementById('intro-image-container');
             const introImage = document.getElementById('intro-image');
-            introImage.src = tournamentData.introImageUrl;
 
-            // FIX: Skip intro if already played in this session
-            if (sessionStorage.getItem('introPlayed')) {
-                overlay.style.display = 'none';
-                document.body.style.overflowY = 'auto';
+            introImage.src = leagueData.introImageUrl || 'https://i.imgur.com/8Qj9Y0b.png';
+
+            const dismissIntro = () => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    document.body.style.overflowY = 'auto';
+                }, 500);
+            };
+
+            document.body.style.overflowY = 'hidden';
+
+            textMarquee.style.display = 'block';
+            textMarquee.style.animation = 'marquee 3s linear forwards';
+
+            setTimeout(() => {
+                textMarquee.style.animation = 'none';
+                textMarquee.style.display = 'none';
+
+                imageContainer.style.display = 'flex';
+                setTimeout(() => {
+                    imageContainer.style.opacity = '1';
+                }, 50);
+
+                setTimeout(dismissIntro, 3000);
+            }, 3500);
+        }
+
+        // --- BACKGROUND MANAGEMENT ---
+        function applyBackground() {
+            const hero = document.querySelector('.hero');
+            if (hero) {
+                document.documentElement.style.setProperty('--hero-bg-url', leagueData.backgroundUrl);
+            }
+        }
+
+        function showEditBackgroundModal() {
+            if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            const modal = new bootstrap.Modal(document.getElementById('editBackgroundModal'));
+            document.getElementById('backgroundUrl').value = leagueData.backgroundUrl.replace("url('", "").replace("')", "");
+            document.getElementById('backgroundFile').value = '';
+            modal.show();
+        }
+
+        async function submitBackground() {
+            if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            const fileInput = document.getElementById('backgroundFile');
+            const urlInput = document.getElementById('backgroundUrl');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editBackgroundModal'));
+            const urlValue = urlInput.value.trim();
+
+            if (urlValue) {
+                // URL takes precedence
+                leagueData.backgroundUrl = `url('${urlValue}')`;
+                await saveData(false);
+                applyBackground();
+                modal.hide();
+                showToast('Hero Background URL set successfully! 📸', 'success');
+                return;
+            }
+            if (fileInput.files.length > 0) {
+                // File selected but no URL provided
+                showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
+                return;
+            }
+            // Error: Neither file nor URL provided
+            showToast('Please provide a URL or select a file to set the background.', 'danger');
+        }
+
+        async function resetBackground() {
+            leagueData.backgroundUrl = 'url("stadium.jpg")';
+            await saveData();
+            applyBackground();
+            document.getElementById('backgroundUrl').value = '';
+            document.getElementById('backgroundFile').value = '';
+            bootstrap.Modal.getInstance(document.getElementById('editBackgroundModal')).hide();
+            showToast('Background reset to default!', 'warning');
+        }
+
+        // --- INTRO IMAGE MANAGEMENT ---
+        function showEditIntroImageModal() {
+            if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            const modal = new bootstrap.Modal(document.getElementById('editIntroImageModal'));
+            document.getElementById('introImageUrlInput').value = leagueData.introImageUrl;
+            document.getElementById('introImageFile').value = '';
+            modal.show();
+        }
+
+        async function submitIntroImage() {
+            if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            const urlInput = document.getElementById('introImageUrlInput');
+            const fileInput = document.getElementById('introImageFile');
+            const urlValue = urlInput.value.trim();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editIntroImageModal'));
+
+            if (urlValue) {
+                leagueData.introImageUrl = urlValue;
+                await saveData(false);
+                modal.hide();
+                showToast('Intro Image URL set. It will display on next page load. ✨', 'success');
+                return;
+            } else if (fileInput.files.length > 0) {
+                showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
+                return;
+            } 
+            showToast('No URL or File provided. Keeping current image.', 'info');
+        }
+
+        async function resetIntroImage() {
+            leagueData.introImageUrl = 'https://i.imgur.com/8Qj9Y0b.png';
+            await saveData();
+            document.getElementById('introImageUrlInput').value = '';
+            document.getElementById('introImageFile').value = '';
+            bootstrap.Modal.getInstance(document.getElementById('editIntroImageModal')).hide();
+            showToast('Intro Image reset to default! 🖼️', 'warning');
+        }
+        
+        // --- PROMOTION MANAGEMENT ---
+        function showAddPromotionModal() {
+            if (!isAdmin) {
+                showToast('You must be an admin to add a promotion.', 'danger');
+                return;
+            }
+            // Clear fields
+            document.getElementById('promotionImageUrl').value = '';
+            document.getElementById('promotionImageFile').value = '';
+            document.getElementById('promotionDescription').value = '';
+            document.getElementById('promotionPrice').value = '';
+            document.getElementById('promotionDiscount').value = '';
+            document.getElementById('promotionContact').value = '';
+
+            const modal = new bootstrap.Modal(document.getElementById('addPromotionModal'));
+            modal.show();
+        }
+
+        async function submitPromotion() {
+            const imageUrl = document.getElementById('promotionImageUrl').value.trim();
+            const description = document.getElementById('promotionDescription').value.trim();
+            const price = document.getElementById('promotionPrice').value.trim();
+            const discount = document.getElementById('promotionDiscount').value.trim();
+            const contact = document.getElementById('promotionContact').value.trim();
+            const fileInput = document.getElementById('promotionImageFile');
+
+            if (!price || !description || !contact) {
+                showToast('Price, Description, and Contact are required!', 'danger');
+                return;
+            }
+            
+            if (!imageUrl && fileInput.files.length === 0) {
+                showToast('Promotion image URL or Gallery File is required!', 'danger');
+                return;
+            }
+            
+            if (fileInput.files.length > 0 && !imageUrl) {
+                showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
                 return;
             }
 
-            document.body.style.overflowY = 'hidden';
-            overlay.style.display = 'flex';
-            
-            // Allow a small delay for CSS to register the display: flex
-            setTimeout(() => {
-                overlay.style.opacity = '1';
+            const newPromotion = {
+                id: Date.now().toString(),
+                imageUrl: imageUrl, // Uses URL if provided, otherwise you'd need upload logic here
+                description: description,
+                price: price,
+                discount: discount,
+                contact: contact
+            };
 
-                textMarquee.style.display = 'block';
-                textMarquee.style.animation = 'marquee 3s linear forwards';
-                
-                // Fallback to ensure overlay is removed if the sequence breaks
-                setTimeout(dismissIntro, 5000); 
-
-                setTimeout(() => {
-                    textMarquee.style.display = 'none';
-                    imageContainer.style.display = 'flex';
-                    setTimeout(() => imageContainer.style.opacity = '1', 50);
-                    setTimeout(dismissIntro, 3000);
-                }, 1000); // 1s for marquee
-            }, 50);
+            leagueData.promotions.push(newPromotion);
+            await saveData();
+            bootstrap.Modal.getInstance(document.getElementById('addPromotionModal')).hide();
+            showToast('Promotion added successfully! 📣', 'success');
         }
 
-        // Admin Functions
+        async function deletePromotion(promotionId) {
+            if (!isAdmin) {
+                showToast('You must be an admin to delete a promotion.', 'danger');
+                return;
+            }
+            if (confirm("Are you sure you want to delete this promotion/ad?")) {
+                leagueData.promotions = leagueData.promotions.filter(p => p.id !== promotionId);
+                await saveData();
+                showToast('Promotion deleted! 🗑️', 'success');
+            }
+        }
+        // --- END PROMOTION MANAGEMENT ---
+
+
+        // Update all views
+        function updateViews() {
+            renderPromotions();
+            updateStandings();
+            renderMatches(); // New function name and combined logic
+            updatePlayers();
+        }
+
+        // Calculate total matchdays
+        function calculateTotalMatchdays() {
+            const matchdays = leagueData.fixtures.map(f => f.matchday);
+            totalMatchdays = matchdays.length > 0 ? Math.max(...matchdays) : 1;
+            if (currentMatchday > totalMatchdays) {
+                currentMatchday = totalMatchdays;
+            }
+        }
+
+        // Update Live Ticker
+        function updateLiveTicker() {
+            const tickerContent = document.querySelector('#liveTicker .live-ticker-content');
+            const latestResult = leagueData.results.sort((a, b) => b.timestamp - a.timestamp)[0];
+            let tickerText = "Welcome to the eFootball Mobile League! Check here for live score updates...";
+
+            if (latestResult) {
+                const p1 = leagueData.players.find(p => p.id === latestResult.player1Id) || { name: 'Player 1' };
+                const p2 = leagueData.players.find(p => p.id === latestResult.player2Id) || { name: 'Player 2' };
+                const winnerName = latestResult.score1 > latestResult.score2 ? p1.name : (latestResult.score2 > latestResult.score1 ? p2.name : 'Draw');
+                tickerText = `🏆 LATEST RESULT: ${p1.name} ${latestResult.score1} - ${latestResult.score2} ${p2.name}. Winner: ${winnerName}! | Next matchday is ${currentMatchday}. | `;
+            }
+            tickerContent.innerText = tickerText.repeat(5);
+        }
+
+        // --- Admin/Login Logic ---
         function showAdminLogin() {
             const modal = new bootstrap.Modal(document.getElementById('adminModal'));
             modal.show();
@@ -878,822 +1349,672 @@
                 document.getElementById('admin-login-button').classList.add('btn-success');
                 document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
                 bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
-                showToast('Admin mode activated!', 'success');
+                showToast('Welcome, Admin! 👋', 'success');
+                updateViews(); // Re-render to show admin controls on promotions/matches
             } else {
-                showToast('Incorrect password.', 'danger');
+                showToast('Incorrect Password!', 'danger');
             }
             input.value = '';
         }
 
-        document.getElementById('admin-login-button').addEventListener('click', showAdminLogin);
-
-        // Background and Intro Image
-        function applyBackground() {
-            document.documentElement.style.setProperty('--hero-bg-url', tournamentData.backgroundUrl);
-        }
-
-        function showEditBackgroundModal() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            document.getElementById('backgroundUrl').value = tournamentData.backgroundUrl.replace(/^url\(['"]?/, '').replace(/['"]?\)$/, '');
-            new bootstrap.Modal(document.getElementById('editBackgroundModal')).show();
-        }
-
-        async function submitBackground() {
-            const url = document.getElementById('backgroundUrl').value.trim();
-            if (url) {
-                tournamentData.backgroundUrl = `url('${url}')`;
-                applyBackground();
+        async function resetLeague() {
+            if (!isAdmin) {
+                showToast('You must be an admin to reset the league.', 'danger');
+                return;
+            }
+            if (confirm("Are you sure you want to COMPLETELY RESET the league (players, fixtures, results, and promotions)? This action cannot be undone.")) {
+                leagueData.players = [];
+                leagueData.fixtures = [];
+                leagueData.results = [];
+                leagueData.promotions = [];
+                currentMatchday = 1;
+                totalMatchdays = 1;
                 await saveData();
-                bootstrap.Modal.getInstance(document.getElementById('editBackgroundModal')).hide();
-                showToast('Background updated!', 'success');
-            } else {
-                showToast('Please provide a URL.', 'danger');
+                // We no longer use populateTeamSelector, just updateViews
+                showToast('League reset successful! 🧹', 'warning');
             }
         }
 
-        async function resetBackground() {
-            tournamentData.backgroundUrl = 'url("stadium.jpg")';
-            applyBackground();
-            await saveData();
-            document.getElementById('backgroundUrl').value = '';
-            bootstrap.Modal.getInstance(document.getElementById('editBackgroundModal')).hide();
-            showToast('Background reset to default!', 'warning');
-        }
-
-        function showEditIntroImageModal() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            document.getElementById('introImageUrlInput').value = tournamentData.introImageUrl === 'https://i.imgur.com/8Qj9Y0b.png' ? '' : tournamentData.introImageUrl;
-            new bootstrap.Modal(document.getElementById('editIntroImageModal')).show();
-        }
-
-        async function submitIntroImage() {
-            const url = document.getElementById('introImageUrlInput').value.trim();
-            if (url) {
-                tournamentData.introImageUrl = url;
-                await saveData();
-                bootstrap.Modal.getInstance(document.getElementById('editIntroImageModal')).hide();
-                showToast('Intro image updated!', 'success');
-            } else {
-                showToast('Please provide a URL.', 'danger');
-            }
-        }
-
-        async function resetIntroImage() {
-            tournamentData.introImageUrl = 'https://i.imgur.com/8Qj9Y0b.png';
-            await saveData();
-            document.getElementById('introImageUrlInput').value = '';
-            bootstrap.Modal.getInstance(document.getElementById('editIntroImageModal')).hide();
-            showToast('Intro image reset to default!', 'warning');
-        }
-
-        // Player Management
+        // --- Player Management ---
         function showAddPlayerModal() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
+            if (!isAdmin) {
+                showToast('You must be an admin to add a player.', 'danger');
+                return;
+            }
             document.getElementById('playerName').value = '';
             document.getElementById('playerAvatarUrl').value = '';
-            const groupSelect = document.getElementById('playerGroup');
-            groupSelect.innerHTML = '<option value="">Select Group</option>';
-            tournamentData.groups.forEach(group => {
-                groupSelect.innerHTML += `<option value="${group.id}">Group ${group.name}</option>`;
-            });
-            new bootstrap.Modal(document.getElementById('addPlayerModal')).show();
+            document.getElementById('playerAvatarFile').value = '';
+            const modal = new bootstrap.Modal(document.getElementById('addPlayerModal'));
+            modal.show();
         }
 
         async function submitPlayer() {
             const name = document.getElementById('playerName').value.trim();
-            const avatarUrl = document.getElementById('playerAvatarUrl').value.trim() || defaultAvatar;
-            const groupId = document.getElementById('playerGroup').value;
+            const url = document.getElementById('playerAvatarUrl').value.trim();
+            const fileInput = document.getElementById('playerAvatarFile');
+
             if (!name) {
-                showToast('Player name is required.', 'danger');
+                showToast('Player name is required!', 'danger');
                 return;
             }
-            if (!groupId) {
-                showToast('Please select a group.', 'danger');
+
+            let avatarUrl = url || defaultAvatar;
+            
+            if (fileInput.files.length > 0 && !url) {
+                showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
                 return;
             }
-            if (tournamentData.players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-                showToast('Player name already exists.', 'danger');
-                return;
-            }
+
             const newPlayer = {
                 id: Date.now().toString(),
-                name,
+                name: name,
                 avatar: avatarUrl,
-                groupId,
-                mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0, form: []
+                mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0,
+                form: []
             };
-            tournamentData.players.push(newPlayer);
+
+            leagueData.players.push(newPlayer);
             await saveData();
-            populateTeamSelector();
             populateFixtureSelectors();
             bootstrap.Modal.getInstance(document.getElementById('addPlayerModal')).hide();
-            showToast('Player added!', 'success');
+            showToast('Player added successfully! 🥳', 'success');
         }
 
-        async function deletePlayer(playerId) {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            if (!confirm('Are you sure you want to delete this player?')) return;
-            tournamentData.players = tournamentData.players.filter(p => p.id !== playerId);
-            tournamentData.fixtures = tournamentData.fixtures.filter(f => f.player1Id !== playerId && f.player2Id !== playerId);
-            tournamentData.results = tournamentData.results.filter(r => r.player1Id !== playerId && r.player2Id !== playerId);
-            recalculateStandings();
-            await saveData();
-            populateTeamSelector();
-            populateFixtureSelectors();
-            calculateTotalMatchdays();
-            showToast('Player deleted!', 'success');
-        }
-
-        // Group Management
-        function showManageGroupsModal() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            document.getElementById('numGroups').value = tournamentData.groups.length || 4;
-            new bootstrap.Modal(document.getElementById('manageGroupsModal')).show();
-        }
-
-        async function generateGroups() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            const numGroups = parseInt(document.getElementById('numGroups').value);
-            if (isNaN(numGroups) || numGroups < 1) {
-                showToast('Invalid number of groups.', 'danger');
-                return;
-            }
-            tournamentData.groups = [];
-            for (let i = 0; i < numGroups; i++) {
-                tournamentData.groups.push({ id: `group-${i + 1}`, name: String.fromCharCode(65 + i) });
-            }
-            tournamentData.players.forEach(p => p.groupId = '');
-            await saveData();
-            bootstrap.Modal.getInstance(document.getElementById('manageGroupsModal')).hide();
-            showToast(`Generated ${numGroups} groups!`, 'success');
-        }
-
-        // Fixture Management
+        // --- Fixture/Result Management (Combined) ---
         function populateFixtureSelectors() {
-            const select1 = document.getElementById('fixturePlayer1');
-            const select2 = document.getElementById('fixturePlayer2');
-            const groupSelect = document.getElementById('fixtureGroup');
-            select1.innerHTML = '<option value="">Select Player 1</option>';
-            select2.innerHTML = '<option value="">Select Player 2</option>';
-            groupSelect.innerHTML = '<option value="">Select Group</option>';
-            tournamentData.players.forEach(player => {
-                const option = `<option value="${player.id}">${player.name} (Group ${tournamentData.groups.find(g => g.id === player.groupId)?.name || 'N/A'})</option>`;
-                select1.innerHTML += option;
-                select2.innerHTML += option;
-            });
-            tournamentData.groups.forEach(group => {
-                groupSelect.innerHTML += `<option value="${group.id}">Group ${group.name}</option>`;
-            });
-            document.getElementById('fixtureStage').addEventListener('change', function() {
-                document.getElementById('groupStageFields').style.display = this.value === 'group' ? 'block' : 'none';
-                document.getElementById('knockoutStageFields').style.display = this.value === 'knockout' ? 'block' : 'none';
+            const player1Select = document.getElementById('fixturePlayer1');
+            const player2Select = document.getElementById('fixturePlayer2');
+            player1Select.innerHTML = '<option value="">Select Player 1</option>';
+            player2Select.innerHTML = '<option value="">Select Player 2</option>';
+
+            leagueData.players.forEach(player => {
+                const option1 = document.createElement('option');
+                option1.value = player.id;
+                option1.textContent = player.name;
+                player1Select.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = player.id;
+                option2.textContent = player.name;
+                player2Select.appendChild(option2);
             });
         }
 
         function showAddFixtureModal() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
+            if (!isAdmin) {
+                showToast('You must be an admin to add a fixture.', 'danger');
+                return;
+            }
             populateFixtureSelectors();
-            document.getElementById('fixtureDate').value = new Date().toISOString().slice(0, 10);
-            document.getElementById('fixtureMatchday').value = totalMatchdays > 0 ? totalMatchdays : 1;
-            document.getElementById('fixtureStage').value = 'group';
-            document.getElementById('groupStageFields').style.display = 'block';
-            document.getElementById('knockoutStageFields').style.display = 'none';
-            new bootstrap.Modal(document.getElementById('addFixtureModal')).show();
+            document.getElementById('fixtureDate').value = '';
+            const modal = new bootstrap.Modal(document.getElementById('addFixtureModal'));
+            modal.show();
         }
 
         async function submitFixture() {
             const player1Id = document.getElementById('fixturePlayer1').value;
             const player2Id = document.getElementById('fixturePlayer2').value;
             const date = document.getElementById('fixtureDate').value;
-            const stage = document.getElementById('fixtureStage').value;
-            const groupId = stage === 'group' ? document.getElementById('fixtureGroup').value : null;
-            const matchday = stage === 'group' ? parseInt(document.getElementById('fixtureMatchday').value) : null;
-            const knockoutRound = stage === 'knockout' ? document.getElementById('knockoutRound').value : null;
+            const matchday = parseInt(document.getElementById('fixtureMatchday').value);
 
-            if (!player1Id || !player2Id || player1Id === player2Id || !date) {
-                showToast('Invalid fixture details.', 'danger');
+            if (!player1Id || !player2Id || player1Id === player2Id || !date || isNaN(matchday) || matchday < 1) {
+                showToast('Invalid fixture details. Select two different players, a date, and a valid matchday.', 'danger');
                 return;
             }
-            if (stage === 'group' && (!groupId || isNaN(matchday) || matchday < 1)) {
-                showToast('Select a group and valid matchday.', 'danger');
-                return;
-            }
-            if (stage === 'knockout' && !knockoutRound) {
-                showToast('Select a knockout round.', 'danger');
-                return;
-            }
+
             const newFixture = {
                 id: Date.now().toString(),
-                player1Id,
-                player2Id,
-                date,
-                stage,
-                groupId,
-                matchday,
-                knockoutRound,
+                player1Id: player1Id,
+                player2Id: player2Id,
+                date: date,
+                matchday: matchday,
                 isPlayed: false
             };
-            tournamentData.fixtures.push(newFixture);
+
+            leagueData.fixtures.push(newFixture);
             await saveData();
             calculateTotalMatchdays();
             bootstrap.Modal.getInstance(document.getElementById('addFixtureModal')).hide();
-            showToast('Fixture added!', 'success');
+            showToast('Fixture added successfully! 📅', 'success');
         }
 
-        async function generateGroupFixtures() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            if (tournamentData.groups.length === 0) {
-                showToast('Create groups first.', 'danger');
+        function generateFixtures() {
+            if (!isAdmin) {
+                showToast('You must be an admin to generate fixtures.', 'danger');
                 return;
             }
-            if (tournamentData.players.filter(p => p.groupId).length < 2) {
-                showToast('Assign players to groups first.', 'danger');
+
+            if (leagueData.players.length < 2) {
+                showToast('Need at least 2 players to generate fixtures!', 'danger');
                 return;
             }
-            if (!confirm('This will clear existing group stage fixtures. Continue?')) return;
-            tournamentData.fixtures = tournamentData.fixtures.filter(f => f.stage === 'knockout');
-            tournamentData.results = tournamentData.results.filter(r => {
-                const fixture = tournamentData.fixtures.find(f => f.id === r.fixtureId);
-                return fixture && fixture.stage === 'knockout';
-            });
-            tournamentData.groups.forEach(group => {
-                const groupPlayers = tournamentData.players.filter(p => p.groupId === group.id);
-                if (groupPlayers.length < 2) return;
-                const n = groupPlayers.length % 2 === 0 ? groupPlayers.length : groupPlayers.length + 1;
-                const rounds = n - 1;
-                let players = groupPlayers.map(p => p.id);
-                if (n % 2 !== 0) players.push('BYE');
-                for (let round = 1; round <= rounds; round++) {
-                    for (let i = 0; i < n / 2; i++) {
-                        const p1 = players[i];
-                        const p2 = players[n - 1 - i];
-                        if (p1 !== 'BYE' && p2 !== 'BYE') {
-                            tournamentData.fixtures.push({
-                                id: `${Date.now()}-${group.id}-${round}-${i}`,
-                                player1Id: round % 2 === 1 ? p1 : p2,
-                                player2Id: round % 2 === 1 ? p2 : p1,
-                                date: `TBD (Matchday ${round})`,
-                                stage: 'group',
-                                groupId: group.id,
-                                matchday: round,
-                                isPlayed: false
-                            });
-                        }
-                    }
-                    const temp = players[n - 1];
-                    for (let i = n - 1; i > 1; i--) players[i] = players[i - 1];
-                    players[1] = temp;
+
+            if (leagueData.fixtures.length > 0) {
+                if (!confirm("Unplayed matches exist. Are you sure you want to clear them and generate a new full round robin?")) {
+                    return;
                 }
-            });
-            await saveData();
+            }
+
+            let players = leagueData.players.map(p => p.id);
+            let n = players.length;
+            if (n % 2 !== 0) {
+                players.push('BYE');
+                n++;
+            }
+
+            let numRounds = (leagueData.players.length - 1) * 2;
+            leagueData.fixtures = [];
+
+            for (let round = 1; round <= numRounds; round++) {
+                let currentMatchday = round;
+                for (let i = 0; i < n / 2; i++) {
+                    let p1 = players[i];
+                    let p2 = players[n - 1 - i];
+
+                    if (p1 === 'BYE' || p2 === 'BYE') continue;
+
+                    let player1Id = (round % 2 === 1) ? p1 : p2;
+                    let player2Id = (round % 2 === 1) ? p2 : p1;
+
+                    const newFixture = {
+                        id: Date.now().toString() + '-' + round + '-' + i,
+                        player1Id: player1Id,
+                        player2Id: player2Id,
+                        date: 'TBD',
+                        matchday: currentMatchday,
+                        isPlayed: false
+                    };
+                    leagueData.fixtures.push(newFixture);
+                }
+
+                let last = players.pop();
+                players.splice(1, 0, last);
+            }
+
+            leagueData.results = [];
+            recalculateStandings();
+            saveData();
             calculateTotalMatchdays();
-            showToast('Group stage fixtures generated!', 'success');
+            showToast(`Generated ${leagueData.fixtures.length} fixtures over ${totalMatchdays} matchdays!`, 'success');
         }
 
-        async function generateKnockoutFixtures() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            const groupWinners = getGroupWinners();
-            if (groupWinners.length < 4) {
-                showToast('Need at least 4 group winners for knockout stage (must have 4 groups with a winner).', 'danger');
-                return;
-            }
-            if (!confirm('This will clear existing knockout fixtures. Continue?')) return;
-            tournamentData.fixtures = tournamentData.fixtures.filter(f => f.stage === 'group');
-            tournamentData.results = tournamentData.results.filter(r => {
-                const fixture = tournamentData.fixtures.find(f => f.id === r.fixtureId);
-                return fixture && fixture.stage === 'group';
-            });
-            // Simplified Quarterfinal generation for 4 winners (1 vs 4, 2 vs 3)
-            const matchups = [
-                { player1Id: groupWinners[0].id, player2Id: groupWinners[3].id, round: 'Quarterfinals' },
-                { player1Id: groupWinners[1].id, player2Id: groupWinners[2].id, round: 'Quarterfinals' }
-            ];
 
-            matchups.forEach(match => {
-                tournamentData.fixtures.push({
-                    id: Date.now().toString(),
-                    player1Id: match.player1Id,
-                    player2Id: match.player2Id,
-                    date: 'TBD',
-                    stage: 'knockout',
-                    knockoutRound: match.round,
-                    isPlayed: false
-                });
-            });
-            await saveData();
-            showToast('Knockout fixtures generated!', 'success');
-        }
-
-        // Result Management
         function showResultModal(fixtureId) {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            const fixture = tournamentData.fixtures.find(f => f.id === fixtureId);
-            if (!fixture) return;
-            const p1 = tournamentData.players.find(p => p.id === fixture.player1Id);
-            const p2 = tournamentData.players.find(p => p.id === fixture.player2Id);
-            if (!p1 || !p2) {
-                showToast('Player data missing.', 'danger');
+            if (!isAdmin) {
+                showToast('You must be an admin to enter results.', 'danger');
                 return;
             }
+            const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
+            if (!fixture) return;
+
+            const p1 = leagueData.players.find(p => p.id === fixture.player1Id);
+            const p2 = leagueData.players.find(p => p.id === fixture.player2Id);
+            if (!p1 || !p2) {
+                showToast('Player data missing for this fixture.', 'danger');
+                return;
+            }
+
             document.getElementById('resultFixtureId').value = fixtureId;
             document.getElementById('resultModalPlayer1Name').textContent = p1.name;
             document.getElementById('resultModalPlayer2Name').textContent = p2.name;
             document.getElementById('resultScore1').value = '';
             document.getElementById('resultScore2').value = '';
-            document.getElementById('resultModalLabel').textContent = `Enter Result (${fixture.stage === 'group' ? `Group ${tournamentData.groups.find(g => g.id === fixture.groupId)?.name} Matchday ${fixture.matchday}` : fixture.knockoutRound})`;
-            new bootstrap.Modal(document.getElementById('resultModal')).show();
+
+            const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+            modal.show();
         }
 
         async function submitResult() {
             const fixtureId = document.getElementById('resultFixtureId').value;
             const score1 = parseInt(document.getElementById('resultScore1').value);
             const score2 = parseInt(document.getElementById('resultScore2').value);
+
             if (isNaN(score1) || isNaN(score2) || score1 < 0 || score2 < 0) {
                 showToast('Scores must be valid non-negative numbers.', 'danger');
                 return;
             }
-            const fixture = tournamentData.fixtures.find(f => f.id === fixtureId);
+
+            const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
             if (!fixture) return;
+
+            // Mark fixture as played
             fixture.isPlayed = true;
-            tournamentData.results = tournamentData.results.filter(r => r.fixtureId !== fixtureId);
-            tournamentData.results.push({
-                fixtureId,
+
+            const newResult = {
+                fixtureId: fixtureId,
                 player1Id: fixture.player1Id,
                 player2Id: fixture.player2Id,
-                score1,
-                score2,
+                score1: score1,
+                score2: score2,
                 matchday: fixture.matchday,
                 timestamp: Date.now()
-            });
+            };
+
+            // Remove any existing result for this fixture before adding the new one
+            leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
+            leagueData.results.push(newResult);
+
             recalculateStandings();
             await saveData();
             updateLiveTicker();
             bootstrap.Modal.getInstance(document.getElementById('resultModal')).hide();
-            showToast('Result submitted!', 'success');
-            if (fixture.stage === 'knockout') {
-                advanceKnockoutWinner(fixture, score1, score2);
-            }
+            showToast('Result submitted successfully! ⚽🥅', 'success');
         }
 
-        async function advanceKnockoutWinner(fixture, score1, score2) {
-            const winnerId = score1 > score2 ? fixture.player1Id : score2 > score1 ? fixture.player2Id : null;
-            if (!winnerId) return; // No advancement on draw
-            const currentRound = fixture.knockoutRound;
-            let nextRound;
-            if (currentRound === 'Quarterfinals') nextRound = 'Semifinals';
-            else if (currentRound === 'Semifinals') nextRound = 'Final';
-            else if (currentRound === 'Final') return; // Winner crowned
-            const loserId = score1 > score2 ? fixture.player2Id : fixture.player1Id;
-            
-            // Handle Third Place Playoff for Semifinal losers
-            if (currentRound === 'Semifinals') {
-                let thirdPlaceFixture = tournamentData.fixtures.find(f => f.stage === 'knockout' && f.knockoutRound === 'Third Place');
-                if (!thirdPlaceFixture) {
-                    thirdPlaceFixture = {
-                        id: Date.now().toString(),
-                        player1Id: loserId,
-                        player2Id: null,
-                        date: 'TBD',
-                        stage: 'knockout',
-                        knockoutRound: 'Third Place',
-                        isPlayed: false
-                    };
-                    tournamentData.fixtures.push(thirdPlaceFixture);
-                } else {
-                    // Update the existing Third Place match with the losing player
-                    if (!thirdPlaceFixture.player1Id) thirdPlaceFixture.player1Id = loserId;
-                    else if (!thirdPlaceFixture.player2Id) thirdPlaceFixture.player2Id = loserId;
-                }
-            }
-
-            if (nextRound) {
-                let nextFixture = tournamentData.fixtures.find(f => f.stage === 'knockout' && f.knockoutRound === nextRound && (!f.player1Id || !f.player2Id));
-                
-                if (!nextFixture) {
-                    // Create a new fixture for the next round
-                    nextFixture = {
-                        id: Date.now().toString(),
-                        player1Id: winnerId,
-                        player2Id: null,
-                        date: 'TBD',
-                        stage: 'knockout',
-                        knockoutRound: nextRound,
-                        isPlayed: false
-                    };
-                    tournamentData.fixtures.push(nextFixture);
-                } else {
-                    // Fill the slot in the existing next round fixture
-                    if (!nextFixture.player1Id) nextFixture.player1Id = winnerId;
-                    else nextFixture.player2Id = winnerId;
-                }
-                await saveData();
-            }
-        }
-
-        // View Updates
         function recalculateStandings() {
-            tournamentData.players.forEach(player => {
-                player.mp = 0;
-                player.w = 0;
-                player.d = 0;
-                player.l = 0;
-                player.gf = 0;
-                player.ga = 0;
-                player.gd = 0;
-                player.pts = 0;
+            leagueData.players.forEach(player => {
+                player.mp = 0; player.w = 0; player.d = 0; player.l = 0;
+                player.gf = 0; player.ga = 0; player.gd = 0; player.pts = 0;
                 player.form = [];
             });
-            tournamentData.results.forEach(result => {
-                if (tournamentData.fixtures.find(f => f.id === result.fixtureId)?.stage !== 'group') return;
-                const p1 = tournamentData.players.find(p => p.id === result.player1Id);
-                const p2 = tournamentData.players.find(p => p.id === result.player2Id);
+
+            const sortedResults = leagueData.results.sort((a, b) => a.timestamp - b.timestamp);
+
+            sortedResults.forEach(result => {
+                const p1 = leagueData.players.find(p => p.id === result.player1Id);
+                const p2 = leagueData.players.find(p => p.id === result.player2Id);
+
                 if (!p1 || !p2) return;
-                p1.mp++;
-                p2.mp++;
-                p1.gf += result.score1;
-                p2.gf += result.score2;
-                p1.ga += result.score2;
-                p2.ga += result.score1;
-                p1.gd = p1.gf - p1.ga;
-                p2.gd = p2.gf - p2.ga;
-                if (result.score1 > result.score2) {
-                    p1.w++;
-                    p1.pts += 3;
-                    p1.form.unshift('W');
-                    p2.l++;
-                    p2.form.unshift('L');
-                } else if (result.score2 > result.score1) {
-                    p2.w++;
-                    p2.pts += 3;
-                    p2.form.unshift('W');
-                    p1.l++;
-                    p1.form.unshift('L');
+
+                // Helper to update stats and form
+                const updatePlayerStats = (player, scoreFor, scoreAgainst, resultChar) => {
+                    player.mp++;
+                    player.gf += scoreFor;
+                    player.ga += scoreAgainst;
+                    if (resultChar === 'W') player.pts += 3;
+                    if (resultChar === 'D') player.pts += 1;
+                    player[resultChar.toLowerCase()]++;
+                    if (player.form.length === 5) player.form.pop();
+                    player.form.unshift(resultChar);
+                };
+
+                const isDraw = result.score1 === result.score2;
+                const p1Won = result.score1 > result.score2;
+
+                if (isDraw) {
+                    updatePlayerStats(p1, result.score1, result.score2, 'D');
+                    updatePlayerStats(p2, result.score2, result.score1, 'D');
+                } else if (p1Won) {
+                    updatePlayerStats(p1, result.score1, result.score2, 'W');
+                    updatePlayerStats(p2, result.score2, result.score1, 'L');
                 } else {
-                    p1.d++;
-                    p2.d++;
-                    p1.pts += 1;
-                    p2.pts += 1;
-                    p1.form.unshift('D');
-                    p2.form.unshift('D');
+                    updatePlayerStats(p1, result.score1, result.score2, 'L');
+                    updatePlayerStats(p2, result.score2, result.score1, 'W');
                 }
-                if (p1.form.length > 5) p1.form.shift();
-                if (p2.form.length > 5) p2.form.shift();
+            });
+
+            leagueData.players.forEach(player => {
+                player.gd = player.gf - player.ga;
             });
         }
 
+        // --- View Updates ---
+
+        function renderPromotions() {
+            const inner = document.getElementById('promotionCarouselInner');
+            const indicators = document.getElementById('promotionIndicators');
+            inner.innerHTML = '';
+            indicators.innerHTML = '';
+
+            if (leagueData.promotions.length === 0) {
+                inner.innerHTML = `
+                    <div class="carousel-item active">
+                         <div class="promotion-card">
+                            <div class="promotion-details w-100 text-center text-secondary py-5">
+                                No promotions available yet. Check back soon!
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.querySelectorAll('#promotionsCarousel .carousel-control-prev, #promotionsCarousel .carousel-control-next').forEach(btn => btn.style.display = 'none');
+                document.getElementById('promotionIndicators').style.display = 'none';
+                return;
+            }
+
+            document.querySelectorAll('#promotionsCarousel .carousel-control-prev, #promotionsCarousel .carousel-control-next').forEach(btn => btn.style.display = 'flex');
+            document.getElementById('promotionIndicators').style.display = 'flex';
+            
+            leagueData.promotions.forEach((promo, index) => {
+                const activeClass = index === 0 ? 'active' : '';
+                const discountHtml = promo.discount ? `<span class="promotion-discount">${promo.discount}</span>` : '';
+                
+                const itemHtml = `
+                    <div class="carousel-item ${activeClass}">
+                        <div class="promotion-card">
+                            <div class="promotion-image-container">
+                                <img src="${promo.imageUrl}" class="promotion-card-img" alt="Promotion Image">
+                            </div>
+                            <div class="promotion-details">
+                                <h4>${promo.description}</h4>
+                                <div class="promotion-price-block">
+                                    ${discountHtml}
+                                    <span>${promo.price}</span>
+                                </div>
+                                <p class="promotion-contact">
+                                    Contact: <a href="${promo.contact.startsWith('+') ? `tel:${promo.contact}` : (promo.contact.startsWith('http') ? promo.contact : `https://${promo.contact}`)}" target="_blank">${promo.contact}</a>
+                                </p>
+                                ${isAdmin ? `
+                                    <div class="admin-mode mt-3">
+                                        <button class="btn btn-sm btn-danger" onclick="deletePromotion('${promo.id}')">
+                                            <i class="fa-solid fa-trash"></i> Delete Ad
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                inner.innerHTML += itemHtml;
+
+                const indicatorHtml = `
+                    <button type="button" data-bs-target="#promotionsCarousel" data-bs-slide-to="${index}" class="${activeClass}" aria-current="${activeClass ? 'true' : 'false'}" aria-label="Slide ${index + 1}"></button>
+                `;
+                indicators.innerHTML += indicatorHtml;
+            });
+
+            if(isAdmin) {
+                document.querySelectorAll('#promotions .admin-mode').forEach(el => el.style.display = 'block');
+            }
+        }
+
+        // Update Standings Table
         function updateStandings() {
             recalculateStandings();
-            const container = document.getElementById('groupStandings');
-            container.innerHTML = '';
-            tournamentData.groups.forEach(group => {
-                const groupPlayers = tournamentData.players.filter(p => p.groupId === group.id).sort((a, b) => {
-                    if (b.pts !== a.pts) return b.pts - a.pts;
-                    if (b.gd !== a.gd) return b.gd - a.gd;
-                    if (b.gf !== a.gf) return b.gf - a.gf;
-                    return a.name.localeCompare(b.name);
-                });
-                if (groupPlayers.length === 0) return;
-                const tableHtml = `
-                    <h3>Group ${group.name}</h3>
-                    <div class="card mb-4">
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table league-table table-striped mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col" class="pos-cell">#</th>
-                                            <th scope="col">Player</th>
-                                            <th scope="col">MP</th>
-                                            <th scope="col">W</th>
-                                            <th scope="col">D</th>
-                                            <th scope="col">L</th>
-                                            <th scope="col">GF</th>
-                                            <th scope="col">GA</th>
-                                            <th scope="col">GD</th>
-                                            <th scope="col" class="form-cell">Form</th>
-                                            <th scope="col" class="pts-cell">Pts</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${groupPlayers.map((player, index) => `
-                                            <tr class="${index < 2 ? 'top-team-row' : index >= groupPlayers.length - 2 ? 'bottom-team-row' : ''}">
-                                                <td class="pos-cell">${index + 1}</td>
-                                                <td class="player-name-cell">
-                                                    <img src="${player.avatar}" alt="${player.name} avatar">
-                                                    <a href="#player-${player.id}" class="player-profile-link">${player.name}</a>
-                                                    ${isAdmin ? `<i class="fa-solid fa-trash text-danger ms-2 admin-mode" style="cursor:pointer;" onclick="deletePlayer('${player.id}')"></i>` : ''}
-                                                </td>
-                                                <td>${player.mp}</td>
-                                                <td>${player.w}</td>
-                                                <td>${player.d}</td>
-                                                <td>${player.l}</td>
-                                                <td>${player.gf}</td>
-                                                <td>${player.ga}</td>
-                                                <td>${player.gd}</td>
-                                                <td class="form-cell">${player.form.map(f => `<span class="form-bubble form-bubble-${f}">${f}</span>`).join('')}</td>
-                                                <td class="pts-cell">${player.pts}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.innerHTML += tableHtml;
+            const tableBody = document.getElementById('standingsTable');
+            tableBody.innerHTML = '';
+
+            const sortedPlayers = [...leagueData.players].sort((a, b) => {
+                if (b.pts !== a.pts) return b.pts - a.pts;
+                if (b.gd !== a.gd) return b.gd - a.gd;
+                if (b.gf !== a.gf) return b.gf - a.gf;
+                return a.name.localeCompare(b.name);
             });
-            if (isAdmin) document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+
+            sortedPlayers.forEach((player, index) => {
+                let rowClass = '';
+                if (index < 3) rowClass = 'top-team-row';
+                else if (index >= sortedPlayers.length - 3) rowClass = 'bottom-team-row';
+
+                const formHtml = player.form.map(f => `<span class="form-bubble form-bubble-${f}">${f}</span>`).join('');
+
+                const row = `
+                    <tr class="${rowClass}">
+                        <td class="pos-cell">${index + 1}</td>
+                        <td class="player-name-cell">
+                            <img src="${player.avatar}" alt="${player.name} avatar">
+                            <a href="#player-${player.id}" class="player-profile-link">${player.name}</a>
+                            ${isAdmin ? `<i class="fa-solid fa-trash text-danger ms-2 admin-mode" style="cursor:pointer;" onclick="deletePlayer('${player.id}')"></i>` : ''}
+                        </td>
+                        <td>${player.mp}</td>
+                        <td>${player.w}</td>
+                        <td>${player.d}</td>
+                        <td>${player.l}</td>
+                        <td>${player.gf}</td>
+                        <td>${player.ga}</td>
+                        <td>${player.gd}</td>
+                        <td class="form-cell">${formHtml}</td>
+                        <td class="pts-cell">${player.pts}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+
+            if(isAdmin) {
+                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+            }
         }
 
-        function updateFixtures() {
+        // Combined Fixtures/Results Renderer
+        function renderMatches() {
             const container = document.getElementById('fixturesContainer');
             container.innerHTML = '';
-            document.getElementById('currentMatchday').textContent = `Matchday ${currentMatchday}`;
-            const fixtures = tournamentData.fixtures
-                .filter(f => f.stage === 'group' && f.matchday === currentMatchday && !f.isPlayed)
-                .sort((a, b) => new Date(a.date) - new Date(b.date));
-            fixtures.forEach(fixture => {
-                const p1 = tournamentData.players.find(p => p.id === fixture.player1Id);
-                const p2 = tournamentData.players.find(p => p.id === fixture.player2Id);
-                if (!p1 || !p2) return;
-                const dateDisplay = fixture.date.includes('TBD') ? fixture.date : new Date(fixture.date).toLocaleDateString();
-                container.innerHTML += `
-                    <div class="match-card">
-                        <div class="match-player">
-                            <img src="${p1.avatar}" alt="${p1.name}">
-                            <span>${p1.name}</span>
-                        </div>
-                        <div class="match-info">
-                            <span class="date">${dateDisplay} (Group ${tournamentData.groups.find(g => g.id === fixture.groupId)?.name})</span>
-                            <span class="vs">VS</span>
-                        </div>
-                        <div class="match-player">
-                            <span>${p2.name}</span>
-                            <img src="${p2.avatar}" alt="${p2.name}">
-                        </div>
-                        <div class="admin-controls admin-mode">
-                            <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}')"><i class="fa-solid fa-clipboard-list"></i> Result</button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteFixture('${fixture.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                `;
-            });
-            if (container.innerHTML === '') {
-                container.innerHTML = '<div class="text-center text-secondary py-4">No unplayed fixtures for this matchday.</div>';
-            }
-            if (isAdmin) document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
-        }
+            
+            // Get fixtures for the current matchday
+            const filteredFixtures = leagueData.fixtures
+                .filter(f => f.matchday === currentMatchday)
+                .sort((a, b) => a.id.localeCompare(b.id));
 
-        function updateResults(filterPlayerId = '') {
-            const container = document.getElementById('resultsContainer');
-            container.innerHTML = '';
-            const sortedResults = tournamentData.results.sort((a, b) => b.timestamp - a.timestamp);
-            sortedResults.forEach(result => {
-                if (filterPlayerId && result.player1Id !== filterPlayerId && result.player2Id !== filterPlayerId) return;
-                const fixture = tournamentData.fixtures.find(f => f.id === result.fixtureId);
-                if (!fixture) return;
-                const p1 = tournamentData.players.find(p => p.id === result.player1Id);
-                const p2 = tournamentData.players.find(p => p.id === result.player2Id);
+            document.getElementById('currentMatchday').textContent = `Matchday ${currentMatchday}`;
+            
+            filteredFixtures.forEach(fixture => {
+                const p1 = leagueData.players.find(p => p.id === fixture.player1Id);
+                const p2 = leagueData.players.find(p => p.id === fixture.player2Id);
+                const result = leagueData.results.find(r => r.fixtureId === fixture.id);
+                
                 if (!p1 || !p2) return;
-                const dateDisplay = fixture.date.includes('TBD') ? '' : new Date(fixture.date).toLocaleDateString();
-                const winner1Class = result.score1 > result.score2 ? 'winner' : '';
-                const winner2Class = result.score2 > result.score1 ? 'winner' : '';
-                const stageDisplay = fixture.stage === 'group' ? `Group ${tournamentData.groups.find(g => g.id === fixture.groupId)?.name} Matchday ${fixture.matchday}` : fixture.knockoutRound;
-                container.innerHTML += `
-                    <div class="result-card">
-                        <div class="result-player">
-                            <img src="${p1.avatar}" alt="${p1.name}">
-                            <span>${p1.name}</span>
-                        </div>
+
+                const dateDisplay = fixture.date.includes('TBD') ? 'TBD' : new Date(fixture.date).toLocaleDateString();
+                let matchContent = '';
+                let cardClass = '';
+                let adminButtons = '';
+
+                if (fixture.isPlayed && result) {
+                    // RENDER RESULT VIEW
+                    const winner1Class = result.score1 > result.score2 ? 'winner' : '';
+                    const winner2Class = result.score2 > result.score1 ? 'winner' : '';
+                    cardClass = 'result-card';
+                    matchContent = `
                         <div class="result-info">
                             <div class="score"><span class="${winner1Class}">${result.score1}</span> - <span class="${winner2Class}">${result.score2}</span></div>
-                            <span class="date">${dateDisplay} (${stageDisplay})</span>
+                            <span class="date">${dateDisplay}</span>
                         </div>
-                        <div class="result-player">
+                    `;
+                    adminButtons = `
+                        <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}')">
+                            <i class="fa-solid fa-undo"></i> Undo Result
+                        </button>
+                    `;
+                } else {
+                    // RENDER FIXTURE VIEW
+                    cardClass = 'match-card';
+                    matchContent = `
+                        <div class="match-info">
+                            <div class="vs">VS</div>
+                            <span class="date">${dateDisplay}</span>
+                        </div>
+                    `;
+                    adminButtons = `
+                        <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}')">
+                            <i class="fa-solid fa-gavel"></i> Enter Result
+                        </button>
+                    `;
+                }
+
+                const card = `
+                    <div class="${cardClass}">
+                        <div class="${cardClass.includes('result') ? 'result-player' : 'match-player'}">
+                            <img src="${p1.avatar}" alt="${p1.name}">
+                            <span>${p1.name}</span>
+                        </div>
+                        ${matchContent}
+                        <div class="${cardClass.includes('result') ? 'result-player' : 'match-player'}">
                             <span>${p2.name}</span>
                             <img src="${p2.avatar}" alt="${p2.name}">
                         </div>
                         <div class="admin-controls admin-mode">
-                            <button class="btn btn-sm btn-danger" onclick="deleteResult('${result.fixtureId}')"><i class="fa-solid fa-trash"></i></button>
+                            ${adminButtons}
+                            <button class="btn btn-sm btn-danger" onclick="deleteFixture('${fixture.id}')">
+                                <i class="fa-solid fa-trash"></i> Delete Match
+                            </button>
                         </div>
                     </div>
                 `;
+                container.innerHTML += card;
             });
+
             if (container.innerHTML === '') {
-                container.innerHTML = '<div class="text-center text-secondary py-4">No results found.</div>';
+                container.innerHTML = '<div class="text-center text-secondary py-4">No matches found for this matchday.</div>';
             }
-            if (isAdmin) document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
-        }
 
-        function updateKnockoutBracket() {
-            const container = document.getElementById('knockoutBracket');
-            container.innerHTML = '';
-            const rounds = ['Quarterfinals', 'Semifinals', 'Final', 'Third Place'];
-            rounds.forEach(round => {
-                const fixtures = tournamentData.fixtures.filter(f => f.stage === 'knockout' && f.knockoutRound === round);
-                if (fixtures.length === 0) return;
-                let html = `<h3>${round}</h3><div class="knockout-round">`;
-                fixtures.forEach(fixture => {
-                    const p1 = tournamentData.players.find(p => p.id === fixture.player1Id) || { name: 'TBD', avatar: defaultAvatar };
-                    const p2 = tournamentData.players.find(p => p.id === fixture.player2Id) || { name: 'TBD', avatar: defaultAvatar };
-                    const result = tournamentData.results.find(r => r.fixtureId === fixture.id);
-                    const score = result ? `${result.score1} - ${result.score2}` : 'VS';
-                    html += `
-                        <div class="knockout-match">
-                            <div class="match-player">
-                                <img src="${p1.avatar}" alt="${p1.name}">
-                                <span>${p1.name}</span>
-                            </div>
-                            <div class="match-info">
-                                <span class="score">${score}</span>
-                            </div>
-                            <div class="match-player">
-                                <span>${p2.name}</span>
-                                <img src="${p2.avatar}" alt="${p2.name}">
-                            </div>
-                            ${isAdmin && !result ? `
-                            <div class="admin-controls admin-mode">
-                                <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}')"><i class="fa-solid fa-clipboard-list"></i> Result</button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteFixture('${fixture.id}')"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                            ` : ''}
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                container.innerHTML += html;
-            });
-            if (container.innerHTML === '') {
-                container.innerHTML = '<div class="text-center text-secondary py-4">Knockout stage not started.</div>';
+            if(isAdmin) {
+                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
             }
-            if (isAdmin) document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
-        }
-
-        function updatePlayers() {
-            const container = document.getElementById('playersContainer');
-            container.innerHTML = '';
-            tournamentData.players.forEach(player => {
-                container.innerHTML += `
-                    <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4" id="player-${player.id}">
-                        <div class="player-card">
-                            <img src="${player.avatar}" alt="${player.name}">
-                            <h5 class="card-title">${player.name}</h5>
-                            <p class="card-text">${player.pts} PTS (Group ${tournamentData.groups.find(g => g.id === player.groupId)?.name || 'N/A'})</p>
-                            <div class="admin-mode">
-                                <button class="btn btn-sm btn-danger" onclick="deletePlayer('${player.id}')"><i class="fa-solid fa-trash"></i> Remove</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            if (isAdmin) document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
-        }
-
-        function updateLiveTicker() {
-            const tickerContent = document.querySelector('#liveTicker .live-ticker-content');
-            const latestResult = tournamentData.results.sort((a, b) => b.timestamp - a.timestamp)[0];
-            let tickerText = "Welcome to the eFootball Tournament! Check here for live score updates...";
-            if (latestResult) {
-                const p1 = tournamentData.players.find(p => p.id === latestResult.player1Id) || { name: 'Player 1' };
-                const p2 = tournamentData.players.find(p => p.id === latestResult.player2Id) || { name: 'Player 2' };
-                const winnerName = latestResult.score1 > latestResult.score2 ? p1.name : (latestResult.score2 > latestResult.score1 ? p2.name : 'Draw');
-                tickerText = `🏆 LATEST: ${p1.name} ${latestResult.score1} - ${latestResult.score2} ${p2.name}. Winner: ${winnerName}! | `;
-            }
-            tickerContent.textContent = tickerText.repeat(5);
-        }
-
-        function populateTeamSelector() {
-            const selector = document.getElementById('teamSelector');
-            const selectedValue = selector.value;
-            selector.innerHTML = '<option value="">Show All</option>';
-            tournamentData.players.forEach(player => {
-                selector.innerHTML += `<option value="${player.id}">${player.name}</option>`;
-            });
-            selector.value = selectedValue;
-        }
-
-        function filterTeamResults() {
-            updateResults(document.getElementById('teamSelector').value);
-        }
-
-        function calculateTotalMatchdays() {
-            const matchdays = tournamentData.fixtures.filter(f => f.stage === 'group').map(f => f.matchday);
-            totalMatchdays = matchdays.length > 0 ? Math.max(...matchdays) : 1;
-            if (currentMatchday > totalMatchdays) currentMatchday = totalMatchdays;
-            document.getElementById('prevMatchday').disabled = currentMatchday <= 1;
-            document.getElementById('nextMatchday').disabled = currentMatchday >= totalMatchdays;
         }
 
         function changeMatchday(direction) {
-            const newMatchday = currentMatchday + direction;
+            let newMatchday = currentMatchday + direction;
             if (newMatchday >= 1 && newMatchday <= totalMatchdays) {
                 currentMatchday = newMatchday;
-                updateFixtures();
+                renderMatches();
             } else {
-                showToast('No more matchdays in that direction.', 'info');
+                showToast('No more matchdays in that direction. ⚠️', 'info');
             }
         }
 
-        function getGroupWinners() {
-            const winners = [];
-            tournamentData.groups.forEach(group => {
-                const groupPlayers = tournamentData.players
-                    .filter(p => p.groupId === group.id)
-                    .sort((a, b) => {
-                        if (b.pts !== a.pts) return b.pts - a.pts;
-                        if (b.gd !== a.gd) return b.gd - a.gd;
-                        if (b.gf !== a.gf) return b.gf - a.gf;
-                        return a.name.localeCompare(b.name);
-                    });
-                // Take top 2 from each group for an 8-team bracket
-                if (groupPlayers[0]) winners.push(groupPlayers[0]); 
+
+        // Update Players/Profiles
+        function updatePlayers() {
+            const container = document.getElementById('playersContainer');
+            container.innerHTML = '';
+            
+            leagueData.players.forEach(player => {
+                const card = `
+                    <div class="col" id="player-${player.id}">
+                        <div class="player-card">
+                            <img src="${player.avatar}" alt="${player.name} avatar">
+                            <h5 class="card-title">${player.name}</h5>
+                            <p class="card-text">
+                                MP: ${player.mp} | W: ${player.w} | D: ${player.d} | L: ${player.l}
+                            </p>
+                            <a href="#fixtures" class="btn btn-sm btn-primary" onclick="setPlayerFilter('${player.id}')">View Matches</a>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
             });
-            return winners;
+        }
+        
+        // This function would be implemented if a full filtering UI were required, 
+        // but for now, we just link to the main section.
+        function setPlayerFilter(playerId) {
+            // For simplicity, we navigate and rely on the full matchday view.
+            // A more complex app would store this filter and re-render.
+            // Since this is a simple page, we just scroll to fixtures.
+            // console.log("Filtering matches for player:", playerId);
+        }
+
+        // --- Delete/Undo Functions ---
+        async function deletePlayer(playerId) {
+            if (!isAdmin) {
+                showToast('You must be an admin.', 'danger');
+                return;
+            }
+            if (confirm("Are you sure you want to delete this player? All their matches will also be deleted.")) {
+                leagueData.players = leagueData.players.filter(p => p.id !== playerId);
+                leagueData.fixtures = leagueData.fixtures.filter(f => f.player1Id !== playerId && f.player2Id !== playerId);
+                leagueData.results = leagueData.results.filter(r => r.player1Id !== playerId && r.player2Id !== playerId);
+                recalculateStandings();
+                await saveData();
+                populateFixtureSelectors();
+                calculateTotalMatchdays();
+                showToast('Player and related data deleted! 🗑️', 'success');
+            }
         }
 
         async function deleteFixture(fixtureId) {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            if (!confirm('Are you sure you want to delete this fixture?')) return;
-            tournamentData.fixtures = tournamentData.fixtures.filter(f => f.id !== fixtureId);
-            tournamentData.results = tournamentData.results.filter(r => r.fixtureId !== fixtureId);
-            await saveData();
-            calculateTotalMatchdays();
-            showToast('Fixture deleted!', 'success');
-        }
-
-        async function deleteResult(fixtureId) {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            if (!confirm('Are you sure you want to delete this result?')) return;
-            const fixture = tournamentData.fixtures.find(f => f.id === fixtureId);
-            if (fixture) fixture.isPlayed = false;
-            tournamentData.results = tournamentData.results.filter(r => r.fixtureId !== fixtureId);
+            if (!isAdmin) {
+                showToast('You must be an admin.', 'danger');
+                return;
+            }
+            leagueData.fixtures = leagueData.fixtures.filter(f => f.id !== fixtureId);
+            leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
             recalculateStandings();
             await saveData();
-            showToast('Result deleted!', 'success');
+            calculateTotalMatchdays();
+            showToast('Match and result (if any) deleted! 🗑️', 'success');
         }
 
-        async function resetTournament() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            if (!confirm('This will reset all tournament data to the initial default state. Continue?')) return;
-            tournamentData = defaultData;
-            currentMatchday = 1;
-            totalMatchdays = 1;
+        // Renamed from deleteResult
+        async function undoResult(fixtureId) {
+            if (!isAdmin) {
+                showToast('You must be an admin.', 'danger');
+                return;
+            }
+            const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
+            if (fixture) {
+                fixture.isPlayed = false;
+            }
+            
+            leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
+            recalculateStandings();
             await saveData();
-            populateTeamSelector();
-            populateFixtureSelectors();
-            showToast('Tournament reset!', 'warning');
+            showToast('Result undone and match is now an unplayed fixture! ↩️', 'success');
         }
 
-        async function importData() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
+
+        // --- Data Import/Export ---
+        function importData() {
+            if (!isAdmin) {
+                showToast('You must be an admin to import data.', 'danger');
+                return;
+            }
             try {
-                const json = document.getElementById('dataJson').value.trim();
-                if (!json) {
-                    showToast('Please provide JSON data.', 'danger');
-                    return;
+                const jsonText = document.getElementById('dataJson').value;
+                const importedData = JSON.parse(jsonText);
+                
+                if (!Array.isArray(importedData.players) || !Array.isArray(importedData.fixtures) || !Array.isArray(importedData.results)) {
+                    throw new Error("Invalid JSON structure (missing players, fixtures, or results array).");
                 }
-                tournamentData = JSON.parse(json);
-                if (!tournamentData.players) tournamentData.players = [];
-                if (!tournamentData.groups) tournamentData.groups = [];
-                if (!tournamentData.fixtures) tournamentData.fixtures = [];
-                if (!tournamentData.results) tournamentData.results = [];
-                if (!tournamentData.backgroundUrl) tournamentData.backgroundUrl = 'url("stadium.jpg")';
-                if (!tournamentData.introImageUrl) tournamentData.introImageUrl = 'https://i.imgur.com/8Qj9Y0b.png';
-                await saveData();
+                
+                leagueData = { ...leagueData, ...importedData };
+
+                if(!leagueData.backgroundUrl) leagueData.backgroundUrl = 'url("stadium.jpg")';
+                if(!leagueData.introImageUrl) leagueData.introImageUrl = 'https://i.imgur.com/8Qj9Y0b.png';
+                if(!leagueData.promotions) leagueData.promotions = [];
+
+                recalculateStandings();
                 applyBackground();
-                populateTeamSelector();
+                saveData();
                 populateFixtureSelectors();
                 calculateTotalMatchdays();
-                showToast('Data imported successfully!', 'success');
-            } catch (error) {
-                console.error('Import error:', error);
-                showToast('Invalid JSON format.', 'danger');
+                showToast('Data imported successfully! 📥', 'success');
+            } catch (e) {
+                showToast('Invalid JSON! ' + e.message, 'danger');
             }
         }
 
         function exportData() {
-            if (!isAdmin) { showToast('Admin access required.', 'danger'); return; }
-            const json = JSON.stringify(tournamentData, null, 2);
+            const json = JSON.stringify(leagueData, null, 2);
             document.getElementById('dataJson').value = json;
-            showToast('Data exported to textarea!', 'success');
+            document.getElementById('dataJson').select();
+            try {
+                navigator.clipboard.writeText(json).then(() => {
+                    showToast('Data exported and copied to clipboard! 📋', 'success');
+                }).catch(() => {
+                    showToast('Data exported. Copy it from the text box.', 'info');
+                });
+            } catch (err) {
+                showToast('Data exported. Copy it from the text box.', 'info');
+            }
         }
 
-        function updateViews() {
-            updateStandings();
-            updateFixtures();
-            updateResults();
-            updateKnockoutBracket();
-            updatePlayers();
-        }
 
-        // Initialize
+        // --- DOMContentLoaded Listener ---
         document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+
+            const applyTheme = (theme) => {
+                document.body.setAttribute('data-theme', theme);
+                themeToggle.innerHTML = theme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+            };
+            const toggleTheme = () => {
+                const currentTheme = document.body.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('theme', newTheme);
+                applyTheme(newTheme);
+            };
+
+            themeToggle.addEventListener('click', toggleTheme);
+            document.getElementById('admin-login-button').addEventListener('click', showAdminLogin);
+            
             const savedTheme = localStorage.getItem('theme') || 'light';
             applyTheme(savedTheme);
-            loadData();
+            
+            loadData(); 
+
+            document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'none');
         });
     </script>
 </body>
 
 </html>
-
