@@ -316,6 +316,13 @@
             background-color: var(--primary-color);
         }
         
+        /* --- NEW: Ad Type Badges for Promotions --- */
+        .promotion-details .badge {
+            font-size: 0.8rem;
+            padding: 0.4em 0.8em;
+            margin-bottom: 5px;
+        }
+        
         @media (min-width: 768px) {
             .promotion-card {
                 flex-direction: row;
@@ -739,6 +746,13 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
+                        <label for="promotionType" class="form-label">Advertisement Type</label>
+                        <select id="promotionType" class="form-select" aria-label="Advertisement Type">
+                            <option value="normal" selected>Prime Rotation Ad (Normal)</option>
+                            <option value="anchor">High-Visibility Anchor Ad (Constant - 1 in 4 Slot)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label for="promotionImage" class="form-label">Image URL</label>
                         <input type="url" id="promotionImageUrl" class="form-control mb-2" placeholder="Paste image URL (e.g., https://example.com/ad.jpg)" aria-label="Promotion Image URL">
                         <input type="file" id="promotionImageFile" class="form-control" accept="image/png, image/jpeg, image/webp">
@@ -838,47 +852,35 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="resultModalLabel">Enter Result</h5>
+                    <h5 class="modal-title" id="resultModalLabel">Enter Match Result</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body text-center">
                     <input type="hidden" id="resultFixtureId">
-                    <div class="text-center mb-3">
-                        <h6 id="resultModalPlayer1Name">Player 1</h6>
-                    </div>
                     <div class="result-modal-scores">
-                        <input type="number" id="resultScore1" class="form-control" min="0" aria-label="Player 1 Score">
-                        <span class="result-modal-vs">-</span>
-                        <input type="number" id="resultScore2" class="form-control" min="0" aria-label="Player 2 Score">
-                    </div>
-                     <div class="text-center mt-3">
-                        <h6 id="resultModalPlayer2Name">Player 2</h6>
+                        <label id="resultPlayer1Name"></label>
+                        <input type="number" id="resultScore1" class="form-control" min="0" value="0">
+                        <span class="result-modal-vs">VS</span>
+                        <input type="number" id="resultScore2" class="form-control" min="0" value="0">
+                        <label id="resultPlayer2Name"></label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="submitResult()">Update Result</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitResult()">Submit Result</button>
                 </div>
             </div>
         </div>
     </div>
+
     <section id="promotions" class="py-5">
         <div class="container">
-            <h2 class="section-title">Promotions</h2>
-            
-            <div id="promotionsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+            <h2 class="section-title">Exclusive Advertisements & Promotions</h2>
+            <div id="promotionsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
                 <div class="carousel-indicators" id="promotionIndicators">
                     </div>
                 <div class="carousel-inner" id="promotionCarouselInner">
-                    <div class="carousel-item active">
-                         <div class="promotion-card">
-                            <div class="promotion-details w-100 text-center text-secondary py-5">
-                                No promotions available yet. Check back soon!
-                            </div>
-                        </div>
                     </div>
-                    </div>
-                
                 <button class="carousel-control-prev" type="button" data-bs-target="#promotionsCarousel" data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Previous</span>
@@ -888,7 +890,7 @@
                     <span class="visually-hidden">Next</span>
                 </button>
             </div>
-            
+
             <div class="admin-mode mt-4 text-center">
                 <button class="btn btn-primary me-2" onclick="showAddPromotionModal()">
                     <i class="fa-solid fa-bullhorn me-1"></i> Add Promotion
@@ -896,6 +898,7 @@
             </div>
         </div>
     </section>
+
     <section id="standings" class="py-5">
         <div class="container">
             <h2 class="section-title">Standings</h2>
@@ -952,8 +955,8 @@
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
-            <div id="fixturesContainer"> 
-                </div>
+            <div id="fixturesContainer">
+            </div>
             <div class="admin-mode mt-4 text-center">
                 <button class="btn btn-primary me-2" onclick="showAddFixtureModal()">
                     <i class="fa-solid fa-calendar-plus me-1"></i> Add Fixture
@@ -968,58 +971,119 @@
     <section id="players" class="py-5">
         <div class="container">
             <h2 class="section-title">Players</h2>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="playersContainer">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="playersContainer">
                 </div>
-        </div>
-    </section>
-
-    <section id="data" class="py-5 bg-light">
-        <div class="container">
-            <h2 class="section-title">Admin Data Tools</h2>
-            <div class="card p-4 admin-mode">
-                <p>Use these tools to import or export your league data (including players, fixtures, results, and promotions).</p>
-                <textarea id="dataJson" class="form-control" rows="10" placeholder="Paste JSON data here to import" aria-label="JSON Data"></textarea>
-                <div class="mt-3 text-center">
-                    <button class="btn btn-primary me-2" onclick="importData()">Import Data</button>
-                    <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
-                </div>
-            </div>
         </div>
     </section>
 
     <footer class="league-footer">
-        <div class="container">
-            <p class="mb-0">&copy; 2024 E-Football League. All rights reserved.</p>
+        <div class="container text-center">
+            <p class="mb-0">© 2024 E-Football Mobile League. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-    <script>
-        // ================================================================
-        // FIREBASE CONFIGURATION (REPLACE WITH YOUR OWN)
-        // ================================================================
+    <script type="module">
+        // --- Firebase Configuration and Initialization ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        
         const firebaseConfig = {
-            apiKey: "AIzaSyCLycBxpQ3MMIDLYjmBqMZv32FIu2eDXF4", // <--- REPLACE
-            authDomain: "efootball-app-ce90b.firebaseapp.com", // <--- REPLACE
-            projectId: "efootball-app-ce90b", // <--- REPLACE
-            storageBucket: "efootball-app-ce90b.firebasestorage.app", // <--- REPLACE (Only needed if you re-enable file uploads)
-            messagingSenderId: "387933114333", // <--- REPLACE
-            appId: "1:387933114333:web:1c85dbadacf70d0406b034" // <--- REPLACE
+            apiKey: "AIzaSyCLycBxpQ3MMIDLYjmBqMZv32FIu2eDXF4",
+            authDomain: "efootball-app-ce90b.firebaseapp.com",
+            projectId: "efootball-app-ce90b",
+            storageBucket: "efootball-app-ce90b.firebasestorage.app",
+            messagingSenderId: "387933114333",
+            appId: "1:387933114333:web:1c85dbadacf70d0406b034"
         };
+        
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const password = "Genie"; // Your admin password
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // --- Mock DB Key (used for local storage fallback) ---
+        const MOCK_DB_KEY = 'eFootballLeagueData';
 
+        async function saveData(silent = true) {
+            try {
+                // 1. Save to Firebase (Primary)
+                await setDoc(doc(db, 'league', 'data'), leagueData);
+                
+                // 2. Save to Local Storage (Secondary/Fallback)
+                localStorage.setItem(MOCK_DB_KEY, JSON.stringify(leagueData));
+
+                if(!silent) showToast('Data saved successfully to Firebase! 💾', 'success');
+                updateViews();
+            } catch (e) {
+                console.error("Error saving document to Firebase: ", e);
+                showToast('Error saving data to Firebase! Falling back to Local Storage.', 'danger');
+                
+                // Save to Local Storage if Firebase fails
+                localStorage.setItem(MOCK_DB_KEY, JSON.stringify(leagueData));
+                if(!silent) showToast('Data saved to Local Storage (Firebase failed).', 'warning');
+                updateViews();
+            }
+        }
+        
+        async function loadData() {
+            try {
+                // 1. Try to load from Firebase (Primary)
+                const docSnap = await getDoc(doc(db, 'league', 'data'));
+                
+                let dataToLoad = null;
+
+                if (docSnap.exists()) {
+                    dataToLoad = docSnap.data();
+                    showToast('Data loaded from Firebase. ☁️', 'info');
+                } else {
+                    // 2. Fallback to Local Storage
+                    const storedData = localStorage.getItem(MOCK_DB_KEY);
+                    if (storedData) {
+                        dataToLoad = JSON.parse(storedData);
+                        showToast('Firebase document not found. Loaded data from Local Storage. 🏠', 'warning');
+                    }
+                }
+                
+                if (dataToLoad) {
+                    leagueData = { ...leagueData, ...dataToLoad }; 
+                    // Ensure arrays exist and promotions have a type after load
+                    if (!leagueData.promotions) leagueData.promotions = [];
+                    leagueData.promotions.forEach(p => {
+                        if (!p.type) p.type = 'normal';
+                    });
+                    applyBackground();
+                    startIntroSequence();
+                    calculateTotalMatchdays();
+                    updateViews();
+                    updateLiveTicker();
+                } else {
+                    console.log("No data found, using defaults.");
+                    applyBackground();
+                    startIntroSequence();
+                    updateViews();
+                    updateLiveTicker();
+                }
+            } catch (error) {
+                console.error("Error loading data from Firebase/Local Storage: ", error); 
+                showToast('Critical Error loading data! Using default settings. Please ensure Firebase security rules are configured.', 'danger');
+                // Fallback to defaults
+                applyBackground();
+                startIntroSequence();
+                updateViews();
+                updateLiveTicker();
+            }
+        }
+        // --- End Mock DB ---
+
+
+        let password = "Genie"; // Your admin password
         let leagueData = {
             players: [],
             fixtures: [],
             results: [],
             backgroundUrl: 'url("stadium.jpg")',
             introImageUrl: 'https://i.imgur.com/8Qj9Y0b.png',
-            promotions: []
+            promotions: [] // Promotions array
         };
         let currentMatchday = 1;
         let totalMatchdays = 1;
@@ -1029,116 +1093,81 @@
         const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%236c757d'%3E%3Cpath d='M50,0A50,50,0,1,0,50,100,50,50,0,0,0,50,0ZM76.4,26.66l-6.85,6.85a28,28,0,0,1-13.7,11.37L50,50,44.15,44.88a28,28,0,0,1-11.37-13.7L25.93,23.6A38.56,38.56,0,0,1,50,11.5a38.16,38.16,0,0,1,26.4,15.16ZM23.6,74.07l6.85-6.85a28,28,0,0,1,13.7-11.37L50,50,55.85,55.12a28,28,0,0,1,11.37,13.7l6.85,6.85A38.56,38.56,0,0,1,50,88.5,38.16,38.16,0,0,1,23.6,74.07Z'/%3E%3C/svg%3E";
 
         // --- Core Functions ---
-        async function loadData() {
-            try {
-                const doc = await db.collection('league').doc('data').get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    leagueData = { ...leagueData, ...data }; // Merge and keep defaults if missing
-                    // Ensure promotions array exists after load
-                    if (!leagueData.promotions) leagueData.promotions = [];
-                    applyBackground();
-                    startIntroSequence();
-                    calculateTotalMatchdays();
-                    updateViews();
-                    updateLiveTicker();
-                } else {
-                    console.log("No initial data found, using defaults.");
-                    applyBackground();
-                    startIntroSequence();
-                    updateViews();
-                    updateLiveTicker();
-                }
-            } catch (error) {
-                console.error("Error loading data: ", error);
-                // Fallback to defaults
-                applyBackground();
-                startIntroSequence();
-                updateViews();
-                updateLiveTicker();
-            }
-        }
 
-        async function saveData(showSuccessToast = true) {
-            try {
-                // Remove the complex objects before the rest is saved
-                const dataToSave = { ...leagueData };
-                await db.collection('league').doc('data').set(dataToSave);
-                updateViews();
-                if(isAdmin && showSuccessToast) {
-                    showToast('Data saved successfully! 💾', 'success');
-                }
-            } catch (error) {
-                console.error("Error saving data: ", error);
-                showToast('Error saving data! Check Firebase rules.', 'danger');
-            }
-        }
-
-        // Generic Toast Notification
-        function showToast(message, type = 'info') {
-            const toastHtml = `
-                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
-                    <div class="d-flex">
-                        <div class="toast-body">${message}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                </div>
-            `;
-            const toastContainer = document.getElementById('toast-container');
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = toastHtml;
-            const toastEl = wrapper.firstChild;
-            toastContainer.appendChild(toastEl);
-            const toast = new bootstrap.Toast(toastEl);
-            toast.show();
-            toastEl.addEventListener('hidden.bs.toast', () => {
-                toastEl.remove();
-            });
-        }
-
-        // --- NEW INTRO LOGIC ---
+        // --- INTRO SEQUENCE ---
         function startIntroSequence() {
             const overlay = document.getElementById('intro-overlay');
-            const textMarquee = document.getElementById('intro-text-marquee');
+            const marquee = document.getElementById('intro-text-marquee');
             const imageContainer = document.getElementById('intro-image-container');
-            const introImage = document.getElementById('intro-image');
-
-            introImage.src = leagueData.introImageUrl || 'https://i.imgur.com/8Qj9Y0b.png';
-
-            const dismissIntro = () => {
-                overlay.style.opacity = '0';
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                    document.body.style.overflowY = 'auto';
-                }, 500);
-            };
-
-            document.body.style.overflowY = 'hidden';
-
-            textMarquee.style.display = 'block';
-            textMarquee.style.animation = 'marquee 3s linear forwards';
-
-            setTimeout(() => {
-                textMarquee.style.animation = 'none';
-                textMarquee.style.display = 'none';
-
+            const image = document.getElementById('intro-image');
+            
+            if (leagueData.introImageUrl) {
+                image.src = leagueData.introImageUrl;
                 imageContainer.style.display = 'flex';
+                // Stage 1: Display image
                 setTimeout(() => {
-                    imageContainer.style.opacity = '1';
-                }, 50);
+                    imageContainer.style.opacity = 1;
+                }, 100); 
 
-                setTimeout(dismissIntro, 3000);
-            }, 3500);
+                // Stage 2: Fade out image, then fade out overlay
+                setTimeout(() => {
+                    imageContainer.style.opacity = 0;
+                    setTimeout(() => {
+                        overlay.style.opacity = 0;
+                        setTimeout(() => {
+                            overlay.style.display = 'none';
+                        }, 5000); // Wait for opacity transition to finish (5s)
+                    }, 100); // Short delay before starting the fade out
+                }, 3000); // Keep image on screen for 3s
+            } else {
+                // Default: Scrolling Marquee Text
+                marquee.style.display = 'block';
+                // Stage 1: Wait for text to scroll a bit
+                setTimeout(() => {
+                    // Stage 2: Fade out overlay
+                    overlay.style.opacity = 0;
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                    }, 5000); // Wait for opacity transition to finish (5s)
+                }, 1000); // Wait 1s before starting fade
+            }
         }
+        // --- END INTRO SEQUENCE ---
+        
+        // --- UTILITY ---
+        function showToast(message, type) {
+            const toastContainer = document.getElementById('toast-container');
+            const toastElement = document.createElement('div');
+            toastElement.classList.add('toast', `text-bg-${type}`, 'border-0');
+            toastElement.setAttribute('role', 'alert');
+            toastElement.setAttribute('aria-live', 'assertive');
+            toastElement.setAttribute('aria-atomic', 'true');
+            toastElement.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            toastContainer.appendChild(toastElement);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
 
-        // --- BACKGROUND MANAGEMENT ---
+            // Auto-remove toast element after it hides
+            toastElement.addEventListener('hidden.bs.toast', function () {
+                toastElement.remove();
+            });
+        }
+        
         function applyBackground() {
             const hero = document.querySelector('.hero');
             if (hero) {
                 document.documentElement.style.setProperty('--hero-bg-url', leagueData.backgroundUrl);
             }
         }
-
+        
+        // --- BACKGROUND MANAGEMENT ---
         function showEditBackgroundModal() {
             if (!isAdmin) {
                 showToast('Admin privileges required!', 'danger');
@@ -1169,11 +1198,13 @@
                 showToast('Hero Background URL set successfully! 📸', 'success');
                 return;
             }
+
             if (fileInput.files.length > 0) {
                 // File selected but no URL provided
                 showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
                 return;
             }
+
             // Error: Neither file nor URL provided
             showToast('Please provide a URL or select a file to set the background.', 'danger');
         }
@@ -1187,7 +1218,7 @@
             bootstrap.Modal.getInstance(document.getElementById('editBackgroundModal')).hide();
             showToast('Background reset to default!', 'warning');
         }
-
+        
         // --- INTRO IMAGE MANAGEMENT ---
         function showEditIntroImageModal() {
             if (!isAdmin) {
@@ -1219,38 +1250,38 @@
             } else if (fileInput.files.length > 0) {
                 showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
                 return;
-            } 
-            showToast('No URL or File provided. Keeping current image.', 'info');
+            }
+            showToast('Please provide a URL or select a file to set the intro image.', 'danger');
         }
 
         async function resetIntroImage() {
-            leagueData.introImageUrl = 'https://i.imgur.com/8Qj9Y0b.png';
+            leagueData.introImageUrl = 'https://i.imgur.com/8Qj9Y0b.png'; // Example default URL
             await saveData();
             document.getElementById('introImageUrlInput').value = '';
             document.getElementById('introImageFile').value = '';
             bootstrap.Modal.getInstance(document.getElementById('editIntroImageModal')).hide();
-            showToast('Intro Image reset to default! 🖼️', 'warning');
+            showToast('Intro image reset to default! Refresh to see the change.', 'warning');
         }
         
-        // --- PROMOTION MANAGEMENT ---
+        // --- PROMOTION/AD MANAGEMENT (UPDATED LOGIC) ---
         function showAddPromotionModal() {
             if (!isAdmin) {
-                showToast('You must be an admin to add a promotion.', 'danger');
+                showToast('Admin privileges required!', 'danger');
                 return;
             }
-            // Clear fields
             document.getElementById('promotionImageUrl').value = '';
             document.getElementById('promotionImageFile').value = '';
             document.getElementById('promotionDescription').value = '';
             document.getElementById('promotionPrice').value = '';
             document.getElementById('promotionDiscount').value = '';
             document.getElementById('promotionContact').value = '';
-
+            document.getElementById('promotionType').value = 'normal'; // Reset to default
             const modal = new bootstrap.Modal(document.getElementById('addPromotionModal'));
             modal.show();
         }
 
         async function submitPromotion() {
+            const promotionType = document.getElementById('promotionType').value.trim();
             const imageUrl = document.getElementById('promotionImageUrl').value.trim();
             const description = document.getElementById('promotionDescription').value.trim();
             const price = document.getElementById('promotionPrice').value.trim();
@@ -1262,12 +1293,10 @@
                 showToast('Price, Description, and Contact are required!', 'danger');
                 return;
             }
-            
             if (!imageUrl && fileInput.files.length === 0) {
                 showToast('Promotion image URL or Gallery File is required!', 'danger');
                 return;
             }
-            
             if (fileInput.files.length > 0 && !imageUrl) {
                 showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
                 return;
@@ -1275,6 +1304,7 @@
 
             const newPromotion = {
                 id: Date.now().toString(),
+                type: promotionType, // NEW FIELD
                 imageUrl: imageUrl, // Uses URL if provided, otherwise you'd need upload logic here
                 description: description,
                 price: price,
@@ -1299,8 +1329,8 @@
                 showToast('Promotion deleted! 🗑️', 'success');
             }
         }
+        
         // --- END PROMOTION MANAGEMENT ---
-
 
         // Update all views
         function updateViews() {
@@ -1323,361 +1353,77 @@
         function updateLiveTicker() {
             const tickerContent = document.querySelector('#liveTicker .live-ticker-content');
             const latestResult = leagueData.results.sort((a, b) => b.timestamp - a.timestamp)[0];
-            let tickerText = "Welcome to the eFootball Mobile League! Check here for live score updates...";
-
-            if (latestResult) {
-                const p1 = leagueData.players.find(p => p.id === latestResult.player1Id) || { name: 'Player 1' };
-                const p2 = leagueData.players.find(p => p.id === latestResult.player2Id) || { name: 'Player 2' };
-                const winnerName = latestResult.score1 > latestResult.score2 ? p1.name : (latestResult.score2 > latestResult.score1 ? p2.name : 'Draw');
-                tickerText = `🏆 LATEST RESULT: ${p1.name} ${latestResult.score1} - ${latestResult.score2} ${p2.name}. Winner: ${winnerName}! | Next matchday is ${currentMatchday}. | `;
-            }
-            tickerContent.innerText = tickerText.repeat(5);
-        }
-
-        // --- Admin/Login Logic ---
-        function showAdminLogin() {
-            const modal = new bootstrap.Modal(document.getElementById('adminModal'));
-            modal.show();
-        }
-
-        function loginAdmin() {
-            const input = document.getElementById('adminPassword');
-            if (input.value === password) {
-                isAdmin = true;
-                document.getElementById('admin-login-button').innerHTML = '<i class="fa-solid fa-unlock me-1"></i> Admin Logged In';
-                document.getElementById('admin-login-button').classList.remove('btn-outline-primary');
-                document.getElementById('admin-login-button').classList.add('btn-success');
-                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
-                bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
-                showToast('Welcome, Admin! 👋', 'success');
-                updateViews(); // Re-render to show admin controls on promotions/matches
-            } else {
-                showToast('Incorrect Password!', 'danger');
-            }
-            input.value = '';
-        }
-
-        async function resetLeague() {
-            if (!isAdmin) {
-                showToast('You must be an admin to reset the league.', 'danger');
-                return;
-            }
-            if (confirm("Are you sure you want to COMPLETELY RESET the league (players, fixtures, results, and promotions)? This action cannot be undone.")) {
-                leagueData.players = [];
-                leagueData.fixtures = [];
-                leagueData.results = [];
-                leagueData.promotions = [];
-                currentMatchday = 1;
-                totalMatchdays = 1;
-                await saveData();
-                // We no longer use populateTeamSelector, just updateViews
-                showToast('League reset successful! 🧹', 'warning');
-            }
-        }
-
-        // --- Player Management ---
-        function showAddPlayerModal() {
-            if (!isAdmin) {
-                showToast('You must be an admin to add a player.', 'danger');
-                return;
-            }
-            document.getElementById('playerName').value = '';
-            document.getElementById('playerAvatarUrl').value = '';
-            document.getElementById('playerAvatarFile').value = '';
-            const modal = new bootstrap.Modal(document.getElementById('addPlayerModal'));
-            modal.show();
-        }
-
-        async function submitPlayer() {
-            const name = document.getElementById('playerName').value.trim();
-            const url = document.getElementById('playerAvatarUrl').value.trim();
-            const fileInput = document.getElementById('playerAvatarFile');
-
-            if (!name) {
-                showToast('Player name is required!', 'danger');
-                return;
-            }
-
-            let avatarUrl = url || defaultAvatar;
             
-            if (fileInput.files.length > 0 && !url) {
-                showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
-                return;
+            let tickerText = "Welcome to the E-Football Mobile League! | Current Matchday: " + currentMatchday;
+            
+            if (latestResult) {
+                const p1 = leagueData.players.find(p => p.id === latestResult.player1Id)?.name || 'Player 1';
+                const p2 = leagueData.players.find(p => p.id === latestResult.player2Id)?.name || 'Player 2';
+                tickerText += ` | LATEST RESULT: ${p1} ${latestResult.score1}-${latestResult.score2} ${p2} (MD ${latestResult.matchday})`;
             }
 
-            const newPlayer = {
-                id: Date.now().toString(),
-                name: name,
-                avatar: avatarUrl,
-                mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0,
-                form: []
-            };
+            tickerText += " | Check the Standings and upcoming Fixtures!";
 
-            leagueData.players.push(newPlayer);
-            await saveData();
-            populateFixtureSelectors();
-            bootstrap.Modal.getInstance(document.getElementById('addPlayerModal')).hide();
-            showToast('Player added successfully! 🥳', 'success');
+            // Duplicate the text to ensure continuous flow
+            tickerContent.textContent = tickerText + ' | ' + tickerText + ' | ' + tickerText;
         }
 
-        // --- Fixture/Result Management (Combined) ---
-        function populateFixtureSelectors() {
-            const player1Select = document.getElementById('fixturePlayer1');
-            const player2Select = document.getElementById('fixturePlayer2');
-            player1Select.innerHTML = '<option value="">Select Player 1</option>';
-            player2Select.innerHTML = '<option value="">Select Player 2</option>';
-
-            leagueData.players.forEach(player => {
-                const option1 = document.createElement('option');
-                option1.value = player.id;
-                option1.textContent = player.name;
-                player1Select.appendChild(option1);
-
-                const option2 = document.createElement('option');
-                option2.value = player.id;
-                option2.textContent = player.name;
-                player2Select.appendChild(option2);
-            });
-        }
-
-        function showAddFixtureModal() {
-            if (!isAdmin) {
-                showToast('You must be an admin to add a fixture.', 'danger');
-                return;
-            }
-            populateFixtureSelectors();
-            document.getElementById('fixtureDate').value = '';
-            const modal = new bootstrap.Modal(document.getElementById('addFixtureModal'));
-            modal.show();
-        }
-
-        async function submitFixture() {
-            const player1Id = document.getElementById('fixturePlayer1').value;
-            const player2Id = document.getElementById('fixturePlayer2').value;
-            const date = document.getElementById('fixtureDate').value;
-            const matchday = parseInt(document.getElementById('fixtureMatchday').value);
-
-            if (!player1Id || !player2Id || player1Id === player2Id || !date || isNaN(matchday) || matchday < 1) {
-                showToast('Invalid fixture details. Select two different players, a date, and a valid matchday.', 'danger');
-                return;
-            }
-
-            const newFixture = {
-                id: Date.now().toString(),
-                player1Id: player1Id,
-                player2Id: player2Id,
-                date: date,
-                matchday: matchday,
-                isPlayed: false
-            };
-
-            leagueData.fixtures.push(newFixture);
-            await saveData();
-            calculateTotalMatchdays();
-            bootstrap.Modal.getInstance(document.getElementById('addFixtureModal')).hide();
-            showToast('Fixture added successfully! 📅', 'success');
-        }
-
-        function generateFixtures() {
-            if (!isAdmin) {
-                showToast('You must be an admin to generate fixtures.', 'danger');
-                return;
-            }
-
-            if (leagueData.players.length < 2) {
-                showToast('Need at least 2 players to generate fixtures!', 'danger');
-                return;
-            }
-
-            if (leagueData.fixtures.length > 0) {
-                if (!confirm("Unplayed matches exist. Are you sure you want to clear them and generate a new full round robin?")) {
-                    return;
-                }
-            }
-
-            let players = leagueData.players.map(p => p.id);
-            let n = players.length;
-            if (n % 2 !== 0) {
-                players.push('BYE');
-                n++;
-            }
-
-            let numRounds = (leagueData.players.length - 1) * 2;
-            leagueData.fixtures = [];
-
-            for (let round = 1; round <= numRounds; round++) {
-                let currentMatchday = round;
-                for (let i = 0; i < n / 2; i++) {
-                    let p1 = players[i];
-                    let p2 = players[n - 1 - i];
-
-                    if (p1 === 'BYE' || p2 === 'BYE') continue;
-
-                    let player1Id = (round % 2 === 1) ? p1 : p2;
-                    let player2Id = (round % 2 === 1) ? p2 : p1;
-
-                    const newFixture = {
-                        id: Date.now().toString() + '-' + round + '-' + i,
-                        player1Id: player1Id,
-                        player2Id: player2Id,
-                        date: 'TBD',
-                        matchday: currentMatchday,
-                        isPlayed: false
-                    };
-                    leagueData.fixtures.push(newFixture);
-                }
-
-                let last = players.pop();
-                players.splice(1, 0, last);
-            }
-
-            leagueData.results = [];
-            recalculateStandings();
-            saveData();
-            calculateTotalMatchdays();
-            showToast(`Generated ${leagueData.fixtures.length} fixtures over ${totalMatchdays} matchdays!`, 'success');
-        }
-
-
-        function showResultModal(fixtureId) {
-            if (!isAdmin) {
-                showToast('You must be an admin to enter results.', 'danger');
-                return;
-            }
-            const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
-            if (!fixture) return;
-
-            const p1 = leagueData.players.find(p => p.id === fixture.player1Id);
-            const p2 = leagueData.players.find(p => p.id === fixture.player2Id);
-            if (!p1 || !p2) {
-                showToast('Player data missing for this fixture.', 'danger');
-                return;
-            }
-
-            document.getElementById('resultFixtureId').value = fixtureId;
-            document.getElementById('resultModalPlayer1Name').textContent = p1.name;
-            document.getElementById('resultModalPlayer2Name').textContent = p2.name;
-            document.getElementById('resultScore1').value = '';
-            document.getElementById('resultScore2').value = '';
-
-            const modal = new bootstrap.Modal(document.getElementById('resultModal'));
-            modal.show();
-        }
-
-        async function submitResult() {
-            const fixtureId = document.getElementById('resultFixtureId').value;
-            const score1 = parseInt(document.getElementById('resultScore1').value);
-            const score2 = parseInt(document.getElementById('resultScore2').value);
-
-            if (isNaN(score1) || isNaN(score2) || score1 < 0 || score2 < 0) {
-                showToast('Scores must be valid non-negative numbers.', 'danger');
-                return;
-            }
-
-            const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
-            if (!fixture) return;
-
-            // Mark fixture as played
-            fixture.isPlayed = true;
-
-            const newResult = {
-                fixtureId: fixtureId,
-                player1Id: fixture.player1Id,
-                player2Id: fixture.player2Id,
-                score1: score1,
-                score2: score2,
-                matchday: fixture.matchday,
-                timestamp: Date.now()
-            };
-
-            // Remove any existing result for this fixture before adding the new one
-            leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
-            leagueData.results.push(newResult);
-
-            recalculateStandings();
-            await saveData();
-            updateLiveTicker();
-            bootstrap.Modal.getInstance(document.getElementById('resultModal')).hide();
-            showToast('Result submitted successfully! ⚽🥅', 'success');
-        }
-
-        function recalculateStandings() {
-            leagueData.players.forEach(player => {
-                player.mp = 0; player.w = 0; player.d = 0; player.l = 0;
-                player.gf = 0; player.ga = 0; player.gd = 0; player.pts = 0;
-                player.form = [];
-            });
-
-            const sortedResults = leagueData.results.sort((a, b) => a.timestamp - b.timestamp);
-
-            sortedResults.forEach(result => {
-                const p1 = leagueData.players.find(p => p.id === result.player1Id);
-                const p2 = leagueData.players.find(p => p.id === result.player2Id);
-
-                if (!p1 || !p2) return;
-
-                // Helper to update stats and form
-                const updatePlayerStats = (player, scoreFor, scoreAgainst, resultChar) => {
-                    player.mp++;
-                    player.gf += scoreFor;
-                    player.ga += scoreAgainst;
-                    if (resultChar === 'W') player.pts += 3;
-                    if (resultChar === 'D') player.pts += 1;
-                    player[resultChar.toLowerCase()]++;
-                    if (player.form.length === 5) player.form.pop();
-                    player.form.unshift(resultChar);
-                };
-
-                const isDraw = result.score1 === result.score2;
-                const p1Won = result.score1 > result.score2;
-
-                if (isDraw) {
-                    updatePlayerStats(p1, result.score1, result.score2, 'D');
-                    updatePlayerStats(p2, result.score2, result.score1, 'D');
-                } else if (p1Won) {
-                    updatePlayerStats(p1, result.score1, result.score2, 'W');
-                    updatePlayerStats(p2, result.score2, result.score1, 'L');
-                } else {
-                    updatePlayerStats(p1, result.score1, result.score2, 'L');
-                    updatePlayerStats(p2, result.score2, result.score1, 'W');
-                }
-            });
-
-            leagueData.players.forEach(player => {
-                player.gd = player.gf - player.ga;
-            });
-        }
-
-        // --- View Updates ---
-
+        // --- RENDER FUNCTIONS ---
+        
+        // --- RENDER PROMOTIONS (UPDATED LOGIC) ---
         function renderPromotions() {
             const inner = document.getElementById('promotionCarouselInner');
             const indicators = document.getElementById('promotionIndicators');
             inner.innerHTML = '';
             indicators.innerHTML = '';
+            
+            // 1. Separate ads by type
+            // Default any ad without a type to 'normal'
+            const normalAds = leagueData.promotions.filter(p => p.type === 'normal' || !p.type); 
+            const anchorAds = leagueData.promotions.filter(p => p.type === 'anchor');
+            
+            // 2. Combine ads with 3:1 ratio (Anchor ad after every 3 Normal ads)
+            const combinedAds = [];
+            let anchorIndex = 0;
+            
+            for (let i = 0; i < normalAds.length; i++) {
+                combinedAds.push(normalAds[i]);
+                // Insert an anchor ad after every 3 normal ads
+                if ((i + 1) % 3 === 0 && anchorIndex < anchorAds.length) {
+                    combinedAds.push(anchorAds[anchorIndex]);
+                    anchorIndex++;
+                }
+            }
+            
+            // 3. Add any remaining anchor ads (in case there were more anchor than normal/3)
+            while (anchorIndex < anchorAds.length) {
+                combinedAds.push(anchorAds[anchorIndex]);
+                anchorIndex++;
+            }
 
-            if (leagueData.promotions.length === 0) {
-                inner.innerHTML = `
-                    <div class="carousel-item active">
-                         <div class="promotion-card">
-                            <div class="promotion-details w-100 text-center text-secondary py-5">
-                                No promotions available yet. Check back soon!
-                            </div>
-                        </div>
-                    </div>
-                `;
-                document.querySelectorAll('#promotionsCarousel .carousel-control-prev, #promotionsCarousel .carousel-control-next').forEach(btn => btn.style.display = 'none');
-                document.getElementById('promotionIndicators').style.display = 'none';
+
+            if (combinedAds.length === 0) {
+                document.getElementById('promotionsCarousel').style.display = 'none';
                 return;
             }
 
-            document.querySelectorAll('#promotionsCarousel .carousel-control-prev, #promotionsCarousel .carousel-control-next').forEach(btn => btn.style.display = 'flex');
-            document.getElementById('promotionIndicators').style.display = 'flex';
+            document.getElementById('promotionsCarousel').style.display = 'block';
             
-            leagueData.promotions.forEach((promo, index) => {
+            // Show/hide controls and indicators only if there is more than 1 ad
+            const showControls = combinedAds.length > 1 ? 'flex' : 'none';
+            document.querySelectorAll('#promotionsCarousel .carousel-control-prev, #promotionsCarousel .carousel-control-next').forEach(btn => btn.style.display = showControls);
+            document.getElementById('promotionIndicators').style.display = showControls;
+
+
+            combinedAds.forEach((promo, index) => {
                 const activeClass = index === 0 ? 'active' : '';
                 const discountHtml = promo.discount ? `<span class="promotion-discount">${promo.discount}</span>` : '';
                 
+                // NEW: Ad Type Badge
+                const typeBadge = promo.type === 'anchor' 
+                    ? '<span class="badge bg-warning text-dark mb-2">High-Visibility Anchor Ad</span>' 
+                    : '<span class="badge bg-primary mb-2">Prime Rotation Ad</span>';
+                    
                 const itemHtml = `
                     <div class="carousel-item ${activeClass}">
                         <div class="promotion-card">
@@ -1685,13 +1431,15 @@
                                 <img src="${promo.imageUrl}" class="promotion-card-img" alt="Promotion Image">
                             </div>
                             <div class="promotion-details">
+                                ${typeBadge} 
                                 <h4>${promo.description}</h4>
                                 <div class="promotion-price-block">
                                     ${discountHtml}
                                     <span>${promo.price}</span>
                                 </div>
                                 <p class="promotion-contact">
-                                    Contact: <a href="${promo.contact.startsWith('+') ? `tel:${promo.contact}` : (promo.contact.startsWith('http') ? promo.contact : `https://${promo.contact}`)}" target="_blank">${promo.contact}</a>
+                                    Contact: 
+                                    <a href="${promo.contact.startsWith('+') ? `tel:${promo.contact}` : (promo.contact.startsWith('http') ? promo.contact : `https://${promo.contact}`)}" target="_blank">${promo.contact}</a>
                                 </p>
                                 ${isAdmin ? `
                                     <div class="admin-mode mt-3">
@@ -1712,10 +1460,12 @@
                 indicators.innerHTML += indicatorHtml;
             });
 
-            if(isAdmin) {
+            if (isAdmin) {
                 document.querySelectorAll('#promotions .admin-mode').forEach(el => el.style.display = 'block');
             }
         }
+        
+        // --- END RENDER PROMOTIONS ---
 
         // Update Standings Table
         function updateStandings() {
@@ -1733,17 +1483,18 @@
             sortedPlayers.forEach((player, index) => {
                 let rowClass = '';
                 if (index < 3) rowClass = 'top-team-row';
+                else if (index < 6) rowClass = 'mid-team-row';
                 else if (index >= sortedPlayers.length - 3) rowClass = 'bottom-team-row';
 
                 const formHtml = player.form.map(f => `<span class="form-bubble form-bubble-${f}">${f}</span>`).join('');
-
+                
                 const row = `
                     <tr class="${rowClass}">
                         <td class="pos-cell">${index + 1}</td>
                         <td class="player-name-cell">
-                            <img src="${player.avatar}" alt="${player.name} avatar">
-                            <a href="#player-${player.id}" class="player-profile-link">${player.name}</a>
-                            ${isAdmin ? `<i class="fa-solid fa-trash text-danger ms-2 admin-mode" style="cursor:pointer;" onclick="deletePlayer('${player.id}')"></i>` : ''}
+                            <img src="${player.avatar || defaultAvatar}" alt="${player.name}">
+                            <a href="#" class="player-profile-link">${player.name}</a>
+                            ${isAdmin ? `<div class="admin-mode ms-2"><button class="btn btn-sm btn-danger" onclick="deletePlayer('${player.id}')"><i class="fa-solid fa-user-minus"></i></button></div>` : ''}
                         </td>
                         <td>${player.mp}</td>
                         <td>${player.w}</td>
@@ -1759,31 +1510,33 @@
                 tableBody.innerHTML += row;
             });
 
-            if(isAdmin) {
-                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+            if (isAdmin) {
+                 document.querySelectorAll('#standingsTable .admin-mode').forEach(el => el.style.display = 'block');
             }
         }
 
-        // Combined Fixtures/Results Renderer
+        // Render Fixtures and Results
         function renderMatches() {
             const container = document.getElementById('fixturesContainer');
+            const matchdayTitle = document.getElementById('currentMatchday');
             container.innerHTML = '';
+            matchdayTitle.textContent = `Matchday ${currentMatchday}`;
             
-            // Get fixtures for the current matchday
-            const filteredFixtures = leagueData.fixtures
-                .filter(f => f.matchday === currentMatchday)
-                .sort((a, b) => a.id.localeCompare(b.id));
+            document.getElementById('prevMatchday').disabled = currentMatchday === 1;
+            document.getElementById('nextMatchday').disabled = currentMatchday === totalMatchdays;
 
-            document.getElementById('currentMatchday').textContent = `Matchday ${currentMatchday}`;
-            
-            filteredFixtures.forEach(fixture => {
+            const matchesForMatchday = leagueData.fixtures.filter(f => f.matchday === currentMatchday);
+            const resultsForMatchday = leagueData.results.filter(r => r.matchday === currentMatchday);
+
+            matchesForMatchday.forEach(fixture => {
                 const p1 = leagueData.players.find(p => p.id === fixture.player1Id);
                 const p2 = leagueData.players.find(p => p.id === fixture.player2Id);
-                const result = leagueData.results.find(r => r.fixtureId === fixture.id);
                 
-                if (!p1 || !p2) return;
+                if (!p1 || !p2) return; // Skip if player data is missing
 
-                const dateDisplay = fixture.date.includes('TBD') ? 'TBD' : new Date(fixture.date).toLocaleDateString();
+                const result = resultsForMatchday.find(r => r.fixtureId === fixture.id);
+                const dateDisplay = new Date(fixture.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
                 let matchContent = '';
                 let cardClass = '';
                 let adminButtons = '';
@@ -1850,50 +1603,136 @@
                 document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
             }
         }
-
+        
         function changeMatchday(direction) {
             let newMatchday = currentMatchday + direction;
             if (newMatchday >= 1 && newMatchday <= totalMatchdays) {
                 currentMatchday = newMatchday;
                 renderMatches();
-            } else {
-                showToast('No more matchdays in that direction. ⚠️', 'info');
             }
         }
-
-
-        // Update Players/Profiles
+        
         function updatePlayers() {
             const container = document.getElementById('playersContainer');
             container.innerHTML = '';
             
             leagueData.players.forEach(player => {
                 const card = `
-                    <div class="col" id="player-${player.id}">
+                    <div class="col">
                         <div class="player-card">
-                            <img src="${player.avatar}" alt="${player.name} avatar">
+                            <img src="${player.avatar || defaultAvatar}" alt="${player.name}">
                             <h5 class="card-title">${player.name}</h5>
                             <p class="card-text">
-                                MP: ${player.mp} | W: ${player.w} | D: ${player.d} | L: ${player.l}
+                                Total Points: <strong>${player.pts}</strong><br>
+                                Games Played: ${player.mp}
                             </p>
-                            <a href="#fixtures" class="btn btn-sm btn-primary" onclick="setPlayerFilter('${player.id}')">View Matches</a>
+                            ${isAdmin ? `
+                                <div class="admin-mode mt-3">
+                                    <button class="btn btn-sm btn-danger" onclick="deletePlayer('${player.id}')">
+                                        <i class="fa-solid fa-trash"></i> Delete Player
+                                    </button>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;
                 container.innerHTML += card;
             });
-        }
-        
-        // This function would be implemented if a full filtering UI were required, 
-        // but for now, we just link to the main section.
-        function setPlayerFilter(playerId) {
-            // For simplicity, we navigate and rely on the full matchday view.
-            // A more complex app would store this filter and re-render.
-            // Since this is a simple page, we just scroll to fixtures.
-            // console.log("Filtering matches for player:", playerId);
+            if(isAdmin) {
+                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+            }
         }
 
-        // --- Delete/Undo Functions ---
+
+        // --- ADMIN LOGIN/RESET ---
+        function showAdminLogin() {
+            const modal = new bootstrap.Modal(document.getElementById('adminModal'));
+            modal.show();
+        }
+
+        function loginAdmin() {
+            const input = document.getElementById('adminPassword');
+            if (input.value === password) {
+                isAdmin = true;
+                document.getElementById('admin-login-button').innerHTML = '<i class="fa-solid fa-unlock me-1"></i> Admin Logged In';
+                document.getElementById('admin-login-button').classList.remove('btn-outline-primary');
+                document.getElementById('admin-login-button').classList.add('btn-success');
+                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+                bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
+                showToast('Welcome, Admin! 👋', 'success');
+                updateViews(); // Re-render to show admin controls on promotions/matches
+            } else {
+                showToast('Incorrect Password!', 'danger');
+            }
+            input.value = '';
+        }
+
+        async function resetLeague() {
+            if (!isAdmin) {
+                showToast('You must be an admin to reset the league.', 'danger');
+                return;
+            }
+            if (confirm("Are you sure you want to COMPLETELY RESET the league (players, fixtures, results, and promotions)? This action cannot be undone.")) {
+                leagueData.players = [];
+                leagueData.fixtures = [];
+                leagueData.results = [];
+                leagueData.promotions = [];
+                currentMatchday = 1;
+                totalMatchdays = 1;
+                await saveData(); 
+                showToast('League reset successful! 🧹', 'warning');
+            }
+        }
+
+        // --- Player Management ---
+        function showAddPlayerModal() {
+            if (!isAdmin) {
+                showToast('You must be an admin to add a player.', 'danger');
+                return;
+            }
+            if (leagueData.players.length < 2) {
+                 showToast('Need at least 2 players to add a fixture!', 'danger');
+                 return;
+            }
+            document.getElementById('playerName').value = '';
+            document.getElementById('playerAvatarUrl').value = '';
+            document.getElementById('playerAvatarFile').value = '';
+            const modal = new bootstrap.Modal(document.getElementById('addPlayerModal'));
+            modal.show();
+        }
+
+        async function submitPlayer() {
+            const name = document.getElementById('playerName').value.trim();
+            const url = document.getElementById('playerAvatarUrl').value.trim();
+            const fileInput = document.getElementById('playerAvatarFile');
+
+            if (!name) {
+                showToast('Player name is required!', 'danger');
+                return;
+            }
+
+            let avatarUrl = url || defaultAvatar;
+
+            if (fileInput.files.length > 0 && !url) {
+                showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
+                return;
+            }
+
+            const newPlayer = {
+                id: Date.now().toString(),
+                name: name,
+                avatar: avatarUrl,
+                mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0,
+                form: []
+            };
+
+            leagueData.players.push(newPlayer);
+            await saveData();
+            populateFixtureSelectors();
+            bootstrap.Modal.getInstance(document.getElementById('addPlayerModal')).hide();
+            showToast('Player added successfully! 🥳', 'success');
+        }
+
         async function deletePlayer(playerId) {
             if (!isAdmin) {
                 showToast('You must be an admin.', 'danger');
@@ -1911,6 +1750,202 @@
             }
         }
 
+
+        // --- Fixture/Result Management ---
+        function populateFixtureSelectors() {
+            const select1 = document.getElementById('fixturePlayer1');
+            const select2 = document.getElementById('fixturePlayer2');
+            
+            select1.innerHTML = '<option value="" selected disabled>Select Player 1</option>';
+            select2.innerHTML = '<option value="" selected disabled>Select Player 2</option>';
+            
+            leagueData.players.forEach(player => {
+                const option1 = document.createElement('option');
+                option1.value = player.id;
+                option1.textContent = player.name;
+                select1.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = player.id;
+                option2.textContent = player.name;
+                select2.appendChild(option2);
+            });
+        }
+
+        function showAddFixtureModal() {
+            if (!isAdmin) {
+                showToast('You must be an admin to add a fixture.', 'danger');
+                return;
+            }
+            if (leagueData.players.length < 2) {
+                 showToast('Need at least 2 players to add a fixture!', 'danger');
+                 return;
+            }
+            populateFixtureSelectors();
+            document.getElementById('fixtureDate').valueAsDate = new Date();
+            document.getElementById('fixtureMatchday').value = totalMatchdays;
+            const modal = new bootstrap.Modal(document.getElementById('addFixtureModal'));
+            modal.show();
+        }
+
+        async function submitFixture() {
+            const player1Id = document.getElementById('fixturePlayer1').value;
+            const player2Id = document.getElementById('fixturePlayer2').value;
+            const date = document.getElementById('fixtureDate').value;
+            const matchday = parseInt(document.getElementById('fixtureMatchday').value);
+
+            if (!player1Id || !player2Id || player1Id === player2Id || !date || isNaN(matchday) || matchday < 1) {
+                showToast('Invalid fixture details. Select two different players, a date, and a valid matchday.', 'danger');
+                return;
+            }
+
+            const newFixture = {
+                id: Date.now().toString(),
+                player1Id: player1Id,
+                player2Id: player2Id,
+                date: date,
+                matchday: matchday,
+                isPlayed: false
+            };
+
+            leagueData.fixtures.push(newFixture);
+            await saveData();
+            calculateTotalMatchdays();
+            bootstrap.Modal.getInstance(document.getElementById('addFixtureModal')).hide();
+            showToast('Fixture added successfully! 📅', 'success');
+        }
+
+        function generateFixtures() {
+            if (!isAdmin) {
+                showToast('You must be an admin to generate fixtures!', 'danger');
+                return;
+            }
+            if (leagueData.players.length < 2) {
+                showToast('Need at least 2 players to generate fixtures!', 'danger');
+                return;
+            }
+            if (leagueData.fixtures.length > 0) {
+                if (!confirm("Unplayed matches exist. Are you sure you want to clear them and generate a new full round robin?")) {
+                    return;
+                }
+            }
+
+            let players = leagueData.players.map(p => p.id);
+            let n = players.length;
+            if (n % 2 !== 0) {
+                players.push('BYE');
+                n++;
+            }
+
+            let numRounds = (leagueData.players.length - 1) * 2;
+            leagueData.fixtures = [];
+
+            for (let round = 1; round <= numRounds; round++) {
+                let currentMatchday = round;
+                for (let i = 0; i < n / 2; i++) {
+                    let p1 = players[i];
+                    let p2 = players[n - 1 - i];
+                    
+                    if (p1 === 'BYE' || p2 === 'BYE') continue;
+                    
+                    // Simple logic to alternate home/away
+                    let player1Id = (round % 2 === 1) ? p1 : p2;
+                    let player2Id = (round % 2 === 1) ? p2 : p1;
+
+                    // This is a simple placeholder date. For a real league, dates should be calculated.
+                    let date = new Date();
+                    date.setDate(date.getDate() + (round * 7)); // Example: One round per week
+
+                    const newFixture = {
+                        id: Date.now().toString() + '-' + round + '-' + i,
+                        player1Id: player1Id,
+                        player2Id: player2Id,
+                        date: date.toISOString().split('T')[0],
+                        matchday: currentMatchday,
+                        isPlayed: false
+                    };
+                    leagueData.fixtures.push(newFixture);
+                }
+                
+                // Rotate players (Fixed player 1 (index 0), rotate the rest)
+                let temp = players[n - 1];
+                for (let i = n - 1; i > 1; i--) {
+                    players[i] = players[i - 1];
+                }
+                players[1] = temp;
+            }
+            
+            leagueData.results = leagueData.results.filter(r => 
+                leagueData.fixtures.some(f => f.id === r.fixtureId)
+            );
+
+            recalculateStandings();
+            saveData();
+            calculateTotalMatchdays();
+            showToast('Full Round-Robin Fixtures generated successfully!', 'success');
+        }
+
+        function showResultModal(fixtureId) {
+            if (!isAdmin) {
+                showToast('You must be an admin.', 'danger');
+                return;
+            }
+            const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
+            if (!fixture) return;
+
+            const p1 = leagueData.players.find(p => p.id === fixture.player1Id);
+            const p2 = leagueData.players.find(p => p.id === fixture.player2Id);
+            if (!p1 || !p2) return;
+
+            const existingResult = leagueData.results.find(r => r.fixtureId === fixtureId);
+
+            document.getElementById('resultFixtureId').value = fixtureId;
+            document.getElementById('resultPlayer1Name').textContent = p1.name;
+            document.getElementById('resultPlayer2Name').textContent = p2.name;
+            document.getElementById('resultScore1').value = existingResult ? existingResult.score1 : '0';
+            document.getElementById('resultScore2').value = existingResult ? existingResult.score2 : '0';
+
+            const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+            modal.show();
+        }
+
+        async function submitResult() {
+            const fixtureId = document.getElementById('resultFixtureId').value;
+            const score1 = parseInt(document.getElementById('resultScore1').value);
+            const score2 = parseInt(document.getElementById('resultScore2').value);
+
+            if (isNaN(score1) || isNaN(score2) || score1 < 0 || score2 < 0) {
+                showToast('Scores must be valid non-negative numbers.', 'danger');
+                return;
+            }
+
+            const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
+            if (!fixture) return;
+
+            // Mark fixture as played
+            fixture.isPlayed = true;
+
+            const newResult = {
+                fixtureId: fixtureId,
+                player1Id: fixture.player1Id,
+                player2Id: fixture.player2Id,
+                score1: score1,
+                score2: score2,
+                matchday: fixture.matchday,
+                timestamp: Date.now()
+            };
+
+            // Remove any existing result for this fixture before adding the new one
+            leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
+            leagueData.results.push(newResult);
+
+            recalculateStandings();
+            await saveData();
+            updateLiveTicker();
+            bootstrap.Modal.getInstance(document.getElementById('resultModal')).hide();
+            showToast('Result submitted successfully! ⚽🥅', 'success');
+        }
+
         async function deleteFixture(fixtureId) {
             if (!isAdmin) {
                 showToast('You must be an admin.', 'danger');
@@ -1924,62 +1959,153 @@
             showToast('Match and result (if any) deleted! 🗑️', 'success');
         }
 
-        // Renamed from deleteResult
         async function undoResult(fixtureId) {
             if (!isAdmin) {
                 showToast('You must be an admin.', 'danger');
                 return;
             }
             const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
-            if (fixture) {
+            if (!fixture) return;
+
+            if (confirm("Are you sure you want to undo this result? The match will be marked as unplayed.")) {
+                // Remove result
+                leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
+                // Mark fixture as unplayed
                 fixture.isPlayed = false;
+                
+                recalculateStandings();
+                await saveData();
+                updateLiveTicker();
+                showToast('Result undone! Match is now a pending fixture. ↩️', 'warning');
             }
-            
-            leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
-            recalculateStandings();
-            await saveData();
-            showToast('Result undone and match is now an unplayed fixture! ↩️', 'success');
         }
 
+        function recalculateStandings() {
+            leagueData.players.forEach(player => {
+                player.mp = 0;
+                player.w = 0;
+                player.d = 0;
+                player.l = 0;
+                player.gf = 0;
+                player.ga = 0;
+                player.gd = 0;
+                player.pts = 0;
+                player.form = [];
+            });
 
-        // --- Data Import/Export ---
+            // Sort results by timestamp to correctly build the 'form' array (most recent first)
+            const sortedResults = leagueData.results.sort((a, b) => a.timestamp - b.timestamp);
+
+            sortedResults.forEach(result => {
+                const p1 = leagueData.players.find(p => p.id === result.player1Id);
+                const p2 = leagueData.players.find(p => p.id === result.player2Id);
+                if (!p1 || !p2) return;
+
+                // Helper to update stats and form
+                const updatePlayerStats = (player, scoreFor, scoreAgainst, resultChar) => {
+                    player.mp++;
+                    player.gf += scoreFor;
+                    player.ga += scoreAgainst;
+                    
+                    if (resultChar === 'W') player.pts += 3;
+                    if (resultChar === 'D') player.pts += 1;
+                    
+                    player[resultChar.toLowerCase()]++;
+                    
+                    // Add result to the front of the form array (max 5 results)
+                    if (player.form.length === 5) player.form.pop();
+                    player.form.unshift(resultChar);
+                };
+
+                // Player 1's stats
+                let p1Result = 'D';
+                if (result.score1 > result.score2) p1Result = 'W';
+                else if (result.score1 < result.score2) p1Result = 'L';
+                updatePlayerStats(p1, result.score1, result.score2, p1Result);
+
+                // Player 2's stats
+                let p2Result = 'D';
+                if (result.score2 > result.score1) p2Result = 'W';
+                else if (result.score2 < result.score1) p2Result = 'L';
+                updatePlayerStats(p2, result.score2, result.score1, p2Result);
+            });
+
+            // Calculate Goal Difference (GD) last
+            leagueData.players.forEach(player => {
+                player.gd = player.gf - player.ga;
+            });
+        }
+        
+        // --- DATA EXPORT/IMPORT ---
+        function exportData() {
+            const dataString = JSON.stringify(leagueData, null, 2);
+            const dataBlob = new Blob([dataString], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'eFootballLeagueData.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Data exported successfully!', 'success');
+        }
+        
         function importData() {
             if (!isAdmin) {
-                showToast('You must be an admin to import data.', 'danger');
+                showToast('Admin privileges required!', 'danger');
                 return;
             }
-            try {
-                const jsonText = document.getElementById('dataJson').value;
-                const importedData = JSON.parse(jsonText);
-                
-                if (!Array.isArray(importedData.players) || !Array.isArray(importedData.fixtures) || !Array.isArray(importedData.results)) {
-                    throw new Error("Invalid JSON structure (missing players, fixtures, or results array).");
-                }
-                
-                leagueData = { ...leagueData, ...importedData };
-
-                if(!leagueData.backgroundUrl) leagueData.backgroundUrl = 'url("stadium.jpg")';
-                if(!leagueData.introImageUrl) leagueData.introImageUrl = 'https://i.imgur.com/8Qj9Y0b.png';
-                if(!leagueData.promotions) leagueData.promotions = [];
-
-                recalculateStandings();
-                applyBackground();
-                saveData();
-                populateFixtureSelectors();
-                calculateTotalMatchdays();
-                showToast('Data imported successfully! 📥', 'success');
-            } catch (e) {
-                showToast('Invalid JSON! ' + e.message, 'danger');
+            if (!confirm("WARNING: Importing data will overwrite ALL current league data (players, fixtures, results, promotions). Proceed?")) {
+                return;
             }
-        }
 
-        function exportData() {
-            const json = JSON.stringify(leagueData, null, 2);
-            document.getElementById('dataJson').value = json;
-            document.getElementById('dataJson').select();
-            try {
-                navigator.clipboard.writeText(json).then(() => {
-                    showToast('Data exported and copied to clipboard! 📋', 'success');
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+
+            input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        leagueData = { ...leagueData, ...importedData };
+                        
+                        // Ensure required arrays exist for safety
+                        if (!leagueData.players) leagueData.players = [];
+                        if (!leagueData.fixtures) leagueData.fixtures = [];
+                        if (!leagueData.results) leagueData.results = [];
+                        if (!leagueData.promotions) leagueData.promotions = [];
+                        
+                        // Recalculate everything based on new data
+                        recalculateStandings();
+                        calculateTotalMatchdays();
+                        
+                        await saveData(false);
+                        showToast('Data imported and league recalculated! 🎉', 'success');
+                        
+                        // Force full page reload to re-run intro sequence with new data
+                        window.location.reload(); 
+
+                    } catch (error) {
+                        showToast('Error parsing file: Invalid JSON format.', 'danger');
+                        console.error('Import Error:', error);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+        
+        // --- Admin Dashboard Feature (Not currently in HTML, but good for future expansion) ---
+        function showAdminDashboard() {
+            // For now, let's use the toast for a quick demonstration of data export
+             try {
+                navigator.clipboard.writeText(JSON.stringify(leagueData, null, 2)).then(() => {
+                    showToast('League data copied to clipboard (JSON format)!', 'info');
                 }).catch(() => {
                     showToast('Data exported. Copy it from the text box.', 'info');
                 });
@@ -2014,6 +2140,32 @@
 
             document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'none');
         });
+        
+        // --- FIX: Expose functions globally for HTML onclick attributes ---
+        window.showToast = showToast;
+        window.loginAdmin = loginAdmin;
+        window.showAdminLogin = showAdminLogin;
+        window.showEditBackgroundModal = showEditBackgroundModal;
+        window.resetBackground = resetBackground;
+        window.submitBackground = submitBackground;
+        window.showEditIntroImageModal = showEditIntroImageModal;
+        window.resetIntroImage = resetIntroImage;
+        window.submitIntroImage = submitIntroImage;
+        window.showAddPromotionModal = showAddPromotionModal;
+        window.submitPromotion = submitPromotion;
+        window.deletePromotion = deletePromotion;
+        window.showAddPlayerModal = showAddPlayerModal;
+        window.submitPlayer = submitPlayer;
+        window.deletePlayer = deletePlayer;
+        window.resetLeague = resetLeague;
+        window.changeMatchday = changeMatchday;
+        window.showAddFixtureModal = showAddFixtureModal;
+        window.submitFixture = submitFixture;
+        window.generateFixtures = generateFixtures;
+        window.showResultModal = showResultModal;
+        window.submitResult = submitResult;
+        window.deleteFixture = deleteFixture;
+        window.undoResult = undoResult;
     </script>
 </body>
 
