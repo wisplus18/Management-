@@ -9,6 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="favicon.png">
     
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
     <style>
         :root {
             --primary-color: #007bff;
@@ -316,13 +320,6 @@
             background-color: var(--primary-color);
         }
         
-        /* --- NEW: Ad Type Badges for Promotions --- */
-        .promotion-details .badge {
-            font-size: 0.8rem;
-            padding: 0.4em 0.8em;
-            margin-bottom: 5px;
-        }
-        
         @media (min-width: 768px) {
             .promotion-card {
                 flex-direction: row;
@@ -479,6 +476,13 @@
             text-align: right;
         }
         
+        /* NEW: Handle 'BYE' player */
+        .bye-player {
+            font-style: italic;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
         .match-info, .result-info { text-align: center; width: 20%; }
         /* Fixture VS */
         .match-info .vs { font-size: 1.2rem; font-weight: 700; color: var(--primary-color); }
@@ -486,6 +490,19 @@
         /* Result Score */
         .result-info .score { font-size: 2rem; font-weight: 900; color: var(--text-primary); letter-spacing: 2px; }
         .result-info .score .winner { color: var(--gold-accent); }
+
+        /* NEW: Shield & Cup Final Image Styling */
+        .match-image-container {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .match-image-container img {
+            max-width: 100%;
+            height: auto;
+            max-height: 400px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+        }
 
         .admin-controls {
             position: absolute;
@@ -633,10 +650,12 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#promotions">Promotions</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#standings">Standings</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#fixtures">Fixtures</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#players">Players</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#promotions">Promotions🤑</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#standings">Standings 📊</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#cup">Cup🏆</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#communityShield">Shield 🛡️</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#fixtures">Fixtures⚔️</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#players">Players 🎮</a></li>
                     <li class="nav-item">
                         <button class="btn nav-link" id="theme-toggle" aria-label="Toggle theme">
                             <i class="fa-solid fa-sun"></i> </button>
@@ -746,13 +765,6 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="promotionType" class="form-label">Advertisement Type</label>
-                        <select id="promotionType" class="form-select" aria-label="Advertisement Type">
-                            <option value="normal" selected>Prime Rotation Ad (Normal)</option>
-                            <option value="anchor">High-Visibility Anchor Ad (Constant - 1 in 4 Slot)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
                         <label for="promotionImage" class="form-label">Image URL</label>
                         <input type="url" id="promotionImageUrl" class="form-control mb-2" placeholder="Paste image URL (e.g., https://example.com/ad.jpg)" aria-label="Promotion Image URL">
                         <input type="file" id="promotionImageFile" class="form-control" accept="image/png, image/jpeg, image/webp">
@@ -814,12 +826,11 @@
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="addFixtureModal" tabindex="-1" aria-labelledby="addFixtureModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addFixtureModalLabel">Add Fixture</h5>
+                    <h5 class="modal-title" id="addFixtureModalLabel">Add League Fixture</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -837,7 +848,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="fixtureMatchday" class="form-label">Matchday</label>
-                        <input type="number" id="fixtureMatchday" class="form-control" min="1" value="1" aria-label="Matchday">
+                        <input type="number" id="fixtureMatchday" class="form-control" value="1" min="1" aria-label="Matchday Number">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -847,7 +858,6 @@
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -856,26 +866,82 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <input type="hidden" id="resultFixtureId">
+                    <input type="hidden" id="resultMatchId">
+                    <input type="hidden" id="resultMatchType">
+                    
                     <div class="result-modal-scores">
-                        <label id="resultPlayer1Name"></label>
-                        <input type="number" id="resultScore1" class="form-control" min="0" value="0">
+                        <label id="resultPlayer1Name">Player 1</label>
+                        <input type="number" id="resultScore1" class="form-control" value="0" min="0" aria-label="Player 1 Score">
                         <span class="result-modal-vs">VS</span>
-                        <input type="number" id="resultScore2" class="form-control" min="0" value="0">
-                        <label id="resultPlayer2Name"></label>
+                        <input type="number" id="resultScore2" class="form-control" value="0" min="0" aria-label="Player 2 Score">
+                        <label id="resultPlayer2Name">Player 2</label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" onclick="submitResult()">Submit Result</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="modal fade" id="setShieldModal" tabindex="-1" aria-labelledby="setShieldModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="setShieldModalLabel">Set Community Shield Match</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="shieldPlayer1" class="form-label">Player 1 (e.g., League Winner)</label>
+                        <select id="shieldPlayer1" class="form-select" aria-label="Player 1"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="shieldPlayer2" class="form-label">Player 2 (e.g., Cup Winner)</label>
+                        <select id="shieldPlayer2" class="form-select" aria-label="Player 2"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="shieldDate" class="form-label">Date</label>
+                        <input type="date" id="shieldDate" class="form-control" aria-label="Shield Date">
+                    </div>
+                    <div class="mb-3">
+                        <label for="shieldImageUrl" class="form-label">Match Image URL (Optional)</label>
+                        <input type="url" id="shieldImageUrl" class="form-control" placeholder="Paste image URL">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitShieldMatch()">Set Match</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="setCupFinalImageModal" tabindex="-1" aria-labelledby="setCupFinalImageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="setCupFinalImageModalLabel">Set Cup Final Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="cupFinalImageUrlInput" class="form-label">Image URL</label>
+                        <input type="url" id="cupFinalImageUrlInput" class="form-control" placeholder="Paste image URL for the final">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitCupFinalImage()">Set Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <section id="promotions" class="py-5">
         <div class="container">
-            <h2 class="section-title">Exclusive Advertisements & Promotions</h2>
+            <h2 class="section-title">Promotions & Ads</h2>
             <div id="promotionsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
                 <div class="carousel-indicators" id="promotionIndicators">
                     </div>
@@ -890,7 +956,6 @@
                     <span class="visually-hidden">Next</span>
                 </button>
             </div>
-
             <div class="admin-mode mt-4 text-center">
                 <button class="btn btn-primary me-2" onclick="showAddPromotionModal()">
                     <i class="fa-solid fa-bullhorn me-1"></i> Add Promotion
@@ -901,7 +966,7 @@
 
     <section id="standings" class="py-5">
         <div class="container">
-            <h2 class="section-title">Standings</h2>
+            <h2 class="section-title">Standings 📊</h2>
             <div class="card">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -942,10 +1007,56 @@
             </div>
         </div>
     </section>
+    
+    <section id="cup" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title text-danger"><i class="fa-solid fa-trophy me-2"></i> League FA Cup 🏆</h2>
+            
+            <div class="matchday-nav">
+                <button class="btn btn-primary" id="cupPrevRound" onclick="changeCupRound(-1)">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <h4 id="cupRoundName">Cup Fixtures</h4>
+                <button class="btn btn-primary" id="cupNextRound" onclick="changeCupRound(1)">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+            
+            <div id="cupContainer" class="row g-4">
+                </div>
+
+            <div class="admin-mode mt-4 text-center">
+                <button class="btn btn-danger me-2" onclick="generateCup()">
+                    <i class="fa-solid fa-sitemap me-1"></i> Generate FA Cup
+                </button>
+                <button class="btn btn-success me-2" onclick="generateNextCupRound()">
+                    <i class="fa-solid fa-forward me-1"></i> Generate Next Round
+                </button>
+                <button class="btn btn-warning" onclick="showSetCupFinalImageModal()">
+                    <i class="fa-solid fa-image me-1"></i> Set Final Image
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="communityShield" class="py-5">
+        <div class="container">
+            <h2 class="section-title text-warning"><i class="fa-solid fa-shield-halved me-2"></i> Community Shield 🛡️</h2>
+            
+            <div id="shieldMatchContainer" class="row g-4 justify-content-center">
+                </div>
+
+            <div class="admin-mode mt-4 text-center">
+                <button class="btn btn-warning me-2" onclick="showSetShieldModal()">
+                    <i class="fa-solid fa-shield me-1"></i> Set Shield Match
+                </button>
+            </div>
+        </div>
+    </section>
 
     <section id="fixtures" class="py-5 bg-light">
         <div class="container">
-            <h2 class="section-title">Fixtures & Results</h2>
+            <h2 class="section-title">League Fixtures & Results</h2>
             <div class="matchday-nav">
                 <button class="btn btn-primary" id="prevMatchday" onclick="changeMatchday(-1)">
                     <i class="fa-solid fa-arrow-left"></i>
@@ -959,10 +1070,13 @@
             </div>
             <div class="admin-mode mt-4 text-center">
                 <button class="btn btn-primary me-2" onclick="showAddFixtureModal()">
-                    <i class="fa-solid fa-calendar-plus me-1"></i> Add Fixture
+                    <i class="fa-solid fa-calendar-plus me-1"></i> Add League Fixture
                 </button>
-                <button class="btn btn-success" onclick="generateFixtures()">
-                    <i class="fa-solid fa-cogs me-1"></i> Generate Fixtures
+                <button class="btn btn-info me-2 text-white" onclick="generateFixtures()">
+                    <i class="fa-solid fa-gears me-1"></i> Auto-Generate Full Season
+                </button>
+                <button class="btn btn-warning" onclick="exportData()">
+                    <i class="fa-solid fa-file-export me-1"></i> Export Data
                 </button>
             </div>
         </div>
@@ -971,23 +1085,26 @@
     <section id="players" class="py-5">
         <div class="container">
             <h2 class="section-title">Players</h2>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="playersContainer">
+            <div class="row row-cols-2 row-cols-md-4 g-4" id="playersContainer">
                 </div>
         </div>
     </section>
 
     <footer class="league-footer">
         <div class="container text-center">
-            <p class="mb-0">© 2024 E-Football Mobile League. All rights reserved.</p>
+            <p class="mb-0">&copy; 2024 E-Football Mobile League. All rights reserved.</p>
         </div>
     </footer>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script type="module">
-        // --- Firebase Configuration and Initialization ---
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-        
+    
+    <script>
+        // --- ADMIN PASSWORD ---
+        let password = "Genie"; // Your admin password
+
+        // --- FIREBASE CONFIGURATION (Paste your config here) ---
+        // The configuration below is now ACTIVE.
         const firebaseConfig = {
             apiKey: "AIzaSyCLycBxpQ3MMIDLYjmBqMZv32FIu2eDXF4",
             authDomain: "efootball-app-ce90b.firebaseapp.com",
@@ -996,178 +1113,248 @@
             messagingSenderId: "387933114333",
             appId: "1:387933114333:web:1c85dbadacf70d0406b034"
         };
-        
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // --- Mock DB Key (used for local storage fallback) ---
-        const MOCK_DB_KEY = 'eFootballLeagueData';
 
-        async function saveData(silent = true) {
-            try {
-                // 1. Save to Firebase (Primary)
-                await setDoc(doc(db, 'league', 'data'), leagueData);
-                
-                // 2. Save to Local Storage (Secondary/Fallback)
-                localStorage.setItem(MOCK_DB_KEY, JSON.stringify(leagueData));
+        // Initialize Firebase (and Firestore/Storage)
+        // NOTE: This block is now UNCOMMENTED and ACTIVE!
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        // --- END FIREBASE CONFIGURATION ---
 
-                if(!silent) showToast('Data saved successfully to Firebase! 💾', 'success');
-                updateViews();
-            } catch (e) {
-                console.error("Error saving document to Firebase: ", e);
-                showToast('Error saving data to Firebase! Falling back to Local Storage.', 'danger');
-                
-                // Save to Local Storage if Firebase fails
-                localStorage.setItem(MOCK_DB_KEY, JSON.stringify(leagueData));
-                if(!silent) showToast('Data saved to Local Storage (Firebase failed).', 'warning');
-                updateViews();
-            }
-        }
-        
-        async function loadData() {
-            try {
-                // 1. Try to load from Firebase (Primary)
-                const docSnap = await getDoc(doc(db, 'league', 'data'));
-                
-                let dataToLoad = null;
-
-                if (docSnap.exists()) {
-                    dataToLoad = docSnap.data();
-                    showToast('Data loaded from Firebase. ☁️', 'info');
-                } else {
-                    // 2. Fallback to Local Storage
-                    const storedData = localStorage.getItem(MOCK_DB_KEY);
-                    if (storedData) {
-                        dataToLoad = JSON.parse(storedData);
-                        showToast('Firebase document not found. Loaded data from Local Storage. 🏠', 'warning');
-                    }
-                }
-                
-                if (dataToLoad) {
-                    leagueData = { ...leagueData, ...dataToLoad }; 
-                    // Ensure arrays exist and promotions have a type after load
-                    if (!leagueData.promotions) leagueData.promotions = [];
-                    leagueData.promotions.forEach(p => {
-                        if (!p.type) p.type = 'normal';
-                    });
-                    applyBackground();
-                    startIntroSequence();
-                    calculateTotalMatchdays();
-                    updateViews();
-                    updateLiveTicker();
-                } else {
-                    console.log("No data found, using defaults.");
-                    applyBackground();
-                    startIntroSequence();
-                    updateViews();
-                    updateLiveTicker();
-                }
-            } catch (error) {
-                console.error("Error loading data from Firebase/Local Storage: ", error); 
-                showToast('Critical Error loading data! Using default settings. Please ensure Firebase security rules are configured.', 'danger');
-                // Fallback to defaults
-                applyBackground();
-                startIntroSequence();
-                updateViews();
-                updateLiveTicker();
-            }
-        }
-        // --- End Mock DB ---
-
-
-        let password = "Genie"; // Your admin password
         let leagueData = {
             players: [],
             fixtures: [],
             results: [],
             backgroundUrl: 'url("stadium.jpg")',
             introImageUrl: 'https://i.imgur.com/8Qj9Y0b.png',
-            promotions: [] // Promotions array
+            promotions: [],
+            // NEW: Data for Cup and Shield
+            cupFixtures: [],
+            shieldMatch: null, // Will be an object: { fixture: {...}, imageUrl: '' }
+            cupFinalImageUrl: ''
         };
+
+        // League matchday state
         let currentMatchday = 1;
         let totalMatchdays = 1;
+        
+        // NEW: Cup round state
+        let cupRounds = [];
+        let currentCupRoundIndex = 0;
+        
         let isAdmin = false;
 
         // Default SVG avatar
         const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%236c757d'%3E%3Cpath d='M50,0A50,50,0,1,0,50,100,50,50,0,0,0,50,0ZM76.4,26.66l-6.85,6.85a28,28,0,0,1-13.7,11.37L50,50,44.15,44.88a28,28,0,0,1-11.37-13.7L25.93,23.6A38.56,38.56,0,0,1,50,11.5a38.16,38.16,0,0,1,26.4,15.16ZM23.6,74.07l6.85-6.85a28,28,0,0,1,13.7-11.37L50,50,55.85,55.12a28,28,0,0,1,11.37,13.7l6.85,6.85A38.56,38.56,0,0,1,50,88.5,38.16,38.16,0,0,1,23.6,74.07Z'/%3E%3C/svg%3E";
 
+
         // --- Core Functions ---
 
-        // --- INTRO SEQUENCE ---
+        async function loadData() {
+            try {
+                const doc = await db.collection('league').doc('data').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    // Merge and keep defaults if missing for new properties
+                    leagueData = { 
+                        ...leagueData, 
+                        ...data,
+                        promotions: data.promotions || [],
+                        cupFixtures: data.cupFixtures || [],
+                        shieldMatch: data.shieldMatch || null,
+                        cupFinalImageUrl: data.cupFinalImageUrl || ''
+                    };
+                    applyBackground();
+                    startIntroSequence();
+                    calculateTotalMatchdays();
+                    calculateCupRounds(); // NEW
+                    updateViews();
+                    updateLiveTicker();
+                } else {
+                    console.log("No initial data found, using defaults.");
+                    await saveData(); // Create the initial document
+                    applyBackground();
+                    startIntroSequence();
+                    updateViews();
+                }
+            } catch (error) {
+                console.error("Error loading data:", error);
+                // Fallback for when Firebase is not configured or fails to connect
+                applyBackground();
+                startIntroSequence();
+                updateViews();
+                showToast("Data loading failed. Check Firebase setup or security rules.", 'danger');
+            }
+        }
+
+        async function saveData(showSuccess = true) {
+            try {
+                // Ensure all parts of leagueData are saved
+                const dataToSave = {
+                    players: leagueData.players,
+                    fixtures: leagueData.fixtures,
+                    results: leagueData.results,
+                    backgroundUrl: leagueData.backgroundUrl,
+                    introImageUrl: leagueData.introImageUrl,
+                    promotions: leagueData.promotions,
+                    cupFixtures: leagueData.cupFixtures,
+                    shieldMatch: leagueData.shieldMatch,
+                    cupFinalImageUrl: leagueData.cupFinalImageUrl
+                };
+                await db.collection('league').doc('data').set(dataToSave);
+                if (showSuccess) {
+                    showToast('Data saved successfully! 💾', 'success');
+                }
+            } catch (error) {
+                console.error("Error saving data:", error);
+                showToast('Error saving data to Firebase. Check permissions.', 'danger');
+            }
+        }
+
+
+        // --- UTILITY FUNCTIONS ---
+
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container');
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            const toastEl = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+            toast.show();
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
+
+        // NEW: Shuffle array (for cup draws)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // NEW: Get player helper
+        function getPlayer(playerId) {
+            if (playerId === 'BYE') {
+                return { id: 'BYE', name: 'BYE', avatar: defaultAvatar };
+            }
+            return leagueData.players.find(p => p.id === playerId) || { name: 'Unknown Player', avatar: defaultAvatar };
+        }
+
+        // NEW: Get Cup Round Name
+        function getRoundName(numPlayersInRound) {
+            if (numPlayersInRound === 2) return 'Final';
+            if (numPlayersInRound === 4) return 'Semi-Final';
+            if (numPlayersInRound === 8) return 'Quarter-Final';
+            return `Round of ${numPlayersInRound}`;
+        }
+        
+        // NEW: Get Cup Round Sort Order
+        function getRoundOrder(roundName) {
+            if (roundName.includes('Final')) return 4;
+            if (roundName.includes('Semi-Final')) return 3;
+            if (roundName.includes('Quarter-Final')) return 2;
+            if (roundName.includes('Round of')) return 1;
+            return 0; // Preliminary
+        }
+
+
         function startIntroSequence() {
             const overlay = document.getElementById('intro-overlay');
             const marquee = document.getElementById('intro-text-marquee');
             const imageContainer = document.getElementById('intro-image-container');
-            const image = document.getElementById('intro-image');
+            const introImage = document.getElementById('intro-image');
             
-            if (leagueData.introImageUrl) {
-                image.src = leagueData.introImageUrl;
-                imageContainer.style.display = 'flex';
-                // Stage 1: Display image
-                setTimeout(() => {
-                    imageContainer.style.opacity = 1;
-                }, 100); 
+            introImage.src = leagueData.introImageUrl;
+            
+            // 1. Show image for 3 seconds
+            imageContainer.style.display = 'flex';
+            imageContainer.style.opacity = 1;
 
-                // Stage 2: Fade out image, then fade out overlay
-                setTimeout(() => {
-                    imageContainer.style.opacity = 0;
-                    setTimeout(() => {
-                        overlay.style.opacity = 0;
-                        setTimeout(() => {
-                            overlay.style.display = 'none';
-                        }, 5000); // Wait for opacity transition to finish (5s)
-                    }, 100); // Short delay before starting the fade out
-                }, 3000); // Keep image on screen for 3s
-            } else {
-                // Default: Scrolling Marquee Text
+            setTimeout(() => {
+                // 2. Hide image, show marquee
+                imageContainer.style.opacity = 0;
+                imageContainer.style.display = 'none';
+
                 marquee.style.display = 'block';
-                // Stage 1: Wait for text to scroll a bit
+
+                // 3. Remove overlay after marquee completes (about 5 seconds)
                 setTimeout(() => {
-                    // Stage 2: Fade out overlay
                     overlay.style.opacity = 0;
                     setTimeout(() => {
-                        overlay.style.display = 'none';
-                    }, 5000); // Wait for opacity transition to finish (5s)
-                }, 1000); // Wait 1s before starting fade
+                        overlay.remove();
+                    }, 5000); // 5s fade-out transition
+                }, 500); // Wait for the image fade-out
+            }, 3000); // 3 seconds display time
+        }
+
+
+        // --- ADMIN MANAGEMENT ---
+
+        function showAdminLogin() {
+            const modal = new bootstrap.Modal(document.getElementById('adminModal'));
+            modal.show();
+        }
+
+        function loginAdmin() {
+            const input = document.getElementById('adminPassword');
+            if (input.value === password) {
+                isAdmin = true;
+                document.getElementById('admin-login-button').innerHTML = '<i class="fa-solid fa-unlock me-1"></i> Admin Logged In';
+                document.getElementById('admin-login-button').classList.remove('btn-outline-primary');
+                document.getElementById('admin-login-button').classList.add('btn-success');
+                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+                bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
+                showToast('Welcome, Admin! 👋', 'success');
+                updateViews(); // Re-render to show admin controls on promotions/matches
+            } else {
+                showToast('Incorrect Password!', 'danger');
+            }
+            input.value = '';
+        }
+
+        async function resetLeague() {
+            if (!isAdmin) {
+                showToast('You must be an admin to reset the league.', 'danger');
+                return;
+            }
+            if (confirm("Are you sure you want to COMPLETELY RESET the league (players, fixtures, results, promotions, cup, AND shield)? This action cannot be undone.")) {
+                leagueData.players = [];
+                leagueData.fixtures = [];
+                leagueData.results = [];
+                leagueData.promotions = [];
+                leagueData.cupFixtures = [];
+                leagueData.shieldMatch = null;
+                leagueData.cupFinalImageUrl = '';
+
+                currentMatchday = 1;
+                totalMatchdays = 1;
+                currentCupRoundIndex = 0;
+                cupRounds = [];
+                
+                await saveData(); 
+                updateViews();
+                showToast('League reset successful! 🧹', 'warning');
             }
         }
-        // --- END INTRO SEQUENCE ---
-        
-        // --- UTILITY ---
-        function showToast(message, type) {
-            const toastContainer = document.getElementById('toast-container');
-            const toastElement = document.createElement('div');
-            toastElement.classList.add('toast', `text-bg-${type}`, 'border-0');
-            toastElement.setAttribute('role', 'alert');
-            toastElement.setAttribute('aria-live', 'assertive');
-            toastElement.setAttribute('aria-atomic', 'true');
-            toastElement.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            `;
-            toastContainer.appendChild(toastElement);
-            const toast = new bootstrap.Toast(toastElement);
-            toast.show();
 
-            // Auto-remove toast element after it hides
-            toastElement.addEventListener('hidden.bs.toast', function () {
-                toastElement.remove();
-            });
-        }
-        
+        // --- HERO BACKGROUND MANAGEMENT ---
+
         function applyBackground() {
             const hero = document.querySelector('.hero');
             if (hero) {
                 document.documentElement.style.setProperty('--hero-bg-url', leagueData.backgroundUrl);
             }
         }
-        
-        // --- BACKGROUND MANAGEMENT ---
+
         function showEditBackgroundModal() {
             if (!isAdmin) {
                 showToast('Admin privileges required!', 'danger');
@@ -1218,8 +1405,9 @@
             bootstrap.Modal.getInstance(document.getElementById('editBackgroundModal')).hide();
             showToast('Background reset to default!', 'warning');
         }
-        
+
         // --- INTRO IMAGE MANAGEMENT ---
+
         function showEditIntroImageModal() {
             if (!isAdmin) {
                 showToast('Admin privileges required!', 'danger');
@@ -1245,43 +1433,105 @@
                 leagueData.introImageUrl = urlValue;
                 await saveData(false);
                 modal.hide();
-                showToast('Intro Image URL set. It will display on next page load. ✨', 'success');
+                showToast('Intro Image URL set. It will display on next page load.', 'success');
                 return;
-            } else if (fileInput.files.length > 0) {
+            }
+            
+            if (fileInput.files.length > 0) {
                 showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
                 return;
             }
+
             showToast('Please provide a URL or select a file to set the intro image.', 'danger');
         }
 
         async function resetIntroImage() {
-            leagueData.introImageUrl = 'https://i.imgur.com/8Qj9Y0b.png'; // Example default URL
+            leagueData.introImageUrl = 'https://i.imgur.com/8Qj9Y0b.png';
             await saveData();
-            document.getElementById('introImageUrlInput').value = '';
+            document.getElementById('introImageUrlInput').value = leagueData.introImageUrl;
             document.getElementById('introImageFile').value = '';
             bootstrap.Modal.getInstance(document.getElementById('editIntroImageModal')).hide();
-            showToast('Intro image reset to default! Refresh to see the change.', 'warning');
+            showToast('Intro image reset to default!', 'warning');
         }
-        
-        // --- PROMOTION/AD MANAGEMENT (UPDATED LOGIC) ---
+
+        // --- PROMOTION MANAGEMENT ---
+
+        function renderPromotions() {
+            const inner = document.getElementById('promotionCarouselInner');
+            const indicators = document.getElementById('promotionIndicators');
+            inner.innerHTML = '';
+            indicators.innerHTML = '';
+            
+            if (!leagueData.promotions || leagueData.promotions.length === 0) {
+                inner.innerHTML = '<div class="text-center py-5">No promotions or ads currently running.</div>';
+                document.querySelectorAll('#promotionsCarousel .carousel-control-prev, #promotionsCarousel .carousel-control-next').forEach(btn => btn.style.display = 'none');
+                document.getElementById('promotionIndicators').style.display = 'none';
+                return;
+            }
+            
+            document.querySelectorAll('#promotionsCarousel .carousel-control-prev, #promotionsCarousel .carousel-control-next').forEach(btn => btn.style.display = 'flex');
+            document.getElementById('promotionIndicators').style.display = 'flex';
+
+            leagueData.promotions.forEach((promo, index) => {
+                const activeClass = index === 0 ? 'active' : '';
+                const discountHtml = promo.discount ? `<span class="promotion-discount">${promo.discount}</span>` : '';
+                
+                const itemHtml = `
+                    <div class="carousel-item ${activeClass}">
+                        <div class="promotion-card">
+                            <div class="promotion-image-container">
+                                <img src="${promo.imageUrl}" class="promotion-card-img" alt="Promotion Image">
+                            </div>
+                            <div class="promotion-details">
+                                <h4>${promo.description}</h4>
+                                <div class="promotion-price-block">
+                                    ${discountHtml}
+                                    <span>${promo.price}</span>
+                                </div>
+                                <p class="promotion-contact">
+                                    Contact: <a href="${promo.contact.startsWith('http') ? promo.contact : `tel:${promo.contact}`}" target="_blank">${promo.contact}</a>
+                                </p>
+                                ${isAdmin ? `
+                                    <div class="admin-mode mt-3">
+                                        <button class="btn btn-sm btn-danger" onclick="deletePromotion('${promo.id}')">
+                                            <i class="fa-solid fa-trash"></i> Delete Ad
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                inner.innerHTML += itemHtml;
+
+                const indicatorHtml = `
+                    <button type="button" data-bs-target="#promotionsCarousel" data-bs-slide-to="${index}" class="${activeClass}" aria-current="${activeClass ? 'true' : 'false'}" aria-label="Slide ${index + 1}"></button>
+                `;
+                indicators.innerHTML += indicatorHtml;
+            });
+            
+            if(isAdmin) {
+                document.querySelectorAll('#promotions .admin-mode').forEach(el => el.style.display = 'block');
+            }
+        }
+
         function showAddPromotionModal() {
             if (!isAdmin) {
                 showToast('Admin privileges required!', 'danger');
                 return;
             }
             document.getElementById('promotionImageUrl').value = '';
-            document.getElementById('promotionImageFile').value = '';
             document.getElementById('promotionDescription').value = '';
             document.getElementById('promotionPrice').value = '';
             document.getElementById('promotionDiscount').value = '';
             document.getElementById('promotionContact').value = '';
-            document.getElementById('promotionType').value = 'normal'; // Reset to default
+            document.getElementById('promotionImageFile').value = '';
+
             const modal = new bootstrap.Modal(document.getElementById('addPromotionModal'));
             modal.show();
         }
 
         async function submitPromotion() {
-            const promotionType = document.getElementById('promotionType').value.trim();
             const imageUrl = document.getElementById('promotionImageUrl').value.trim();
             const description = document.getElementById('promotionDescription').value.trim();
             const price = document.getElementById('promotionPrice').value.trim();
@@ -1297,6 +1547,7 @@
                 showToast('Promotion image URL or Gallery File is required!', 'danger');
                 return;
             }
+
             if (fileInput.files.length > 0 && !imageUrl) {
                 showToast('File selected. To upload from gallery, **Firebase Storage** must be configured. Use the **URL** option if you are not setting up storage.', 'danger');
                 return;
@@ -1304,7 +1555,6 @@
 
             const newPromotion = {
                 id: Date.now().toString(),
-                type: promotionType, // NEW FIELD
                 imageUrl: imageUrl, // Uses URL if provided, otherwise you'd need upload logic here
                 description: description,
                 price: price,
@@ -1329,15 +1579,23 @@
                 showToast('Promotion deleted! 🗑️', 'success');
             }
         }
-        
+
         // --- END PROMOTION MANAGEMENT ---
+
 
         // Update all views
         function updateViews() {
             renderPromotions();
             updateStandings();
-            renderMatches(); // New function name and combined logic
+            renderLeagueMatches();
+            renderCupMatches(); // NEW
+            renderShieldMatch(); // NEW
             updatePlayers();
+            
+            // Re-apply admin visibility if logged in
+            if(isAdmin) {
+                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+            }
         }
 
         // Calculate total matchdays
@@ -1354,122 +1612,97 @@
             const tickerContent = document.querySelector('#liveTicker .live-ticker-content');
             const latestResult = leagueData.results.sort((a, b) => b.timestamp - a.timestamp)[0];
             
-            let tickerText = "Welcome to the E-Football Mobile League! | Current Matchday: " + currentMatchday;
-            
-            if (latestResult) {
-                const p1 = leagueData.players.find(p => p.id === latestResult.player1Id)?.name || 'Player 1';
-                const p2 = leagueData.players.find(p => p.id === latestResult.player2Id)?.name || 'Player 2';
-                tickerText += ` | LATEST RESULT: ${p1} ${latestResult.score1}-${latestResult.score2} ${p2} (MD ${latestResult.matchday})`;
-            }
-
-            tickerText += " | Check the Standings and upcoming Fixtures!";
-
-            // Duplicate the text to ensure continuous flow
-            tickerContent.textContent = tickerText + ' | ' + tickerText + ' | ' + tickerText;
-        }
-
-        // --- RENDER FUNCTIONS ---
-        
-        // --- RENDER PROMOTIONS (UPDATED LOGIC) ---
-        function renderPromotions() {
-            const inner = document.getElementById('promotionCarouselInner');
-            const indicators = document.getElementById('promotionIndicators');
-            inner.innerHTML = '';
-            indicators.innerHTML = '';
-            
-            // 1. Separate ads by type
-            // Default any ad without a type to 'normal'
-            const normalAds = leagueData.promotions.filter(p => p.type === 'normal' || !p.type); 
-            const anchorAds = leagueData.promotions.filter(p => p.type === 'anchor');
-            
-            // 2. Combine ads with 3:1 ratio (Anchor ad after every 3 Normal ads)
-            const combinedAds = [];
-            let anchorIndex = 0;
-            
-            for (let i = 0; i < normalAds.length; i++) {
-                combinedAds.push(normalAds[i]);
-                // Insert an anchor ad after every 3 normal ads
-                if ((i + 1) % 3 === 0 && anchorIndex < anchorAds.length) {
-                    combinedAds.push(anchorAds[anchorIndex]);
-                    anchorIndex++;
-                }
-            }
-            
-            // 3. Add any remaining anchor ads (in case there were more anchor than normal/3)
-            while (anchorIndex < anchorAds.length) {
-                combinedAds.push(anchorAds[anchorIndex]);
-                anchorIndex++;
-            }
-
-
-            if (combinedAds.length === 0) {
-                document.getElementById('promotionsCarousel').style.display = 'none';
+            if (!latestResult) {
+                tickerContent.textContent = "Welcome to the E-Football Mobile League! No results yet, check back soon for the latest scores!";
                 return;
             }
 
-            document.getElementById('promotionsCarousel').style.display = 'block';
-            
-            // Show/hide controls and indicators only if there is more than 1 ad
-            const showControls = combinedAds.length > 1 ? 'flex' : 'none';
-            document.querySelectorAll('#promotionsCarousel .carousel-control-prev, #promotionsCarousel .carousel-control-next').forEach(btn => btn.style.display = showControls);
-            document.getElementById('promotionIndicators').style.display = showControls;
+            const p1 = leagueData.players.find(p => p.id === latestResult.player1Id);
+            const p2 = leagueData.players.find(p => p.id === latestResult.player2Id);
 
-
-            combinedAds.forEach((promo, index) => {
-                const activeClass = index === 0 ? 'active' : '';
-                const discountHtml = promo.discount ? `<span class="promotion-discount">${promo.discount}</span>` : '';
+            if (p1 && p2) {
+                const latestScore = `${p1.name} ${latestResult.score1} - ${latestResult.score2} ${p2.name}`;
+                const baseMessage = "🔥 LATEST LEAGUE RESULT: " + latestScore;
                 
-                // NEW: Ad Type Badge
-                const typeBadge = promo.type === 'anchor' 
-                    ? '<span class="badge bg-warning text-dark mb-2">High-Visibility Anchor Ad</span>' 
-                    : '<span class="badge bg-primary mb-2">Prime Rotation Ad</span>';
-                    
-                const itemHtml = `
-                    <div class="carousel-item ${activeClass}">
-                        <div class="promotion-card">
-                            <div class="promotion-image-container">
-                                <img src="${promo.imageUrl}" class="promotion-card-img" alt="Promotion Image">
-                            </div>
-                            <div class="promotion-details">
-                                ${typeBadge} 
-                                <h4>${promo.description}</h4>
-                                <div class="promotion-price-block">
-                                    ${discountHtml}
-                                    <span>${promo.price}</span>
-                                </div>
-                                <p class="promotion-contact">
-                                    Contact: 
-                                    <a href="${promo.contact.startsWith('+') ? `tel:${promo.contact}` : (promo.contact.startsWith('http') ? promo.contact : `https://${promo.contact}`)}" target="_blank">${promo.contact}</a>
-                                </p>
-                                ${isAdmin ? `
-                                    <div class="admin-mode mt-3">
-                                        <button class="btn btn-sm btn-danger" onclick="deletePromotion('${promo.id}')">
-                                            <i class="fa-solid fa-trash"></i> Delete Ad
-                                        </button>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                inner.innerHTML += itemHtml;
+                // Add recent results to the ticker
+                const recentResults = leagueData.results.sort((a, b) => b.timestamp - a.timestamp).slice(0, 5).map(r => {
+                    const rp1 = leagueData.players.find(p => p.id === r.player1Id)?.name || 'Unknown';
+                    const rp2 = leagueData.players.find(p => p.id === r.player2Id)?.name || 'Unknown';
+                    return `${rp1} ${r.score1}-${r.score2} ${rp2}`;
+                }).join(" | ");
 
-                const indicatorHtml = `
-                    <button type="button" data-bs-target="#promotionsCarousel" data-bs-slide-to="${index}" class="${activeClass}" aria-current="${activeClass ? 'true' : 'false'}" aria-label="Slide ${index + 1}"></button>
-                `;
-                indicators.innerHTML += indicatorHtml;
-            });
+                tickerContent.textContent = baseMessage + " | RECENT MATCHES: " + recentResults;
 
-            if (isAdmin) {
-                document.querySelectorAll('#promotions .admin-mode').forEach(el => el.style.display = 'block');
+            } else {
+                 tickerContent.textContent = "Welcome to the E-Football Mobile League! No results yet, check back soon for the latest scores!";
             }
         }
-        
-        // --- END RENDER PROMOTIONS ---
+
+        // --- STANDINGS MANAGEMENT ---
+
+        function recalculateStandings() {
+            // Reset league stats ONLY
+            leagueData.players.forEach(player => {
+                player.mp = 0;
+                player.w = 0;
+                player.d = 0;
+                player.l = 0;
+                player.gf = 0;
+                player.ga = 0;
+                player.gd = 0;
+                player.pts = 0;
+                player.form = [];
+            });
+
+            // Use ONLY league results
+            const sortedResults = leagueData.results.sort((a, b) => a.timestamp - b.timestamp);
+
+            sortedResults.forEach(result => {
+                const p1 = leagueData.players.find(p => p.id === result.player1Id);
+                const p2 = leagueData.players.find(p => p.id === result.player2Id);
+
+                if (!p1 || !p2) return;
+
+                // Helper to update stats and form
+                const updatePlayerStats = (player, scoreFor, scoreAgainst, resultChar) => {
+                    player.mp++;
+                    player.gf += scoreFor;
+                    player.ga += scoreAgainst;
+                    if (resultChar === 'W') player.pts += 3;
+                    if (resultChar === 'D') player.pts += 1;
+                    player[resultChar.toLowerCase()]++; // p1.w++, p1.l++, p1.d++
+                    
+                    // Add result to the start of the form array (max 5)
+                    player.form.unshift(resultChar);
+                    if (player.form.length > 5) {
+                        player.form.pop();
+                    }
+                };
+
+                // Player 1 stats
+                if (result.score1 > result.score2) {
+                    updatePlayerStats(p1, result.score1, result.score2, 'W');
+                    updatePlayerStats(p2, result.score2, result.score1, 'L');
+                } else if (result.score1 < result.score2) {
+                    updatePlayerStats(p1, result.score1, result.score2, 'L');
+                    updatePlayerStats(p2, result.score2, result.score1, 'W');
+                } else {
+                    updatePlayerStats(p1, result.score1, result.score2, 'D');
+                    updatePlayerStats(p2, result.score2, result.score1, 'D');
+                }
+            });
+            
+            // Calculate goal difference after all results are processed
+            leagueData.players.forEach(player => {
+                player.gd = player.gf - player.ga;
+            });
+        }
+
 
         // Update Standings Table
         function updateStandings() {
             recalculateStandings();
+
             const tableBody = document.getElementById('standingsTable');
             tableBody.innerHTML = '';
 
@@ -1481,64 +1714,65 @@
             });
 
             sortedPlayers.forEach((player, index) => {
+                const pos = index + 1;
                 let rowClass = '';
-                if (index < 3) rowClass = 'top-team-row';
-                else if (index < 6) rowClass = 'mid-team-row';
-                else if (index >= sortedPlayers.length - 3) rowClass = 'bottom-team-row';
+                if (pos <= 2) {
+                    rowClass = 'top-team-row';
+                } else if (pos > leagueData.players.length - 2) {
+                    rowClass = 'bottom-team-row';
+                } else {
+                    rowClass = 'mid-team-row';
+                }
 
                 const formHtml = player.form.map(f => `<span class="form-bubble form-bubble-${f}">${f}</span>`).join('');
-                
-                const row = `
-                    <tr class="${rowClass}">
-                        <td class="pos-cell">${index + 1}</td>
-                        <td class="player-name-cell">
-                            <img src="${player.avatar || defaultAvatar}" alt="${player.name}">
-                            <a href="#" class="player-profile-link">${player.name}</a>
-                            ${isAdmin ? `<div class="admin-mode ms-2"><button class="btn btn-sm btn-danger" onclick="deletePlayer('${player.id}')"><i class="fa-solid fa-user-minus"></i></button></div>` : ''}
-                        </td>
-                        <td>${player.mp}</td>
-                        <td>${player.w}</td>
-                        <td>${player.d}</td>
-                        <td>${player.l}</td>
-                        <td>${player.gf}</td>
-                        <td>${player.ga}</td>
-                        <td>${player.gd}</td>
-                        <td class="form-cell">${formHtml}</td>
-                        <td class="pts-cell">${player.pts}</td>
-                    </tr>
-                `;
-                tableBody.innerHTML += row;
-            });
 
-            if (isAdmin) {
-                 document.querySelectorAll('#standingsTable .admin-mode').forEach(el => el.style.display = 'block');
-            }
+                const row = document.createElement('tr');
+                row.className = rowClass;
+                row.innerHTML = `
+                    <td class="pos-cell">${pos}</td>
+                    <td class="player-name-cell">
+                        <img src="${player.avatar}" alt="${player.name} Avatar">
+                        <a href="#" class="player-profile-link">${player.name}</a>
+                    </td>
+                    <td>${player.mp}</td>
+                    <td>${player.w}</td>
+                    <td>${player.d}</td>
+                    <td>${player.l}</td>
+                    <td>${player.gf}</td>
+                    <td>${player.ga}</td>
+                    <td>${player.gd > 0 ? '+' + player.gd : player.gd}</td>
+                    <td class="form-cell">${formHtml}</td>
+                    <td class="pts-cell">${player.pts}</td>
+                `;
+                tableBody.appendChild(row);
+            });
         }
 
-        // Render Fixtures and Results
-        function renderMatches() {
+
+        // --- LEAGUE FIXTURE & RESULT MANAGEMENT ---
+
+        // Function to render fixtures or results for the current matchday
+        function renderLeagueMatches() {
+            document.getElementById('currentMatchday').textContent = `Matchday ${currentMatchday}`;
+            document.getElementById('prevMatchday').disabled = currentMatchday <= 1;
+            document.getElementById('nextMatchday').disabled = currentMatchday >= totalMatchdays;
+
             const container = document.getElementById('fixturesContainer');
-            const matchdayTitle = document.getElementById('currentMatchday');
             container.innerHTML = '';
-            matchdayTitle.textContent = `Matchday ${currentMatchday}`;
-            
-            document.getElementById('prevMatchday').disabled = currentMatchday === 1;
-            document.getElementById('nextMatchday').disabled = currentMatchday === totalMatchdays;
 
             const matchesForMatchday = leagueData.fixtures.filter(f => f.matchday === currentMatchday);
-            const resultsForMatchday = leagueData.results.filter(r => r.matchday === currentMatchday);
+            matchesForMatchday.sort((a, b) => new Date(a.date) - new Date(b.date));
+
 
             matchesForMatchday.forEach(fixture => {
-                const p1 = leagueData.players.find(p => p.id === fixture.player1Id);
-                const p2 = leagueData.players.find(p => p.id === fixture.player2Id);
+                const p1 = getPlayer(fixture.player1Id);
+                const p2 = getPlayer(fixture.player2Id);
+                const result = leagueData.results.find(r => r.fixtureId === fixture.id);
                 
-                if (!p1 || !p2) return; // Skip if player data is missing
-
-                const result = resultsForMatchday.find(r => r.fixtureId === fixture.id);
                 const dateDisplay = new Date(fixture.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-                let matchContent = '';
+                
                 let cardClass = '';
+                let matchContent = '';
                 let adminButtons = '';
 
                 if (fixture.isPlayed && result) {
@@ -1553,7 +1787,7 @@
                         </div>
                     `;
                     adminButtons = `
-                        <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}')">
+                        <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}', 'league')">
                             <i class="fa-solid fa-undo"></i> Undo Result
                         </button>
                     `;
@@ -1567,7 +1801,7 @@
                         </div>
                     `;
                     adminButtons = `
-                        <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}')">
+                        <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}', 'league')">
                             <i class="fa-solid fa-gavel"></i> Enter Result
                         </button>
                     `;
@@ -1592,107 +1826,800 @@
                         </div>
                     </div>
                 `;
+
                 container.innerHTML += card;
             });
 
             if (container.innerHTML === '') {
-                container.innerHTML = '<div class="text-center text-secondary py-4">No matches found for this matchday.</div>';
+                container.innerHTML = '<div class="text-center text-secondary py-4">No league matches found for this matchday.</div>';
             }
 
             if(isAdmin) {
-                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('#fixturesContainer .admin-mode').forEach(el => el.style.display = 'block');
             }
         }
-        
+
         function changeMatchday(direction) {
-            let newMatchday = currentMatchday + direction;
+            const newMatchday = currentMatchday + direction;
             if (newMatchday >= 1 && newMatchday <= totalMatchdays) {
                 currentMatchday = newMatchday;
-                renderMatches();
+                renderLeagueMatches();
+            }
+        }
+
+        function populateFixtureSelectors() {
+            const selects = [
+                document.getElementById('fixturePlayer1'),
+                document.getElementById('fixturePlayer2'),
+                document.getElementById('shieldPlayer1'),
+                document.getElementById('shieldPlayer2')
+            ];
+            
+            selects.forEach(select => {
+                if (!select) return; // Skip if element doesn't exist
+                const selectedVal = select.value;
+                select.innerHTML = '';
+                select.innerHTML = '<option value="">Select Player</option>';
+                leagueData.players.forEach(player => {
+                    const option = document.createElement('option');
+                    option.value = player.id;
+                    option.textContent = player.name;
+                    select.appendChild(option);
+                });
+                select.value = selectedVal;
+            });
+        }
+
+        function showAddFixtureModal() {
+            if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            populateFixtureSelectors();
+            document.getElementById('fixtureDate').value = new Date().toISOString().substring(0, 10);
+            document.getElementById('fixtureMatchday').value = totalMatchdays || 1;
+            
+            const modal = new bootstrap.Modal(document.getElementById('addFixtureModal'));
+            modal.show();
+        }
+
+        async function submitFixture() {
+            const player1Id = document.getElementById('fixturePlayer1').value;
+            const player2Id = document.getElementById('fixturePlayer2').value;
+            const date = document.getElementById('fixtureDate').value;
+            const matchday = parseInt(document.getElementById('fixtureMatchday').value);
+
+            if (!player1Id || !player2Id || player1Id === player2Id || !date || isNaN(matchday) || matchday < 1) {
+                showToast('Invalid fixture details. Select two different players, a date, and a valid matchday.', 'danger');
+                return;
+            }
+
+            const newFixture = {
+                id: Date.now().toString(),
+                player1Id: player1Id,
+                player2Id: player2Id,
+                date: date,
+                matchday: matchday,
+                isPlayed: false
+            };
+
+            leagueData.fixtures.push(newFixture);
+            await saveData();
+            calculateTotalMatchdays();
+            updateViews();
+            bootstrap.Modal.getInstance(document.getElementById('addFixtureModal')).hide();
+            showToast('League fixture added successfully! 📅', 'success');
+        }
+
+        async function deleteFixture(fixtureId) {
+             if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            if (confirm('Are you sure you want to delete this league match?')) {
+                leagueData.fixtures = leagueData.fixtures.filter(f => f.id !== fixtureId);
+                // Also remove any result associated with it
+                leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
+                await saveData();
+                updateViews();
+                showToast('League match deleted.', 'success');
             }
         }
         
-        function updatePlayers() {
-            const container = document.getElementById('playersContainer');
-            container.innerHTML = '';
+        function generateFixtures() {
+            if (!isAdmin) {
+                showToast('You must be an admin to generate fixtures.', 'danger');
+                return;
+            }
+
+            if (leagueData.players.length < 2) {
+                showToast('Need at least 2 players to generate fixtures!', 'danger');
+                return;
+            }
+
+            if (leagueData.fixtures.length > 0) {
+                if (!confirm("Unplayed league matches exist. Are you sure you want to clear them and generate a new full round robin?")) {
+                    return;
+                }
+            }
+
+            let players = leagueData.players.map(p => p.id);
+            let n = players.length;
             
-            leagueData.players.forEach(player => {
+            // Handle odd number of players by adding a 'BYE'
+            if (n % 2 !== 0) {
+                players.push('BYE');
+                n++;
+            }
+
+            let numRounds = (leagueData.players.length - 1) * 2; // Double round robin
+            leagueData.fixtures = [];
+            leagueData.results = []; // Clear old league results
+
+            for (let round = 1; round <= numRounds; round++) {
+                let currentMatchday = round;
+                
+                for (let i = 0; i < n / 2; i++) {
+                    let p1 = players[i];
+                    let p2 = players[n - 1 - i];
+
+                    if (p1 === 'BYE' || p2 === 'BYE') continue;
+
+                    // Alternate home/away for fairness in a double round robin
+                    let player1Id = (round % 2 === 1) ? p1 : p2;
+                    let player2Id = (round % 2 === 1) ? p2 : p1;
+                    
+                    const newFixture = {
+                        id: `${Date.now()}-${round}-${i}`,
+                        player1Id: player1Id,
+                        player2Id: player2Id,
+                        date: new Date().toISOString().substring(0, 10), // Default date
+                        matchday: currentMatchday,
+                        isPlayed: false
+                    };
+                    leagueData.fixtures.push(newFixture);
+                }
+
+                // Rotate players, keeping the first player fixed
+                let last = players.pop();
+                players.splice(1, 0, last);
+            }
+
+            saveData();
+            calculateTotalMatchdays();
+            updateViews();
+            showToast('Full Round-Robin fixtures generated! 📅', 'success');
+        }
+
+
+        // --- GENERIC RESULT MANAGEMENT (REFACTORED) ---
+        
+        function showResultModal(matchId, matchType) {
+            if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+
+            let fixture, p1, p2, result;
+            
+            if (matchType === 'league') {
+                fixture = leagueData.fixtures.find(f => f.id === matchId);
+                result = leagueData.results.find(r => r.fixtureId === matchId);
+            } else if (matchType === 'cup') {
+                fixture = leagueData.cupFixtures.find(f => f.id === matchId);
+                result = fixture.result; // Cup results are stored on the fixture
+            } else if (matchType === 'shield') {
+                fixture = leagueData.shieldMatch.fixture;
+                result = fixture.result;
+            }
+
+            if (!fixture) return;
+
+            p1 = getPlayer(fixture.player1Id);
+            p2 = getPlayer(fixture.player2Id);
+
+            document.getElementById('resultMatchId').value = matchId;
+            document.getElementById('resultMatchType').value = matchType;
+
+            document.getElementById('resultPlayer1Name').textContent = p1.name;
+            document.getElementById('resultPlayer2Name').textContent = p2.name;
+            
+            // Pre-fill with existing scores or default to 0
+            document.getElementById('resultScore1').value = result ? result.score1 : 0;
+            document.getElementById('resultScore2').value = result ? result.score2 : 0;
+            
+            const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+            modal.show();
+        }
+
+        async function submitResult() {
+            const matchId = document.getElementById('resultMatchId').value;
+            const matchType = document.getElementById('resultMatchType').value;
+            const score1 = parseInt(document.getElementById('resultScore1').value);
+            const score2 = parseInt(document.getElementById('resultScore2').value);
+
+            if (isNaN(score1) || isNaN(score2) || score1 < 0 || score2 < 0) {
+                showToast('Scores must be valid non-negative numbers.', 'danger');
+                return;
+            }
+
+            let fixture;
+            const resultData = {
+                score1: score1,
+                score2: score2,
+                timestamp: Date.now()
+            };
+
+            if (matchType === 'league') {
+                fixture = leagueData.fixtures.find(f => f.id === matchId);
+                if (!fixture) return;
+                
+                fixture.isPlayed = true;
+                
+                // Add league-specific data
+                resultData.fixtureId = matchId;
+                resultData.player1Id = fixture.player1Id;
+                resultData.player2Id = fixture.player2Id;
+                resultData.matchday = fixture.matchday;
+
+                // Remove any existing result for this fixture before adding the new one
+                leagueData.results = leagueData.results.filter(r => r.fixtureId !== matchId);
+                leagueData.results.push(resultData);
+                
+                recalculateStandings(); // Only recalculate for league
+                updateLiveTicker(); // Only update ticker for league
+
+            } else if (matchType === 'cup') {
+                fixture = leagueData.cupFixtures.find(f => f.id === matchId);
+                if (!fixture) return;
+                
+                fixture.isPlayed = true;
+                fixture.result = resultData; // Store result directly on cup fixture
+
+            } else if (matchType === 'shield') {
+                fixture = leagueData.shieldMatch.fixture;
+                if (!fixture || fixture.id !== matchId) return;
+
+                fixture.isPlayed = true;
+                fixture.result = resultData;
+            }
+
+            await saveData();
+            updateViews();
+            bootstrap.Modal.getInstance(document.getElementById('resultModal')).hide();
+            showToast('Result submitted successfully! ⚽🥅', 'success');
+        }
+
+        async function undoResult(matchId, matchType) {
+            if (!isAdmin) {
+                showToast('You must be an admin.', 'danger');
+                return;
+            }
+
+            let fixture;
+
+            if (matchType === 'league') {
+                fixture = leagueData.fixtures.find(f => f.id === matchId);
+                if (fixture) {
+                    fixture.isPlayed = false;
+                }
+                // Remove the league result
+                leagueData.results = leagueData.results.filter(r => r.fixtureId !== matchId);
+                recalculateStandings();
+                updateLiveTicker();
+
+            } else if (matchType === 'cup') {
+                fixture = leagueData.cupFixtures.find(f => f.id === matchId);
+                if (fixture) {
+                    fixture.isPlayed = false;
+                    fixture.result = null;
+                }
+            } else if (matchType === 'shield') {
+                fixture = leagueData.shieldMatch.fixture;
+                if (fixture && fixture.id === matchId) {
+                    fixture.isPlayed = false;
+                    fixture.result = null;
+                }
+            }
+
+            await saveData();
+            updateViews();
+            showToast('Result successfully undone! ↩️', 'warning');
+        }
+
+
+        // --- FA CUP MANAGEMENT (NEW) ---
+
+        async function generateCup() {
+            if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            if (leagueData.players.length < 2) {
+                showToast('Need at least 2 players to generate a cup!', 'danger');
+                return;
+            }
+            if (leagueData.cupFixtures.length > 0) {
+                if (!confirm("This will erase the current cup and generate a new one. Are you sure?")) {
+                    return;
+                }
+            }
+
+            leagueData.cupFixtures = [];
+            let players = leagueData.players.map(p => p.id);
+            shuffleArray(players);
+            
+            const numPlayers = players.length;
+            const bracketSize = Math.pow(2, Math.ceil(Math.log2(numPlayers))); // e.g., 12 players -> 16
+            const numByes = bracketSize - numPlayers; // e.g., 16 - 12 = 4 byes
+            const numRound1Matches = (numPlayers - numByes) / 2; // e.g., (12 - 4) / 2 = 4 matches
+            const roundName = getRoundName(bracketSize);
+            const matchDate = new Date().toISOString().substring(0, 10);
+
+            let playersToPlay = players.slice(0, numRound1Matches * 2);
+            let playersWithByes = players.slice(numRound1Matches * 2);
+
+            // Create fixtures for the matches
+            for (let i = 0; i < playersToPlay.length; i += 2) {
+                const newFixture = {
+                    id: `cup-${Date.now()}-${i}`,
+                    player1Id: playersToPlay[i],
+                    player2Id: playersToPlay[i+1],
+                    date: matchDate,
+                    roundName: roundName,
+                    isPlayed: false,
+                    result: null
+                };
+                leagueData.cupFixtures.push(newFixture);
+            }
+
+            // Create "bye" fixtures
+            for (const pId of playersWithByes) {
+                const newFixture = {
+                    id: `cup-${Date.now()}-${pId}`,
+                    player1Id: pId,
+                    player2Id: 'BYE', // Special ID for a bye
+                    date: matchDate,
+                    roundName: roundName,
+                    isPlayed: true, // A bye is auto-played
+                    result: { score1: 1, score2: 0 } // Auto-win
+                };
+                leagueData.cupFixtures.push(newFixture);
+            }
+            
+            await saveData();
+            calculateCupRounds();
+            updateViews();
+            showToast(`Cup generated: ${roundName} with ${numRound1Matches} matches and ${numByes} byes.`, 'success');
+        }
+        
+        async function generateNextCupRound() {
+            if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            if (cupRounds.length === 0) {
+                showToast('Generate the first cup round first.', 'info');
+                return;
+            }
+
+            const lastRoundName = cupRounds[cupRounds.length - 1];
+            if (lastRoundName === 'Final') {
+                showToast('The Final has already been generated!', 'info');
+                return;
+            }
+
+            const lastRoundFixtures = leagueData.cupFixtures.filter(f => f.roundName === lastRoundName);
+            
+            if (lastRoundFixtures.some(f => !f.isPlayed)) {
+                showToast('All matches from the current round must be played first!', 'danger');
+                return;
+            }
+
+            let winners = [];
+            lastRoundFixtures.forEach(f => {
+                if (f.player2Id === 'BYE') {
+                    winners.push(f.player1Id);
+                } else if (f.result.score1 > f.result.score2) {
+                    winners.push(f.player1Id);
+                } else {
+                    winners.push(f.player2Id);
+                }
+            });
+
+            if (winners.length < 2) {
+                showToast('Not enough winners to generate the next round.', 'danger');
+                return;
+            }
+
+            shuffleArray(winners);
+            const newRoundName = getRoundName(winners.length);
+            const matchDate = new Date().toISOString().substring(0, 10);
+
+            for (let i = 0; i < winners.length; i += 2) {
+                const newFixture = {
+                    id: `cup-${Date.now()}-${i}`,
+                    player1Id: winners[i],
+                    player2Id: winners[i+1],
+                    date: matchDate,
+                    roundName: newRoundName,
+                    isPlayed: false,
+                    result: null
+                };
+                leagueData.cupFixtures.push(newFixture);
+            }
+            
+            await saveData();
+            calculateCupRounds();
+            currentCupRoundIndex = cupRounds.length - 1; // Move to the new round
+            updateViews();
+            showToast(`${newRoundName} generated with ${winners.length / 2} matches.`, 'success');
+        }
+
+
+        function calculateCupRounds() {
+            if (!leagueData.cupFixtures) leagueData.cupFixtures = [];
+            
+            const uniqueRounds = [...new Set(leagueData.cupFixtures.map(f => f.roundName))];
+            uniqueRounds.sort((a, b) => getRoundOrder(a) - getRoundOrder(b));
+            cupRounds = uniqueRounds;
+            
+            if (currentCupRoundIndex >= cupRounds.length) {
+                currentCupRoundIndex = cupRounds.length - 1;
+            }
+            if (currentCupRoundIndex < 0) {
+                currentCupRoundIndex = 0;
+            }
+        }
+
+        function renderCupMatches() {
+            const container = document.getElementById('cupContainer');
+            container.innerHTML = '';
+
+            if (cupRounds.length === 0) {
+                document.getElementById('cupRoundName').textContent = 'Cup Fixtures';
+                document.getElementById('cupPrevRound').disabled = true;
+                document.getElementById('cupNextRound').disabled = true;
+                container.innerHTML = '<div class="text-center text-secondary py-5">No cup matches found. Generate the cup from the admin panel.</div>';
+                return;
+            }
+
+            const currentRoundName = cupRounds[currentCupRoundIndex];
+            document.getElementById('cupRoundName').textContent = currentRoundName;
+            document.getElementById('cupPrevRound').disabled = currentCupRoundIndex <= 0;
+            document.getElementById('cupNextRound').disabled = currentCupRoundIndex >= cupRounds.length - 1;
+
+            const matchesForRound = leagueData.cupFixtures.filter(f => f.roundName === currentRoundName);
+            
+            matchesForRound.forEach(fixture => {
+                const p1 = getPlayer(fixture.player1Id);
+                const p2 = getPlayer(fixture.player2Id);
+                const result = fixture.result;
+                
+                const dateDisplay = new Date(fixture.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                let cardClass = '';
+                let matchContent = '';
+                let adminButtons = '';
+
+                // Handle BYE display
+                if (p2.id === 'BYE') {
+                    cardClass = 'result-card';
+                    matchContent = `
+                        <div class="result-info">
+                            <div class="score"><span class="winner">W</span> - <span></span></div>
+                            <span class="date">BYE</span>
+                        </div>
+                    `;
+                    adminButtons = `
+                        <button class="btn btn-sm btn-danger" onclick="deleteCupFixture('${fixture.id}')">
+                            <i class="fa-solid fa-trash"></i> Delete
+                        </button>
+                    `;
+                } else if (fixture.isPlayed && result) {
+                    // RENDER RESULT VIEW
+                    const winner1Class = result.score1 > result.score2 ? 'winner' : '';
+                    const winner2Class = result.score2 > result.score1 ? 'winner' : '';
+                    cardClass = 'result-card';
+                    matchContent = `
+                        <div class="result-info">
+                            <div class="score"><span class="${winner1Class}">${result.score1}</span> - <span class="${winner2Class}">${result.score2}</span></div>
+                            <span class="date">${dateDisplay}</span>
+                        </div>
+                    `;
+                    adminButtons = `
+                        <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}', 'cup')">
+                            <i class="fa-solid fa-undo"></i> Undo Result
+                        </button>
+                    `;
+                } else {
+                    // RENDER FIXTURE VIEW
+                    cardClass = 'match-card';
+                    matchContent = `
+                        <div class="match-info">
+                            <div class="vs">VS</div>
+                            <span class="date">${dateDisplay}</span>
+                        </div>
+                    `;
+                    adminButtons = `
+                        <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}', 'cup')">
+                            <i class="fa-solid fa-gavel"></i> Enter Result
+                        </button>
+                    `;
+                }
+
                 const card = `
-                    <div class="col">
-                        <div class="player-card">
-                            <img src="${player.avatar || defaultAvatar}" alt="${player.name}">
-                            <h5 class="card-title">${player.name}</h5>
-                            <p class="card-text">
-                                Total Points: <strong>${player.pts}</strong><br>
-                                Games Played: ${player.mp}
-                            </p>
-                            ${isAdmin ? `
-                                <div class="admin-mode mt-3">
-                                    <button class="btn btn-sm btn-danger" onclick="deletePlayer('${player.id}')">
-                                        <i class="fa-solid fa-trash"></i> Delete Player
-                                    </button>
-                                </div>
-                            ` : ''}
+                    <div class="col-12 col-lg-10 mx-auto">
+                        <div class="${cardClass}">
+                            <div class="${cardClass.includes('result') ? 'result-player' : 'match-player'}">
+                                <img src="${p1.avatar}" alt="${p1.name}">
+                                <span>${p1.name}</span>
+                            </div>
+                            ${matchContent}
+                            <div class="${cardClass.includes('result') ? 'result-player' : 'match-player'} ${p2.id === 'BYE' ? 'bye-player' : ''}">
+                                <span>${p2.name}</span>
+                                <img src="${p2.avatar}" alt="${p2.name}">
+                            </div>
+                            <div class="admin-controls admin-mode">
+                                ${adminButtons}
+                                ${p2.id !== 'BYE' ? `
+                                <button class="btn btn-sm btn-danger" onclick="deleteCupFixture('${fixture.id}')">
+                                    <i class="fa-solid fa-trash"></i> Delete Match
+                                </button>
+                                ` : ''}
+                            </div>
                         </div>
                     </div>
                 `;
                 container.innerHTML += card;
             });
+            
+            // Render Final Image
+            if (currentRoundName === 'Final' && leagueData.cupFinalImageUrl) {
+                 container.innerHTML += `
+                    <div class="col-12 col-lg-10 mx-auto">
+                        <div class="match-image-container">
+                            <img src="${leagueData.cupFinalImageUrl}" alt="Cup Final Image">
+                        </div>
+                    </div>
+                `;
+            }
+
             if(isAdmin) {
-                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('#cupContainer .admin-mode').forEach(el => el.style.display = 'block');
             }
         }
 
+        async function deleteCupFixture(fixtureId) {
+             if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            if (confirm('Are you sure you want to delete this cup match? This may break the bracket.')) {
+                leagueData.cupFixtures = leagueData.cupFixtures.filter(f => f.id !== fixtureId);
+                await saveData();
+                calculateCupRounds();
+                updateViews();
+                showToast('Cup match deleted.', 'success');
+            }
+        }
 
-        // --- ADMIN LOGIN/RESET ---
-        function showAdminLogin() {
-            const modal = new bootstrap.Modal(document.getElementById('adminModal'));
+        function changeCupRound(direction) {
+            const newIndex = currentCupRoundIndex + direction;
+            if (newIndex >= 0 && newIndex < cupRounds.length) {
+                currentCupRoundIndex = newIndex;
+                renderCupMatches();
+            }
+        }
+        
+        function showSetCupFinalImageModal() {
+            if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            document.getElementById('cupFinalImageUrlInput').value = leagueData.cupFinalImageUrl || '';
+            const modal = new bootstrap.Modal(document.getElementById('setCupFinalImageModal'));
             modal.show();
         }
 
-        function loginAdmin() {
-            const input = document.getElementById('adminPassword');
-            if (input.value === password) {
-                isAdmin = true;
-                document.getElementById('admin-login-button').innerHTML = '<i class="fa-solid fa-unlock me-1"></i> Admin Logged In';
-                document.getElementById('admin-login-button').classList.remove('btn-outline-primary');
-                document.getElementById('admin-login-button').classList.add('btn-success');
-                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
-                bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
-                showToast('Welcome, Admin! 👋', 'success');
-                updateViews(); // Re-render to show admin controls on promotions/matches
-            } else {
-                showToast('Incorrect Password!', 'danger');
-            }
-            input.value = '';
+        async function submitCupFinalImage() {
+            const url = document.getElementById('cupFinalImageUrlInput').value.trim();
+            leagueData.cupFinalImageUrl = url;
+            await saveData();
+            updateViews();
+            bootstrap.Modal.getInstance(document.getElementById('setCupFinalImageModal')).hide();
+            showToast('Cup Final Image set!', 'success');
         }
 
-        async function resetLeague() {
+        // --- COMMUNITY SHIELD MANAGEMENT (NEW) ---
+        
+        function showSetShieldModal() {
             if (!isAdmin) {
-                showToast('You must be an admin to reset the league.', 'danger');
+                showToast('Admin privileges required!', 'danger');
                 return;
             }
-            if (confirm("Are you sure you want to COMPLETELY RESET the league (players, fixtures, results, and promotions)? This action cannot be undone.")) {
-                leagueData.players = [];
-                leagueData.fixtures = [];
-                leagueData.results = [];
-                leagueData.promotions = [];
-                currentMatchday = 1;
-                totalMatchdays = 1;
-                await saveData(); 
-                showToast('League reset successful! 🧹', 'warning');
+            populateFixtureSelectors(); // Populates all player selectors
+            
+            // Pre-fill fields if match already exists
+            if (leagueData.shieldMatch && leagueData.shieldMatch.fixture) {
+                const f = leagueData.shieldMatch.fixture;
+                document.getElementById('shieldPlayer1').value = f.player1Id;
+                document.getElementById('shieldPlayer2').value = f.player2Id;
+                document.getElementById('shieldDate').value = f.date;
+                document.getElementById('shieldImageUrl').value = leagueData.shieldMatch.imageUrl || '';
+            } else {
+                // Reset fields
+                document.getElementById('shieldPlayer1').value = '';
+                document.getElementById('shieldPlayer2').value = '';
+                document.getElementById('shieldDate').value = new Date().toISOString().substring(0, 10);
+                document.getElementById('shieldImageUrl').value = '';
+            }
+            
+            const modal = new bootstrap.Modal(document.getElementById('setShieldModal'));
+            modal.show();
+        }
+
+        async function submitShieldMatch() {
+            const player1Id = document.getElementById('shieldPlayer1').value;
+            const player2Id = document.getElementById('shieldPlayer2').value;
+            const date = document.getElementById('shieldDate').value;
+            const imageUrl = document.getElementById('shieldImageUrl').value.trim();
+
+            if (!player1Id || !player2Id || player1Id === player2Id || !date) {
+                showToast('Please select two different players and a date.', 'danger');
+                return;
+            }
+
+            leagueData.shieldMatch = {
+                fixture: {
+                    id: 'shield-match',
+                    player1Id: player1Id,
+                    player2Id: player2Id,
+                    date: date,
+                    isPlayed: false,
+                    result: null
+                },
+                imageUrl: imageUrl
+            };
+
+            await saveData();
+            updateViews();
+            bootstrap.Modal.getInstance(document.getElementById('setShieldModal')).hide();
+            showToast('Community Shield match has been set!', 'success');
+        }
+
+        function renderShieldMatch() {
+            const container = document.getElementById('shieldMatchContainer');
+            container.innerHTML = '';
+
+            if (!leagueData.shieldMatch || !leagueData.shieldMatch.fixture) {
+                container.innerHTML = '<div class="text-center text-secondary py-5">The Community Shield match has not been set.</div>';
+                return;
+            }
+
+            const fixture = leagueData.shieldMatch.fixture;
+            const imageUrl = leagueData.shieldMatch.imageUrl;
+            const p1 = getPlayer(fixture.player1Id);
+            const p2 = getPlayer(fixture.player2Id);
+            const result = fixture.result;
+            const dateDisplay = new Date(fixture.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+            let cardClass = '';
+            let matchContent = '';
+            let adminButtons = '';
+
+            if (fixture.isPlayed && result) {
+                // RENDER RESULT VIEW
+                const winner1Class = result.score1 > result.score2 ? 'winner' : '';
+                const winner2Class = result.score2 > result.score1 ? 'winner' : '';
+                cardClass = 'result-card';
+                matchContent = `
+                    <div class="result-info">
+                        <div class="score"><span class="${winner1Class}">${result.score1}</span> - <span class="${winner2Class}">${result.score2}</span></div>
+                        <span class="date">${dateDisplay}</span>
+                    </div>
+                `;
+                adminButtons = `
+                    <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}', 'shield')">
+                        <i class="fa-solid fa-undo"></i> Undo Result
+                    </button>
+                `;
+            } else {
+                // RENDER FIXTURE VIEW
+                cardClass = 'match-card';
+                matchContent = `
+                    <div class="match-info">
+                        <div class="vs">VS</div>
+                        <span class="date">${dateDisplay}</span>
+                    </div>
+                `;
+                adminButtons = `
+                    <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}', 'shield')">
+                        <i class="fa-solid fa-gavel"></i> Enter Result
+                    </button>
+                `;
+            }
+
+            const card = `
+                <div class="col-12 col-lg-10 mx-auto">
+                    <div class="${cardClass}">
+                        <div class="${cardClass.includes('result') ? 'result-player' : 'match-player'}">
+                            <img src="${p1.avatar}" alt="${p1.name}">
+                            <span>${p1.name}</span>
+                        </div>
+                        ${matchContent}
+                        <div class="${cardClass.includes('result') ? 'result-player' : 'match-player'}">
+                            <span>${p2.name}</span>
+                            <img src="${p2.avatar}" alt="${p2.name}">
+                        </div>
+                        <div class="admin-controls admin-mode">
+                            ${adminButtons}
+                        </div>
+                    </div>
+                    ${imageUrl ? `
+                    <div class="match-image-container">
+                        <img src="${imageUrl}" alt="Community Shield Image">
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            container.innerHTML = card;
+
+            if(isAdmin) {
+                document.querySelectorAll('#shieldMatchContainer .admin-mode').forEach(el => el.style.display = 'block');
             }
         }
 
-        // --- Player Management ---
+
+        // --- PLAYER MANAGEMENT ---
+        
+        function updatePlayers() {
+            const container = document.getElementById('playersContainer');
+            container.innerHTML = '';
+
+            leagueData.players.sort((a, b) => a.name.localeCompare(b.name));
+
+            leagueData.players.forEach(player => {
+                // Stats here ONLY reflect league play, as defined by recalculateStandings
+                const gamesPlayed = player.mp || 0;
+                const wins = player.w || 0;
+                const draws = player.d || 0;
+                const losses = player.l || 0;
+                const points = player.pts || 0;
+
+                const col = document.createElement('div');
+                col.className = 'col';
+
+                const cardHtml = `
+                    <div class="player-card">
+                        <img src="${player.avatar}" alt="${player.name} Avatar">
+                        <h5 class="card-title">${player.name}</h5>
+                        <p class="card-text">
+                            <strong>League Points:</strong> ${points} | <strong>Played:</strong> ${gamesPlayed}<br>
+                            W: ${wins} D: ${draws} L: ${losses}
+                        </p>
+                        ${isAdmin ? `
+                            <div class="admin-mode mt-3">
+                                <button class="btn btn-sm btn-danger" onclick="deletePlayer('${player.id}')">
+                                    <i class="fa-solid fa-user-slash"></i> Delete Player
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                col.innerHTML = cardHtml;
+                container.appendChild(col);
+            });
+            
+            if(isAdmin) {
+                document.querySelectorAll('#playersContainer .admin-mode').forEach(el => el.style.display = 'block');
+            }
+        }
+        
         function showAddPlayerModal() {
             if (!isAdmin) {
                 showToast('You must be an admin to add a player.', 'danger');
                 return;
-            }
-            if (leagueData.players.length < 2) {
-                 showToast('Need at least 2 players to add a fixture!', 'danger');
-                 return;
             }
             document.getElementById('playerName').value = '';
             document.getElementById('playerAvatarUrl').value = '';
@@ -1722,15 +2649,14 @@
                 id: Date.now().toString(),
                 name: name,
                 avatar: avatarUrl,
-                mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0,
-                form: []
+                mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0, form: []
             };
 
             leagueData.players.push(newPlayer);
             await saveData();
-            populateFixtureSelectors();
+            updateViews();
             bootstrap.Modal.getInstance(document.getElementById('addPlayerModal')).hide();
-            showToast('Player added successfully! 🥳', 'success');
+            showToast('Player added successfully! 👤', 'success');
         }
 
         async function deletePlayer(playerId) {
@@ -1738,377 +2664,59 @@
                 showToast('You must be an admin.', 'danger');
                 return;
             }
-            if (confirm("Are you sure you want to delete this player? All their matches will also be deleted.")) {
+
+            if (confirm("Are you sure you want to delete this player? All their LEAGUE matches, CUP matches, and SHIELD matches will also be deleted.")) {
                 leagueData.players = leagueData.players.filter(p => p.id !== playerId);
+                
+                // Remove from all competitions
                 leagueData.fixtures = leagueData.fixtures.filter(f => f.player1Id !== playerId && f.player2Id !== playerId);
                 leagueData.results = leagueData.results.filter(r => r.player1Id !== playerId && r.player2Id !== playerId);
-                recalculateStandings();
+                leagueData.cupFixtures = leagueData.cupFixtures.filter(f => f.player1Id !== playerId && f.player2Id !== playerId);
+                if (leagueData.shieldMatch && (leagueData.shieldMatch.fixture.player1Id === playerId || leagueData.shieldMatch.fixture.player2Id === playerId)) {
+                    leagueData.shieldMatch = null;
+                }
+                
                 await saveData();
-                populateFixtureSelectors();
+                recalculateStandings(); // Update league standings
                 calculateTotalMatchdays();
-                showToast('Player and related data deleted! 🗑️', 'success');
+                calculateCupRounds();
+                updateViews();
+                showToast('Player and all related data deleted! 🗑️', 'success');
             }
-        }
-
-
-        // --- Fixture/Result Management ---
-        function populateFixtureSelectors() {
-            const select1 = document.getElementById('fixturePlayer1');
-            const select2 = document.getElementById('fixturePlayer2');
-            
-            select1.innerHTML = '<option value="" selected disabled>Select Player 1</option>';
-            select2.innerHTML = '<option value="" selected disabled>Select Player 2</option>';
-            
-            leagueData.players.forEach(player => {
-                const option1 = document.createElement('option');
-                option1.value = player.id;
-                option1.textContent = player.name;
-                select1.appendChild(option1);
-                
-                const option2 = document.createElement('option');
-                option2.value = player.id;
-                option2.textContent = player.name;
-                select2.appendChild(option2);
-            });
-        }
-
-        function showAddFixtureModal() {
-            if (!isAdmin) {
-                showToast('You must be an admin to add a fixture.', 'danger');
-                return;
-            }
-            if (leagueData.players.length < 2) {
-                 showToast('Need at least 2 players to add a fixture!', 'danger');
-                 return;
-            }
-            populateFixtureSelectors();
-            document.getElementById('fixtureDate').valueAsDate = new Date();
-            document.getElementById('fixtureMatchday').value = totalMatchdays;
-            const modal = new bootstrap.Modal(document.getElementById('addFixtureModal'));
-            modal.show();
-        }
-
-        async function submitFixture() {
-            const player1Id = document.getElementById('fixturePlayer1').value;
-            const player2Id = document.getElementById('fixturePlayer2').value;
-            const date = document.getElementById('fixtureDate').value;
-            const matchday = parseInt(document.getElementById('fixtureMatchday').value);
-
-            if (!player1Id || !player2Id || player1Id === player2Id || !date || isNaN(matchday) || matchday < 1) {
-                showToast('Invalid fixture details. Select two different players, a date, and a valid matchday.', 'danger');
-                return;
-            }
-
-            const newFixture = {
-                id: Date.now().toString(),
-                player1Id: player1Id,
-                player2Id: player2Id,
-                date: date,
-                matchday: matchday,
-                isPlayed: false
-            };
-
-            leagueData.fixtures.push(newFixture);
-            await saveData();
-            calculateTotalMatchdays();
-            bootstrap.Modal.getInstance(document.getElementById('addFixtureModal')).hide();
-            showToast('Fixture added successfully! 📅', 'success');
-        }
-
-        function generateFixtures() {
-            if (!isAdmin) {
-                showToast('You must be an admin to generate fixtures!', 'danger');
-                return;
-            }
-            if (leagueData.players.length < 2) {
-                showToast('Need at least 2 players to generate fixtures!', 'danger');
-                return;
-            }
-            if (leagueData.fixtures.length > 0) {
-                if (!confirm("Unplayed matches exist. Are you sure you want to clear them and generate a new full round robin?")) {
-                    return;
-                }
-            }
-
-            let players = leagueData.players.map(p => p.id);
-            let n = players.length;
-            if (n % 2 !== 0) {
-                players.push('BYE');
-                n++;
-            }
-
-            let numRounds = (leagueData.players.length - 1) * 2;
-            leagueData.fixtures = [];
-
-            for (let round = 1; round <= numRounds; round++) {
-                let currentMatchday = round;
-                for (let i = 0; i < n / 2; i++) {
-                    let p1 = players[i];
-                    let p2 = players[n - 1 - i];
-                    
-                    if (p1 === 'BYE' || p2 === 'BYE') continue;
-                    
-                    // Simple logic to alternate home/away
-                    let player1Id = (round % 2 === 1) ? p1 : p2;
-                    let player2Id = (round % 2 === 1) ? p2 : p1;
-
-                    // This is a simple placeholder date. For a real league, dates should be calculated.
-                    let date = new Date();
-                    date.setDate(date.getDate() + (round * 7)); // Example: One round per week
-
-                    const newFixture = {
-                        id: Date.now().toString() + '-' + round + '-' + i,
-                        player1Id: player1Id,
-                        player2Id: player2Id,
-                        date: date.toISOString().split('T')[0],
-                        matchday: currentMatchday,
-                        isPlayed: false
-                    };
-                    leagueData.fixtures.push(newFixture);
-                }
-                
-                // Rotate players (Fixed player 1 (index 0), rotate the rest)
-                let temp = players[n - 1];
-                for (let i = n - 1; i > 1; i--) {
-                    players[i] = players[i - 1];
-                }
-                players[1] = temp;
-            }
-            
-            leagueData.results = leagueData.results.filter(r => 
-                leagueData.fixtures.some(f => f.id === r.fixtureId)
-            );
-
-            recalculateStandings();
-            saveData();
-            calculateTotalMatchdays();
-            showToast('Full Round-Robin Fixtures generated successfully!', 'success');
-        }
-
-        function showResultModal(fixtureId) {
-            if (!isAdmin) {
-                showToast('You must be an admin.', 'danger');
-                return;
-            }
-            const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
-            if (!fixture) return;
-
-            const p1 = leagueData.players.find(p => p.id === fixture.player1Id);
-            const p2 = leagueData.players.find(p => p.id === fixture.player2Id);
-            if (!p1 || !p2) return;
-
-            const existingResult = leagueData.results.find(r => r.fixtureId === fixtureId);
-
-            document.getElementById('resultFixtureId').value = fixtureId;
-            document.getElementById('resultPlayer1Name').textContent = p1.name;
-            document.getElementById('resultPlayer2Name').textContent = p2.name;
-            document.getElementById('resultScore1').value = existingResult ? existingResult.score1 : '0';
-            document.getElementById('resultScore2').value = existingResult ? existingResult.score2 : '0';
-
-            const modal = new bootstrap.Modal(document.getElementById('resultModal'));
-            modal.show();
-        }
-
-        async function submitResult() {
-            const fixtureId = document.getElementById('resultFixtureId').value;
-            const score1 = parseInt(document.getElementById('resultScore1').value);
-            const score2 = parseInt(document.getElementById('resultScore2').value);
-
-            if (isNaN(score1) || isNaN(score2) || score1 < 0 || score2 < 0) {
-                showToast('Scores must be valid non-negative numbers.', 'danger');
-                return;
-            }
-
-            const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
-            if (!fixture) return;
-
-            // Mark fixture as played
-            fixture.isPlayed = true;
-
-            const newResult = {
-                fixtureId: fixtureId,
-                player1Id: fixture.player1Id,
-                player2Id: fixture.player2Id,
-                score1: score1,
-                score2: score2,
-                matchday: fixture.matchday,
-                timestamp: Date.now()
-            };
-
-            // Remove any existing result for this fixture before adding the new one
-            leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
-            leagueData.results.push(newResult);
-
-            recalculateStandings();
-            await saveData();
-            updateLiveTicker();
-            bootstrap.Modal.getInstance(document.getElementById('resultModal')).hide();
-            showToast('Result submitted successfully! ⚽🥅', 'success');
-        }
-
-        async function deleteFixture(fixtureId) {
-            if (!isAdmin) {
-                showToast('You must be an admin.', 'danger');
-                return;
-            }
-            leagueData.fixtures = leagueData.fixtures.filter(f => f.id !== fixtureId);
-            leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
-            recalculateStandings();
-            await saveData();
-            calculateTotalMatchdays();
-            showToast('Match and result (if any) deleted! 🗑️', 'success');
-        }
-
-        async function undoResult(fixtureId) {
-            if (!isAdmin) {
-                showToast('You must be an admin.', 'danger');
-                return;
-            }
-            const fixture = leagueData.fixtures.find(f => f.id === fixtureId);
-            if (!fixture) return;
-
-            if (confirm("Are you sure you want to undo this result? The match will be marked as unplayed.")) {
-                // Remove result
-                leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixtureId);
-                // Mark fixture as unplayed
-                fixture.isPlayed = false;
-                
-                recalculateStandings();
-                await saveData();
-                updateLiveTicker();
-                showToast('Result undone! Match is now a pending fixture. ↩️', 'warning');
-            }
-        }
-
-        function recalculateStandings() {
-            leagueData.players.forEach(player => {
-                player.mp = 0;
-                player.w = 0;
-                player.d = 0;
-                player.l = 0;
-                player.gf = 0;
-                player.ga = 0;
-                player.gd = 0;
-                player.pts = 0;
-                player.form = [];
-            });
-
-            // Sort results by timestamp to correctly build the 'form' array (most recent first)
-            const sortedResults = leagueData.results.sort((a, b) => a.timestamp - b.timestamp);
-
-            sortedResults.forEach(result => {
-                const p1 = leagueData.players.find(p => p.id === result.player1Id);
-                const p2 = leagueData.players.find(p => p.id === result.player2Id);
-                if (!p1 || !p2) return;
-
-                // Helper to update stats and form
-                const updatePlayerStats = (player, scoreFor, scoreAgainst, resultChar) => {
-                    player.mp++;
-                    player.gf += scoreFor;
-                    player.ga += scoreAgainst;
-                    
-                    if (resultChar === 'W') player.pts += 3;
-                    if (resultChar === 'D') player.pts += 1;
-                    
-                    player[resultChar.toLowerCase()]++;
-                    
-                    // Add result to the front of the form array (max 5 results)
-                    if (player.form.length === 5) player.form.pop();
-                    player.form.unshift(resultChar);
-                };
-
-                // Player 1's stats
-                let p1Result = 'D';
-                if (result.score1 > result.score2) p1Result = 'W';
-                else if (result.score1 < result.score2) p1Result = 'L';
-                updatePlayerStats(p1, result.score1, result.score2, p1Result);
-
-                // Player 2's stats
-                let p2Result = 'D';
-                if (result.score2 > result.score1) p2Result = 'W';
-                else if (result.score2 < result.score1) p2Result = 'L';
-                updatePlayerStats(p2, result.score2, result.score1, p2Result);
-            });
-
-            // Calculate Goal Difference (GD) last
-            leagueData.players.forEach(player => {
-                player.gd = player.gf - player.ga;
-            });
         }
         
-        // --- DATA EXPORT/IMPORT ---
+        // --- DATA EXPORT ---
+        
         function exportData() {
-            const dataString = JSON.stringify(leagueData, null, 2);
-            const dataBlob = new Blob([dataString], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'eFootballLeagueData.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('Data exported successfully!', 'success');
-        }
-        
-        function importData() {
-            if (!isAdmin) {
-                showToast('Admin privileges required!', 'danger');
-                return;
-            }
-            if (!confirm("WARNING: Importing data will overwrite ALL current league data (players, fixtures, results, promotions). Proceed?")) {
-                return;
-            }
+            const dataStr = JSON.stringify(leagueData, null, 2);
+            
+            // Create a temporary element to hold the text
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = dataStr;
+            document.body.appendChild(tempTextArea);
+            
+            // Select and copy the text
+            tempTextArea.select();
+            tempTextArea.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                document.execCommand('copy');
+                showToast('Data copied to clipboard! 📋', 'success');
+                
+                // Remove the temporary element
+                document.body.removeChild(tempTextArea);
 
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.json';
+                // Optional: Provide a download link as a fallback/alternative
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'efootball_league_data_export.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
 
-            input.onchange = e => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    try {
-                        const importedData = JSON.parse(e.target.result);
-                        leagueData = { ...leagueData, ...importedData };
-                        
-                        // Ensure required arrays exist for safety
-                        if (!leagueData.players) leagueData.players = [];
-                        if (!leagueData.fixtures) leagueData.fixtures = [];
-                        if (!leagueData.results) leagueData.results = [];
-                        if (!leagueData.promotions) leagueData.promotions = [];
-                        
-                        // Recalculate everything based on new data
-                        recalculateStandings();
-                        calculateTotalMatchdays();
-                        
-                        await saveData(false);
-                        showToast('Data imported and league recalculated! 🎉', 'success');
-                        
-                        // Force full page reload to re-run intro sequence with new data
-                        window.location.reload(); 
-
-                    } catch (error) {
-                        showToast('Error parsing file: Invalid JSON format.', 'danger');
-                        console.error('Import Error:', error);
-                    }
-                };
-                reader.readAsText(file);
-            };
-            input.click();
-        }
-        
-        // --- Admin Dashboard Feature (Not currently in HTML, but good for future expansion) ---
-        function showAdminDashboard() {
-            // For now, let's use the toast for a quick demonstration of data export
-             try {
-                navigator.clipboard.writeText(JSON.stringify(leagueData, null, 2)).then(() => {
-                    showToast('League data copied to clipboard (JSON format)!', 'info');
-                }).catch(() => {
-                    showToast('Data exported. Copy it from the text box.', 'info');
-                });
             } catch (err) {
                 showToast('Data exported. Copy it from the text box.', 'info');
             }
@@ -2140,32 +2748,6 @@
 
             document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'none');
         });
-        
-        // --- FIX: Expose functions globally for HTML onclick attributes ---
-        window.showToast = showToast;
-        window.loginAdmin = loginAdmin;
-        window.showAdminLogin = showAdminLogin;
-        window.showEditBackgroundModal = showEditBackgroundModal;
-        window.resetBackground = resetBackground;
-        window.submitBackground = submitBackground;
-        window.showEditIntroImageModal = showEditIntroImageModal;
-        window.resetIntroImage = resetIntroImage;
-        window.submitIntroImage = submitIntroImage;
-        window.showAddPromotionModal = showAddPromotionModal;
-        window.submitPromotion = submitPromotion;
-        window.deletePromotion = deletePromotion;
-        window.showAddPlayerModal = showAddPlayerModal;
-        window.submitPlayer = submitPlayer;
-        window.deletePlayer = deletePlayer;
-        window.resetLeague = resetLeague;
-        window.changeMatchday = changeMatchday;
-        window.showAddFixtureModal = showAddFixtureModal;
-        window.submitFixture = submitFixture;
-        window.generateFixtures = generateFixtures;
-        window.showResultModal = showResultModal;
-        window.submitResult = submitResult;
-        window.deleteFixture = deleteFixture;
-        window.undoResult = undoResult;
     </script>
 </body>
 
