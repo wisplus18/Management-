@@ -538,7 +538,10 @@
         .player-card .card-text { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
         
         /* --- Admin / Modals --- */
-        .admin-mode { display: none; }
+        /* UPDATED: admin-mode is for FULL admin, sub-admin-mode is for results */
+        .admin-mode, .sub-admin-mode { 
+            display: none; 
+        }
         
         .modal-content {
             background-color: var(--bg-light);
@@ -650,12 +653,13 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#promotions">Promotions🤑</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#standings">Standings 📊</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#cup">Cup🏆</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#communityShield">Shield 🛡️</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#fixtures">Fixtures⚔️</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#players">Players 🎮</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#promotions">Promotions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#standings">Standings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#cup">Cup</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#communityShield">Shield</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#fixtures">Fixtures</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#players">Players</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#betting">Betting</a></li>
                     <li class="nav-item">
                         <button class="btn nav-link" id="theme-toggle" aria-label="Toggle theme">
                             <i class="fa-solid fa-sun"></i> </button>
@@ -796,6 +800,7 @@
             </div>
         </div>
     </div>
+    
     <div class="modal fade" id="addPlayerModal" tabindex="-1" aria-labelledby="addPlayerModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -818,6 +823,10 @@
                         <label for="playerAvatarUrl" class="form-label">Avatar URL</label>
                         <input type="url" id="playerAvatarUrl" class="form-control" placeholder="Paste image URL" aria-label="Player Avatar URL">
                     </div>
+                    <div class="mb-3">
+                        <label for="playerSocialLink" class="form-label">Social/WhatsApp Link (Optional)</label>
+                        <input type="url" id="playerSocialLink" class="form-control" placeholder="e.g., https://wa.me/123456789">
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -826,6 +835,37 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="editPlayerModal" tabindex="-1" aria-labelledby="editPlayerModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editPlayerModalLabel">Edit Player</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editPlayerId">
+                    <div class="mb-3">
+                        <label for="editPlayerName" class="form-label">Player Name</label>
+                        <input type="text" id="editPlayerName" class="form-control" placeholder="Enter name" aria-label="Player Name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlayerAvatarUrl" class="form-label">Avatar URL</label>
+                        <input type="url" id="editPlayerAvatarUrl" class="form-control" placeholder="Paste image URL" aria-label="Player Avatar URL">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlayerSocialLink" class="form-label">Social/WhatsApp Link (Optional)</label>
+                        <input type="url" id="editPlayerSocialLink" class="form-control" placeholder="e.g., https://wa.me/123456789">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditPlayer()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="addFixtureModal" tabindex="-1" aria-labelledby="addFixtureModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -858,6 +898,7 @@
             </div>
         </div>
     </div>
+    
     <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -918,22 +959,70 @@
         </div>
     </div>
 
-    <div class="modal fade" id="setCupFinalImageModal" tabindex="-1" aria-labelledby="setCupFinalImageModalLabel" aria-hidden="true">
+    <div class="modal fade" id="setCupImageModal" tabindex="-1" aria-labelledby="setCupImageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="setCupFinalImageModalLabel">Set Cup Final Image</h5>
+                    <h5 class="modal-title" id="setCupImageModalLabel">Set Cup Image</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="cupFinalImageUrlInput" class="form-label">Image URL</label>
-                        <input type="url" id="cupFinalImageUrlInput" class="form-control" placeholder="Paste image URL for the final">
+                        <label for="cupImageUrlInput" class="form-label">Image URL</label>
+                        <input type="url" id="cupImageUrlInput" class="form-control" placeholder="Paste image URL for the cup">
+                    </div>
+                    <small>This image will appear small on cup rounds and large on the final.</small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitCupImage()">Set Image</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="subAdminModal" tabindex="-1" aria-labelledby="subAdminModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="subAdminModalLabel">Set Sub-Admin</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="subAdminPlayerSelect" class="form-label">Select Player</label>
+                        <select id="subAdminPlayerSelect" class="form-select" aria-label="Select Player"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subAdminPasswordInput" class="form-label">Sub-Admin Password</label>
+                        <input type="password" id="subAdminPasswordInput" class="form-control" placeholder="Enter password (e.g., 'hello')">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="submitCupFinalImage()">Set Image</button>
+                    <button type="button" class="btn btn-danger" onclick="removeSubAdmin()">Remove Sub-Admin</button>
+                    <button type="button" class="btn btn-primary" onclick="setSubAdmin()">Set Sub-Admin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editBettingImageModal" tabindex="-1" aria-labelledby="editBettingImageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editBettingImageModalLabel">Set Betting Tips Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="bettingImageUrlInput" class="form-label">Image URL</label>
+                        <input type="url" id="bettingImageUrlInput" class="form-control" placeholder="Paste image URL for betting tips">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitBettingImage()">Set Image</button>
                 </div>
             </div>
         </div>
@@ -963,10 +1052,22 @@
             </div>
         </div>
     </section>
+        <section id="betting" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="section-title">Betting Tips</h2>
+            <div id="bettingImageContainer" class="text-center">
+                </div>
+            <div class="admin-mode mt-4 text-center">
+                <button class="btn btn-primary" onclick="showEditBettingImageModal()">
+                    <i class="fa-solid fa-image me-1"></i> Set Betting Image
+                </button>
+            </div>
+        </div>
+    </section>
 
     <section id="standings" class="py-5">
         <div class="container">
-            <h2 class="section-title">Standings 📊</h2>
+            <h2 class="section-title">Standings</h2>
             <div class="card">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -1001,6 +1102,9 @@
                 <button class="btn btn-success me-2 text-white" onclick="showEditIntroImageModal()">
                     <i class="fa-solid fa-camera me-1"></i> Edit Intro Image
                 </button>
+                <button class="btn btn-secondary me-2" onclick="showSetSubAdminModal()">
+                    <i class="fa-solid fa-user-shield me-1"></i> Set Sub-Admin
+                </button>
                 <button class="btn btn-danger" onclick="resetLeague()">
                     <i class="fa-solid fa-trash me-1"></i> Reset League
                 </button>
@@ -1010,7 +1114,7 @@
     
     <section id="cup" class="py-5 bg-light">
         <div class="container">
-            <h2 class="section-title text-danger"><i class="fa-solid fa-trophy me-2"></i> League FA Cup 🏆</h2>
+            <h2 class="section-title text-danger"><i class="fa-solid fa-trophy me-2"></i> League Cup</h2>
             
             <div class="matchday-nav">
                 <button class="btn btn-primary" id="cupPrevRound" onclick="changeCupRound(-1)">
@@ -1032,8 +1136,8 @@
                 <button class="btn btn-success me-2" onclick="generateNextCupRound()">
                     <i class="fa-solid fa-forward me-1"></i> Generate Next Round
                 </button>
-                <button class="btn btn-warning" onclick="showSetCupFinalImageModal()">
-                    <i class="fa-solid fa-image me-1"></i> Set Final Image
+                <button class="btn btn-warning" onclick="showSetCupImageModal()">
+                    <i class="fa-solid fa-image me-1"></i> Set Cup Image
                 </button>
             </div>
         </div>
@@ -1041,7 +1145,7 @@
 
     <section id="communityShield" class="py-5">
         <div class="container">
-            <h2 class="section-title text-warning"><i class="fa-solid fa-shield-halved me-2"></i> Community Shield 🛡️</h2>
+            <h2 class="section-title text-warning"><i class="fa-solid fa-shield-halved me-2"></i> Community Shield</h2>
             
             <div id="shieldMatchContainer" class="row g-4 justify-content-center">
                 </div>
@@ -1075,10 +1179,7 @@
                 <button class="btn btn-info me-2 text-white" onclick="generateFixtures()">
                     <i class="fa-solid fa-gears me-1"></i> Auto-Generate Full Season
                 </button>
-                <button class="btn btn-warning" onclick="exportData()">
-                    <i class="fa-solid fa-file-export me-1"></i> Export Data
-                </button>
-            </div>
+                </div>
         </div>
     </section>
 
@@ -1089,6 +1190,8 @@
                 </div>
         </div>
     </section>
+
+
 
     <footer class="league-footer">
         <div class="container text-center">
@@ -1131,7 +1234,11 @@
             // NEW: Data for Cup and Shield
             cupFixtures: [],
             shieldMatch: null, // Will be an object: { fixture: {...}, imageUrl: '' }
-            cupFinalImageUrl: ''
+            cupImageUrl: '', // UPDATED: Renamed from cupFinalImageUrl
+            // NEW: Data for Sub-Admin and Betting
+            subAdminPlayerId: null,
+            subAdminPassword: '',
+            bettingTipsImageUrl: ''
         };
 
         // League matchday state
@@ -1142,7 +1249,9 @@
         let cupRounds = [];
         let currentCupRoundIndex = 0;
         
+        // UPDATED: Admin state
         let isAdmin = false;
+        let isSubAdmin = false;
 
         // Default SVG avatar
         const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%236c757d'%3E%3Cpath d='M50,0A50,50,0,1,0,50,100,50,50,0,0,0,50,0ZM76.4,26.66l-6.85,6.85a28,28,0,0,1-13.7,11.37L50,50,44.15,44.88a28,28,0,0,1-11.37-13.7L25.93,23.6A38.56,38.56,0,0,1,50,11.5a38.16,38.16,0,0,1,26.4,15.16ZM23.6,74.07l6.85-6.85a28,28,0,0,1,13.7-11.37L50,50,55.85,55.12a28,28,0,0,1,11.37,13.7l6.85,6.85A38.56,38.56,0,0,1,50,88.5,38.16,38.16,0,0,1,23.6,74.07Z'/%3E%3C/svg%3E";
@@ -1162,7 +1271,11 @@
                         promotions: data.promotions || [],
                         cupFixtures: data.cupFixtures || [],
                         shieldMatch: data.shieldMatch || null,
-                        cupFinalImageUrl: data.cupFinalImageUrl || ''
+                        cupImageUrl: data.cupImageUrl || '',
+                        // NEW
+                        subAdminPlayerId: data.subAdminPlayerId || null,
+                        subAdminPassword: data.subAdminPassword || '',
+                        bettingTipsImageUrl: data.bettingTipsImageUrl || ''
                     };
                     applyBackground();
                     startIntroSequence();
@@ -1199,7 +1312,11 @@
                     promotions: leagueData.promotions,
                     cupFixtures: leagueData.cupFixtures,
                     shieldMatch: leagueData.shieldMatch,
-                    cupFinalImageUrl: leagueData.cupFinalImageUrl
+                    cupImageUrl: leagueData.cupImageUrl,
+                    // NEW
+                    subAdminPlayerId: leagueData.subAdminPlayerId,
+                    subAdminPassword: leagueData.subAdminPassword,
+                    bettingTipsImageUrl: leagueData.bettingTipsImageUrl
                 };
                 await db.collection('league').doc('data').set(dataToSave);
                 if (showSuccess) {
@@ -1297,7 +1414,7 @@
         }
 
 
-        // --- ADMIN MANAGEMENT ---
+        // --- ADMIN MANAGEMENT (UPDATED for Sub-Admin) ---
 
         function showAdminLogin() {
             const modal = new bootstrap.Modal(document.getElementById('adminModal'));
@@ -1306,24 +1423,94 @@
 
         function loginAdmin() {
             const input = document.getElementById('adminPassword');
-            if (input.value === password) {
+            const pass = input.value;
+            const loginButton = document.getElementById('admin-login-button');
+
+            if (pass === password) {
+                // FULL ADMIN
                 isAdmin = true;
-                document.getElementById('admin-login-button').innerHTML = '<i class="fa-solid fa-unlock me-1"></i> Admin Logged In';
-                document.getElementById('admin-login-button').classList.remove('btn-outline-primary');
-                document.getElementById('admin-login-button').classList.add('btn-success');
+                isSubAdmin = false;
+                loginButton.innerHTML = '<i class="fa-solid fa-unlock me-1"></i> Admin Logged In';
+                loginButton.classList.remove('btn-outline-primary', 'btn-warning');
+                loginButton.classList.add('btn-success');
+                // Show ALL admin controls
                 document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+                // Show sub-admin controls too (as they are a subset)
+                document.querySelectorAll('.sub-admin-mode').forEach(el => el.style.display = 'block');
+                
                 bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
                 showToast('Welcome, Admin! 👋', 'success');
-                updateViews(); // Re-render to show admin controls on promotions/matches
+                updateViews(); // Re-render to show all controls
+
+            } else if (leagueData.subAdminPassword && pass === leagueData.subAdminPassword) {
+                // SUB ADMIN
+                isAdmin = false;
+                isSubAdmin = true;
+                loginButton.innerHTML = '<i class="fa-solid fa-unlock me-1"></i> Sub-Admin Logged In';
+                loginButton.classList.remove('btn-outline-primary', 'btn-success');
+                loginButton.classList.add('btn-warning');
+                // Show ONLY sub-admin controls
+                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.sub-admin-mode').forEach(el => el.style.display = 'block');
+                
+                bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
+                showToast('Welcome, Sub-Admin! 🧑‍⚖️', 'success');
+                updateViews(); // Re-render to show result controls (with restrictions)
+
             } else {
                 showToast('Incorrect Password!', 'danger');
             }
             input.value = '';
         }
+        
+        // NEW: Sub-Admin Functions
+        function showSetSubAdminModal() {
+            if (!isAdmin) return;
+            const select = document.getElementById('subAdminPlayerSelect');
+            select.innerHTML = '<option value="">Select a Player</option>';
+            leagueData.players.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+            });
+            
+            select.value = leagueData.subAdminPlayerId || '';
+            document.getElementById('subAdminPasswordInput').value = leagueData.subAdminPassword || '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('subAdminModal'));
+            modal.show();
+        }
+
+        async function setSubAdmin() {
+            if (!isAdmin) return;
+            const playerId = document.getElementById('subAdminPlayerSelect').value;
+            const pass = document.getElementById('subAdminPasswordInput').value;
+
+            if (!playerId || !pass) {
+                showToast('Please select a player and set a password.', 'danger');
+                return;
+            }
+
+            leagueData.subAdminPlayerId = playerId;
+            leagueData.subAdminPassword = pass;
+            await saveData();
+            bootstrap.Modal.getInstance(document.getElementById('subAdminModal')).hide();
+            showToast('Sub-Admin set successfully!', 'success');
+        }
+        
+        async function removeSubAdmin() {
+            if (!isAdmin) return;
+            if (confirm('Are you sure you want to remove the Sub-Admin?')) {
+                leagueData.subAdminPlayerId = null;
+                leagueData.subAdminPassword = '';
+                await saveData();
+                bootstrap.Modal.getInstance(document.getElementById('subAdminModal')).hide();
+                showToast('Sub-Admin removed.', 'warning');
+            }
+        }
+
 
         async function resetLeague() {
             if (!isAdmin) {
-                showToast('You must be an admin to reset the league.', 'danger');
+                showToast('You must be a full admin to reset the league.', 'danger');
                 return;
             }
             if (confirm("Are you sure you want to COMPLETELY RESET the league (players, fixtures, results, promotions, cup, AND shield)? This action cannot be undone.")) {
@@ -1333,7 +1520,10 @@
                 leagueData.promotions = [];
                 leagueData.cupFixtures = [];
                 leagueData.shieldMatch = null;
-                leagueData.cupFinalImageUrl = '';
+                leagueData.cupImageUrl = '';
+                leagueData.bettingTipsImageUrl = '';
+                leagueData.subAdminPlayerId = null;
+                leagueData.subAdminPassword = '';
 
                 currentMatchday = 1;
                 totalMatchdays = 1;
@@ -1492,7 +1682,7 @@
                                     Contact: <a href="${promo.contact.startsWith('http') ? promo.contact : `tel:${promo.contact}`}" target="_blank">${promo.contact}</a>
                                 </p>
                                 ${isAdmin ? `
-                                    <div class="admin-mode mt-3">
+                                    <div class="admin-mode" style="display: block;">
                                         <button class="btn btn-sm btn-danger" onclick="deletePromotion('${promo.id}')">
                                             <i class="fa-solid fa-trash"></i> Delete Ad
                                         </button>
@@ -1579,7 +1769,6 @@
                 showToast('Promotion deleted! 🗑️', 'success');
             }
         }
-
         // --- END PROMOTION MANAGEMENT ---
 
 
@@ -1588,13 +1777,18 @@
             renderPromotions();
             updateStandings();
             renderLeagueMatches();
-            renderCupMatches(); // NEW
-            renderShieldMatch(); // NEW
+            renderCupMatches(); 
+            renderShieldMatch(); 
             updatePlayers();
+            renderBettingImage(); // NEW
             
             // Re-apply admin visibility if logged in
             if(isAdmin) {
                 document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('.sub-admin-mode').forEach(el => el.style.display = 'block');
+            } else if (isSubAdmin) {
+                document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.sub-admin-mode').forEach(el => el.style.display = 'block');
             }
         }
 
@@ -1775,6 +1969,10 @@
                 let matchContent = '';
                 let adminButtons = '';
 
+                // NEW: Sub-admin check
+                const isMatchInvolvingSubAdmin = isSubAdmin && (fixture.player1Id === leagueData.subAdminPlayerId || fixture.player2Id === leagueData.subAdminPlayerId);
+                const canEditResult = isAdmin || (isSubAdmin && !isMatchInvolvingSubAdmin);
+
                 if (fixture.isPlayed && result) {
                     // RENDER RESULT VIEW
                     const winner1Class = result.score1 > result.score2 ? 'winner' : '';
@@ -1786,11 +1984,13 @@
                             <span class="date">${dateDisplay}</span>
                         </div>
                     `;
-                    adminButtons = `
-                        <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}', 'league')">
-                            <i class="fa-solid fa-undo"></i> Undo Result
-                        </button>
-                    `;
+                    if(canEditResult) {
+                        adminButtons = `
+                            <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}', 'league')">
+                                <i class="fa-solid fa-undo"></i> Undo Result
+                            </button>
+                        `;
+                    }
                 } else {
                     // RENDER FIXTURE VIEW
                     cardClass = 'match-card';
@@ -1800,11 +2000,13 @@
                             <span class="date">${dateDisplay}</span>
                         </div>
                     `;
-                    adminButtons = `
-                        <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}', 'league')">
-                            <i class="fa-solid fa-gavel"></i> Enter Result
-                        </button>
-                    `;
+                    if(canEditResult) {
+                        adminButtons = `
+                            <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}', 'league')">
+                                <i class="fa-solid fa-gavel"></i> Enter Result
+                            </button>
+                        `;
+                    }
                 }
 
                 const card = `
@@ -1818,11 +2020,16 @@
                             <span>${p2.name}</span>
                             <img src="${p2.avatar}" alt="${p2.name}">
                         </div>
-                        <div class="admin-controls admin-mode">
-                            ${adminButtons}
-                            <button class="btn btn-sm btn-danger" onclick="deleteFixture('${fixture.id}')">
-                                <i class="fa-solid fa-trash"></i> Delete Match
-                            </button>
+                        
+                        <div class="admin-controls">
+                            <div class="sub-admin-mode" style="display: ${canEditResult && (isAdmin || isSubAdmin) ? 'flex' : 'none'}; gap: 5px;">
+                                ${adminButtons}
+                            </div>
+                            <div class="admin-mode" style="display: ${isAdmin ? 'flex' : 'none'}; gap: 5px; ${canEditResult ? 'margin-left: 5px;' : ''}">
+                                <button class="btn btn-sm btn-danger" onclick="deleteFixture('${fixture.id}')">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1834,8 +2041,15 @@
                 container.innerHTML = '<div class="text-center text-secondary py-4">No league matches found for this matchday.</div>';
             }
 
+            // Re-apply correct display based on login
             if(isAdmin) {
-                document.querySelectorAll('#fixturesContainer .admin-mode').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('#fixturesContainer .admin-mode').forEach(el => el.style.display = 'flex');
+                document.querySelectorAll('#fixturesContainer .sub-admin-mode').forEach(el => el.style.display = 'flex');
+            } else if (isSubAdmin) {
+                 document.querySelectorAll('#fixturesContainer .sub-admin-mode').forEach(el => {
+                     // We already set the style inline, but this ensures it
+                     if (el.style.display !== 'none') el.style.display = 'flex';
+                 });
             }
         }
 
@@ -1853,6 +2067,7 @@
                 document.getElementById('fixturePlayer2'),
                 document.getElementById('shieldPlayer1'),
                 document.getElementById('shieldPlayer2')
+                // subAdminPlayerSelect is populated separately
             ];
             
             selects.forEach(select => {
@@ -1913,7 +2128,7 @@
 
         async function deleteFixture(fixtureId) {
              if (!isAdmin) {
-                showToast('Admin privileges required!', 'danger');
+                showToast('Full admin privileges required!', 'danger');
                 return;
             }
             if (confirm('Are you sure you want to delete this league match?')) {
@@ -1926,9 +2141,10 @@
             }
         }
         
+        // UPDATED: Generate Fixtures
         function generateFixtures() {
             if (!isAdmin) {
-                showToast('You must be an admin to generate fixtures.', 'danger');
+                showToast('You must be a full admin to generate fixtures.', 'danger');
                 return;
             }
 
@@ -1937,11 +2153,21 @@
                 return;
             }
 
-            if (leagueData.fixtures.length > 0) {
-                if (!confirm("Unplayed league matches exist. Are you sure you want to clear them and generate a new full round robin?")) {
+            // NEW: Confirmation logic for keeping results
+            let clearResults = false;
+            if (leagueData.results.length > 0) {
+                if (!confirm("WARNING: This will delete ALL existing fixtures. Do you ALSO want to delete all existing results? \n\n- Click OK to delete results and start a fresh season. \n- Click Cancel to KEEP old results (they will apply to the new fixtures if players match).")) {
+                    // User clicked Cancel, so we KEEP results
+                } else {
+                    // User clicked OK, so we clear results
+                    clearResults = true;
+                }
+            } else if (leagueData.fixtures.length > 0) {
+                 if (!confirm("Are you sure you want to clear all unplayed fixtures and generate a new full season?")) {
                     return;
                 }
             }
+
 
             let players = leagueData.players.map(p => p.id);
             let n = players.length;
@@ -1949,12 +2175,17 @@
             // Handle odd number of players by adding a 'BYE'
             if (n % 2 !== 0) {
                 players.push('BYE');
-                n++;
+                n++; // n is now 10 (if started with 9)
             }
 
-            let numRounds = (leagueData.players.length - 1) * 2; // Double round robin
-            leagueData.fixtures = [];
-            leagueData.results = []; // Clear old league results
+            // *** FIX: Calculate rounds based on the *adjusted* number of teams (n) ***
+            let numRounds = (n - 1) * 2; // e.g., (10 - 1) * 2 = 18 rounds
+            
+            leagueData.fixtures = []; // Always clear old fixtures
+            
+            if (clearResults) {
+                leagueData.results = []; // Conditionally clear old league results
+            }
 
             for (let round = 1; round <= numRounds; round++) {
                 let currentMatchday = round;
@@ -1985,17 +2216,67 @@
                 players.splice(1, 0, last);
             }
 
+            // NEW: Re-link old results if they were kept
+            if (!clearResults && leagueData.results.length > 0) {
+                console.log("Attempting to re-link old results...");
+                let unlinkedResults = 0;
+                let relinkedCount = 0;
+                
+                // Create a map of unplayed fixtures for faster lookup
+                const fixtureMap = new Map();
+                leagueData.fixtures.filter(f => !f.isPlayed).forEach(f => {
+                    const key = `${f.player1Id}-${f.player2Id}`;
+                    if (!fixtureMap.has(key)) fixtureMap.set(key, []);
+                    fixtureMap.get(key).push(f); // Pushes the fixture object
+                });
+
+                leagueData.results.forEach(result => {
+                    const key1 = `${result.player1Id}-${result.player2Id}`;
+                    const key2 = `${result.player2Id}-${result.player1Id}`;
+                    
+                    let matchingFixture = null;
+
+                    if (fixtureMap.has(key1) && fixtureMap.get(key1).length > 0) {
+                        // Found an exact match (A vs B)
+                        matchingFixture = fixtureMap.get(key1).shift(); // Get first available and remove it
+                    } else if (fixtureMap.has(key2) && fixtureMap.get(key2).length > 0) {
+                        // Found a reverse match (B vs A)
+                        matchingFixture = fixtureMap.get(key2).shift(); // Get first available and remove it
+                        if (matchingFixture) {
+                            // The result is for (p1, p2) but fixture is (p2, p1).
+                            // We must flip the result to match the new fixture.
+                            [result.score1, result.score2] = [result.score2, result.score1];
+                            result.player1Id = matchingFixture.player1Id; // was result.player2Id
+                            result.player2Id = matchingFixture.player2Id; // was result.player1Id
+                        }
+                    }
+
+                    if (matchingFixture) {
+                        matchingFixture.isPlayed = true;
+                        result.fixtureId = matchingFixture.id;
+                        result.matchday = matchingFixture.matchday;
+                        relinkedCount++;
+                    } else {
+                        unlinkedResults++;
+                    }
+                });
+                
+                showToast(`${relinkedCount} results re-linked. ${unlinkedResults} old results could not be matched.`, 'info');
+            }
+
+
             saveData();
             calculateTotalMatchdays();
+            currentMatchday = 1; // Reset view to Matchday 1
             updateViews();
-            showToast('Full Round-Robin fixtures generated! 📅', 'success');
+            showToast(`Full ${numRounds}-matchday Round-Robin fixtures generated! 📅`, 'success');
         }
 
 
         // --- GENERIC RESULT MANAGEMENT (REFACTORED) ---
         
         function showResultModal(matchId, matchType) {
-            if (!isAdmin) {
+            if (!isAdmin && !isSubAdmin) {
                 showToast('Admin privileges required!', 'danger');
                 return;
             }
@@ -2015,6 +2296,13 @@
 
             if (!fixture) return;
 
+            // NEW: Sub-admin check
+            const isMatchInvolvingSubAdmin = isSubAdmin && (fixture.player1Id === leagueData.subAdminPlayerId || fixture.player2Id === leagueData.subAdminPlayerId);
+            if (isMatchInvolvingSubAdmin) {
+                showToast('Sub-admins cannot edit their own matches.', 'danger');
+                return;
+            }
+
             p1 = getPlayer(fixture.player1Id);
             p2 = getPlayer(fixture.player2Id);
 
@@ -2033,6 +2321,9 @@
         }
 
         async function submitResult() {
+            // Permission check (already done in showResultModal, but good for security)
+            if (!isAdmin && !isSubAdmin) return;
+            
             const matchId = document.getElementById('resultMatchId').value;
             const matchType = document.getElementById('resultMatchType').value;
             const score1 = parseInt(document.getElementById('resultScore1').value);
@@ -2052,34 +2343,36 @@
 
             if (matchType === 'league') {
                 fixture = leagueData.fixtures.find(f => f.id === matchId);
-                if (!fixture) return;
-                
+            } else if (matchType === 'cup') {
+                fixture = leagueData.cupFixtures.find(f => f.id === matchId);
+            } else if (matchType === 'shield') {
+                fixture = leagueData.shieldMatch.fixture;
+            }
+
+            // Final check for sub-admin permission
+            const isMatchInvolvingSubAdmin = isSubAdmin && (fixture.player1Id === leagueData.subAdminPlayerId || fixture.player2Id === leagueData.subAdminPlayerId);
+            if (isMatchInvolvingSubAdmin) {
+                showToast('Sub-admins cannot edit their own matches.', 'danger');
+                return;
+            }
+
+            // --- Apply result ---
+            if (matchType === 'league') {
                 fixture.isPlayed = true;
-                
-                // Add league-specific data
                 resultData.fixtureId = matchId;
                 resultData.player1Id = fixture.player1Id;
                 resultData.player2Id = fixture.player2Id;
                 resultData.matchday = fixture.matchday;
-
-                // Remove any existing result for this fixture before adding the new one
                 leagueData.results = leagueData.results.filter(r => r.fixtureId !== matchId);
                 leagueData.results.push(resultData);
-                
-                recalculateStandings(); // Only recalculate for league
-                updateLiveTicker(); // Only update ticker for league
+                recalculateStandings(); 
+                updateLiveTicker(); 
 
             } else if (matchType === 'cup') {
-                fixture = leagueData.cupFixtures.find(f => f.id === matchId);
-                if (!fixture) return;
-                
                 fixture.isPlayed = true;
-                fixture.result = resultData; // Store result directly on cup fixture
+                fixture.result = resultData; 
 
             } else if (matchType === 'shield') {
-                fixture = leagueData.shieldMatch.fixture;
-                if (!fixture || fixture.id !== matchId) return;
-
                 fixture.isPlayed = true;
                 fixture.result = resultData;
             }
@@ -2091,7 +2384,7 @@
         }
 
         async function undoResult(matchId, matchType) {
-            if (!isAdmin) {
+            if (!isAdmin && !isSubAdmin) {
                 showToast('You must be an admin.', 'danger');
                 return;
             }
@@ -2100,26 +2393,34 @@
 
             if (matchType === 'league') {
                 fixture = leagueData.fixtures.find(f => f.id === matchId);
-                if (fixture) {
-                    fixture.isPlayed = false;
-                }
-                // Remove the league result
+            } else if (matchType === 'cup') {
+                fixture = leagueData.cupFixtures.find(f => f.id === matchId);
+            } else if (matchType === 'shield') {
+                fixture = leagueData.shieldMatch.fixture;
+            }
+            
+            if (!fixture) return;
+
+            // Final check for sub-admin permission
+            const isMatchInvolvingSubAdmin = isSubAdmin && (fixture.player1Id === leagueData.subAdminPlayerId || fixture.player2Id === leagueData.subAdminPlayerId);
+            if (isMatchInvolvingSubAdmin) {
+                showToast('Sub-admins cannot edit their own matches.', 'danger');
+                return;
+            }
+
+            // --- Apply undo ---
+            if (matchType === 'league') {
+                fixture.isPlayed = false;
                 leagueData.results = leagueData.results.filter(r => r.fixtureId !== matchId);
                 recalculateStandings();
                 updateLiveTicker();
 
             } else if (matchType === 'cup') {
-                fixture = leagueData.cupFixtures.find(f => f.id === matchId);
-                if (fixture) {
-                    fixture.isPlayed = false;
-                    fixture.result = null;
-                }
+                fixture.isPlayed = false;
+                fixture.result = null;
             } else if (matchType === 'shield') {
-                fixture = leagueData.shieldMatch.fixture;
-                if (fixture && fixture.id === matchId) {
-                    fixture.isPlayed = false;
-                    fixture.result = null;
-                }
+                fixture.isPlayed = false;
+                fixture.result = null;
             }
 
             await saveData();
@@ -2264,8 +2565,9 @@
             uniqueRounds.sort((a, b) => getRoundOrder(a) - getRoundOrder(b));
             cupRounds = uniqueRounds;
             
-            if (currentCupRoundIndex >= cupRounds.length) {
-                currentCupRoundIndex = cupRounds.length - 1;
+            // UPDATED: Default to the LATEST round, not the first
+            if (currentCupRoundIndex >= cupRounds.length || currentCupRoundIndex === 0) { 
+                currentCupRoundIndex = cupRounds.length - 1; // Default to the LATEST round
             }
             if (currentCupRoundIndex < 0) {
                 currentCupRoundIndex = 0;
@@ -2288,10 +2590,30 @@
             document.getElementById('cupRoundName').textContent = currentRoundName;
             document.getElementById('cupPrevRound').disabled = currentCupRoundIndex <= 0;
             document.getElementById('cupNextRound').disabled = currentCupRoundIndex >= cupRounds.length - 1;
+            
+            // --- NEW: Render small cup image if it exists and it's NOT the final ---
+            if (currentRoundName !== 'Final' && leagueData.cupImageUrl) {
+                container.innerHTML += `
+                    <div class="col-12 text-center mb-3">
+                        <img src="${leagueData.cupImageUrl}" alt="Cup Trophy" style="max-height: 150px; width: auto; max-width: 100%; border-radius: 8px; border: 2px solid var(--border-color);">
+                    </div>
+                `;
+            }
 
             const matchesForRound = leagueData.cupFixtures.filter(f => f.roundName === currentRoundName);
             
-            matchesForRound.forEach(fixture => {
+            // UPDATED: Filter out BYE matches from rendering
+            const playableMatches = matchesForRound.filter(f => f.player2Id !== 'BYE');
+
+            if (playableMatches.length === 0 && matchesForRound.length > 0) {
+                // This case means there were only BYE matches
+                container.innerHTML += '<div class="col-12 text-center text-secondary py-3">All players in this round received a BYE.</div>';
+            } else if (playableMatches.length === 0) {
+                // This case means no matches at all
+                 container.innerHTML += '<div class="col-12 text-center text-secondary py-3">No playable matches in this round.</div>';
+            }
+            
+            playableMatches.forEach(fixture => {
                 const p1 = getPlayer(fixture.player1Id);
                 const p2 = getPlayer(fixture.player2Id);
                 const result = fixture.result;
@@ -2302,21 +2624,12 @@
                 let matchContent = '';
                 let adminButtons = '';
 
-                // Handle BYE display
-                if (p2.id === 'BYE') {
-                    cardClass = 'result-card';
-                    matchContent = `
-                        <div class="result-info">
-                            <div class="score"><span class="winner">W</span> - <span></span></div>
-                            <span class="date">BYE</span>
-                        </div>
-                    `;
-                    adminButtons = `
-                        <button class="btn btn-sm btn-danger" onclick="deleteCupFixture('${fixture.id}')">
-                            <i class="fa-solid fa-trash"></i> Delete
-                        </button>
-                    `;
-                } else if (fixture.isPlayed && result) {
+                // NEW: Sub-admin check
+                const isMatchInvolvingSubAdmin = isSubAdmin && (fixture.player1Id === leagueData.subAdminPlayerId || fixture.player2Id === leagueData.subAdminPlayerId);
+                const canEditResult = isAdmin || (isSubAdmin && !isMatchInvolvingSubAdmin);
+
+                // BYE logic is removed, as we filter p2.id !== 'BYE'
+                if (fixture.isPlayed && result) {
                     // RENDER RESULT VIEW
                     const winner1Class = result.score1 > result.score2 ? 'winner' : '';
                     const winner2Class = result.score2 > result.score1 ? 'winner' : '';
@@ -2327,11 +2640,13 @@
                             <span class="date">${dateDisplay}</span>
                         </div>
                     `;
-                    adminButtons = `
-                        <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}', 'cup')">
-                            <i class="fa-solid fa-undo"></i> Undo Result
-                        </button>
-                    `;
+                    if(canEditResult) {
+                        adminButtons = `
+                            <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}', 'cup')">
+                                <i class="fa-solid fa-undo"></i> Undo Result
+                            </button>
+                        `;
+                    }
                 } else {
                     // RENDER FIXTURE VIEW
                     cardClass = 'match-card';
@@ -2341,11 +2656,13 @@
                             <span class="date">${dateDisplay}</span>
                         </div>
                     `;
-                    adminButtons = `
-                        <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}', 'cup')">
-                            <i class="fa-solid fa-gavel"></i> Enter Result
-                        </button>
-                    `;
+                     if(canEditResult) {
+                        adminButtons = `
+                            <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}', 'cup')">
+                                <i class="fa-solid fa-gavel"></i> Enter Result
+                            </button>
+                        `;
+                    }
                 }
 
                 const card = `
@@ -2356,17 +2673,20 @@
                                 <span>${p1.name}</span>
                             </div>
                             ${matchContent}
-                            <div class="${cardClass.includes('result') ? 'result-player' : 'match-player'} ${p2.id === 'BYE' ? 'bye-player' : ''}">
+                            <div class="${cardClass.includes('result') ? 'result-player' : 'match-player'}">
                                 <span>${p2.name}</span>
                                 <img src="${p2.avatar}" alt="${p2.name}">
                             </div>
-                            <div class="admin-controls admin-mode">
-                                ${adminButtons}
-                                ${p2.id !== 'BYE' ? `
-                                <button class="btn btn-sm btn-danger" onclick="deleteCupFixture('${fixture.id}')">
-                                    <i class="fa-solid fa-trash"></i> Delete Match
-                                </button>
-                                ` : ''}
+                            
+                            <div class="admin-controls">
+                                <div class="sub-admin-mode" style="display: ${canEditResult && (isAdmin || isSubAdmin) ? 'flex' : 'none'}; gap: 5px;">
+                                    ${adminButtons}
+                                </div>
+                                <div class="admin-mode" style="display: ${isAdmin ? 'flex' : 'none'}; gap: 5px; ${canEditResult ? 'margin-left: 5px;' : ''}">
+                                    <button class="btn btn-sm btn-danger" onclick="deleteCupFixture('${fixture.id}')">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2374,25 +2694,31 @@
                 container.innerHTML += card;
             });
             
-            // Render Final Image
-            if (currentRoundName === 'Final' && leagueData.cupFinalImageUrl) {
+            // --- UPDATED: Render large cup image if it exists and it's the final ---
+            if (currentRoundName === 'Final' && leagueData.cupImageUrl) {
                  container.innerHTML += `
                     <div class="col-12 col-lg-10 mx-auto">
                         <div class="match-image-container">
-                            <img src="${leagueData.cupFinalImageUrl}" alt="Cup Final Image">
+                            <img src="${leagueData.cupImageUrl}" alt="Cup Final Image">
                         </div>
                     </div>
                 `;
             }
 
+            // Re-apply correct display based on login
             if(isAdmin) {
-                document.querySelectorAll('#cupContainer .admin-mode').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('#cupContainer .admin-mode').forEach(el => el.style.display = 'flex');
+                document.querySelectorAll('#cupContainer .sub-admin-mode').forEach(el => el.style.display = 'flex');
+            } else if (isSubAdmin) {
+                 document.querySelectorAll('#cupContainer .sub-admin-mode').forEach(el => {
+                     if (el.style.display !== 'none') el.style.display = 'flex';
+                 });
             }
         }
 
         async function deleteCupFixture(fixtureId) {
              if (!isAdmin) {
-                showToast('Admin privileges required!', 'danger');
+                showToast('Full admin privileges required!', 'danger');
                 return;
             }
             if (confirm('Are you sure you want to delete this cup match? This may break the bracket.')) {
@@ -2412,23 +2738,24 @@
             }
         }
         
-        function showSetCupFinalImageModal() {
+        // --- UPDATED Cup Image Functions ---
+        function showSetCupImageModal() {
             if (!isAdmin) {
                 showToast('Admin privileges required!', 'danger');
                 return;
             }
-            document.getElementById('cupFinalImageUrlInput').value = leagueData.cupFinalImageUrl || '';
-            const modal = new bootstrap.Modal(document.getElementById('setCupFinalImageModal'));
+            document.getElementById('cupImageUrlInput').value = leagueData.cupImageUrl || '';
+            const modal = new bootstrap.Modal(document.getElementById('setCupImageModal'));
             modal.show();
         }
 
-        async function submitCupFinalImage() {
-            const url = document.getElementById('cupFinalImageUrlInput').value.trim();
-            leagueData.cupFinalImageUrl = url;
+        async function submitCupImage() {
+            const url = document.getElementById('cupImageUrlInput').value.trim();
+            leagueData.cupImageUrl = url;
             await saveData();
             updateViews();
-            bootstrap.Modal.getInstance(document.getElementById('setCupFinalImageModal')).hide();
-            showToast('Cup Final Image set!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('setCupImageModal')).hide();
+            showToast('Cup Image set!', 'success');
         }
 
         // --- COMMUNITY SHIELD MANAGEMENT (NEW) ---
@@ -2508,6 +2835,10 @@
             let matchContent = '';
             let adminButtons = '';
 
+            // NEW: Sub-admin check
+            const isMatchInvolvingSubAdmin = isSubAdmin && (fixture.player1Id === leagueData.subAdminPlayerId || fixture.player2Id === leagueData.subAdminPlayerId);
+            const canEditResult = isAdmin || (isSubAdmin && !isMatchInvolvingSubAdmin);
+
             if (fixture.isPlayed && result) {
                 // RENDER RESULT VIEW
                 const winner1Class = result.score1 > result.score2 ? 'winner' : '';
@@ -2519,11 +2850,13 @@
                         <span class="date">${dateDisplay}</span>
                     </div>
                 `;
-                adminButtons = `
-                    <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}', 'shield')">
-                        <i class="fa-solid fa-undo"></i> Undo Result
-                    </button>
-                `;
+                if(canEditResult) {
+                    adminButtons = `
+                        <button class="btn btn-sm btn-danger" onclick="undoResult('${fixture.id}', 'shield')">
+                            <i class="fa-solid fa-undo"></i> Undo Result
+                        </button>
+                    `;
+                }
             } else {
                 // RENDER FIXTURE VIEW
                 cardClass = 'match-card';
@@ -2533,11 +2866,13 @@
                         <span class="date">${dateDisplay}</span>
                     </div>
                 `;
-                adminButtons = `
-                    <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}', 'shield')">
-                        <i class="fa-solid fa-gavel"></i> Enter Result
-                    </button>
-                `;
+                if(canEditResult) {
+                    adminButtons = `
+                        <button class="btn btn-sm btn-primary" onclick="showResultModal('${fixture.id}', 'shield')">
+                            <i class="fa-solid fa-gavel"></i> Enter Result
+                        </button>
+                    `;
+                }
             }
 
             const card = `
@@ -2552,7 +2887,7 @@
                             <span>${p2.name}</span>
                             <img src="${p2.avatar}" alt="${p2.name}">
                         </div>
-                        <div class="admin-controls admin-mode">
+                        <div class="admin-controls sub-admin-mode" style="display: ${canEditResult && (isAdmin || isSubAdmin) ? 'flex' : 'none'};">
                             ${adminButtons}
                         </div>
                     </div>
@@ -2566,12 +2901,16 @@
             container.innerHTML = card;
 
             if(isAdmin) {
-                document.querySelectorAll('#shieldMatchContainer .admin-mode').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('#shieldMatchContainer .sub-admin-mode').forEach(el => el.style.display = 'flex');
+            } else if (isSubAdmin) {
+                 document.querySelectorAll('#shieldMatchContainer .sub-admin-mode').forEach(el => {
+                     if (el.style.display !== 'none') el.style.display = 'flex';
+                 });
             }
         }
 
 
-        // --- PLAYER MANAGEMENT ---
+        // --- PLAYER MANAGEMENT (UPDATED) ---
         
         function updatePlayers() {
             const container = document.getElementById('playersContainer');
@@ -2590,6 +2929,13 @@
                 const col = document.createElement('div');
                 col.className = 'col';
 
+                // NEW: Add Social Link Button
+                const socialLinkHtml = player.socialLink 
+                    ? `<a href="${player.socialLink}" target="_blank" class="btn btn-sm btn-success mt-2">
+                           <i class="fa-brands fa-whatsapp me-1"></i> Contact
+                       </a>`
+                    : '';
+
                 const cardHtml = `
                     <div class="player-card">
                         <img src="${player.avatar}" alt="${player.name} Avatar">
@@ -2598,10 +2944,14 @@
                             <strong>League Points:</strong> ${points} | <strong>Played:</strong> ${gamesPlayed}<br>
                             W: ${wins} D: ${draws} L: ${losses}
                         </p>
+                        ${socialLinkHtml}
                         ${isAdmin ? `
-                            <div class="admin-mode mt-3">
+                            <div class="admin-mode mt-3" style="display: flex; justify-content: center; gap: 10px;">
+                                <button class="btn btn-sm btn-info" onclick="showEditPlayerModal('${player.id}')">
+                                    <i class="fa-solid fa-pencil"></i> Edit
+                                </button>
                                 <button class="btn btn-sm btn-danger" onclick="deletePlayer('${player.id}')">
-                                    <i class="fa-solid fa-user-slash"></i> Delete Player
+                                    <i class="fa-solid fa-user-slash"></i> Delete
                                 </button>
                             </div>
                         ` : ''}
@@ -2612,7 +2962,7 @@
             });
             
             if(isAdmin) {
-                document.querySelectorAll('#playersContainer .admin-mode').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('#playersContainer .admin-mode').forEach(el => el.style.display = 'flex');
             }
         }
         
@@ -2624,6 +2974,7 @@
             document.getElementById('playerName').value = '';
             document.getElementById('playerAvatarUrl').value = '';
             document.getElementById('playerAvatarFile').value = '';
+            document.getElementById('playerSocialLink').value = ''; // NEW
             const modal = new bootstrap.Modal(document.getElementById('addPlayerModal'));
             modal.show();
         }
@@ -2631,6 +2982,7 @@
         async function submitPlayer() {
             const name = document.getElementById('playerName').value.trim();
             const url = document.getElementById('playerAvatarUrl').value.trim();
+            const socialLink = document.getElementById('playerSocialLink').value.trim(); // NEW
             const fileInput = document.getElementById('playerAvatarFile');
 
             if (!name) {
@@ -2649,6 +3001,7 @@
                 id: Date.now().toString(),
                 name: name,
                 avatar: avatarUrl,
+                socialLink: socialLink, // NEW
                 mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0, form: []
             };
 
@@ -2658,6 +3011,49 @@
             bootstrap.Modal.getInstance(document.getElementById('addPlayerModal')).hide();
             showToast('Player added successfully! 👤', 'success');
         }
+        
+        // NEW: Edit Player Functions
+        function showEditPlayerModal(playerId) {
+            if (!isAdmin) return;
+            
+            const player = leagueData.players.find(p => p.id === playerId);
+            if (!player) return;
+
+            document.getElementById('editPlayerId').value = player.id;
+            document.getElementById('editPlayerName').value = player.name;
+            document.getElementById('editPlayerAvatarUrl').value = player.avatar;
+            document.getElementById('editPlayerSocialLink').value = player.socialLink || '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('editPlayerModal'));
+            modal.show();
+        }
+
+        async function submitEditPlayer() {
+            if (!isAdmin) return;
+
+            const playerId = document.getElementById('editPlayerId').value;
+            const name = document.getElementById('editPlayerName').value.trim();
+            const avatarUrl = document.getElementById('editPlayerAvatarUrl').value.trim();
+            const socialLink = document.getElementById('editPlayerSocialLink').value.trim();
+
+            if (!name) {
+                showToast('Player name cannot be empty.', 'danger');
+                return;
+            }
+
+            const player = leagueData.players.find(p => p.id === playerId);
+            if (!player) return;
+
+            player.name = name;
+            player.avatar = avatarUrl || defaultAvatar;
+            player.socialLink = socialLink;
+
+            await saveData();
+            updateViews();
+            bootstrap.Modal.getInstance(document.getElementById('editPlayerModal')).hide();
+            showToast('Player updated successfully!', 'success');
+        }
+
 
         async function deletePlayer(playerId) {
             if (!isAdmin) {
@@ -2685,41 +3081,35 @@
             }
         }
         
-        // --- DATA EXPORT ---
+        // --- NEW: BETTING TIPS SECTION ---
         
-        function exportData() {
-            const dataStr = JSON.stringify(leagueData, null, 2);
-            
-            // Create a temporary element to hold the text
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = dataStr;
-            document.body.appendChild(tempTextArea);
-            
-            // Select and copy the text
-            tempTextArea.select();
-            tempTextArea.setSelectionRange(0, 99999); // For mobile devices
-            
-            try {
-                document.execCommand('copy');
-                showToast('Data copied to clipboard! 📋', 'success');
-                
-                // Remove the temporary element
-                document.body.removeChild(tempTextArea);
-
-                // Optional: Provide a download link as a fallback/alternative
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'efootball_league_data_export.json';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-            } catch (err) {
-                showToast('Data exported. Copy it from the text box.', 'info');
+        function renderBettingImage() {
+            const container = document.getElementById('bettingImageContainer');
+            if (leagueData.bettingTipsImageUrl) {
+                container.innerHTML = `<img src="${leagueData.bettingTipsImageUrl}" alt="Betting Tips" style="max-width: 100%; border-radius: 8px; border: 2px solid var(--border-color);">`;
+            } else {
+                container.innerHTML = '<p class="text-secondary py-5">No betting tips available right now.</p>';
             }
+        }
+
+        function showEditBettingImageModal() {
+            if (!isAdmin) {
+                showToast('Admin privileges required!', 'danger');
+                return;
+            }
+            document.getElementById('bettingImageUrlInput').value = leagueData.bettingTipsImageUrl || '';
+            const modal = new bootstrap.Modal(document.getElementById('editBettingImageModal'));
+            modal.show();
+        }
+        
+        async function submitBettingImage() {
+            if (!isAdmin) return;
+            const url = document.getElementById('bettingImageUrlInput').value.trim();
+            leagueData.bettingTipsImageUrl = url;
+            await saveData();
+            renderBettingImage();
+            bootstrap.Modal.getInstance(document.getElementById('editBettingImageModal')).hide();
+            showToast('Betting image set!', 'success');
         }
 
 
@@ -2746,7 +3136,9 @@
             
             loadData(); 
 
+            // Hide all admin controls by default
             document.querySelectorAll('.admin-mode').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.sub-admin-mode').forEach(el => el.style.display = 'none');
         });
     </script>
 </body>
