@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>E-Football Mobile League</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="favicon.png">
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
@@ -17,13 +16,11 @@
         :root {
             --primary-color: #90ff10;
             --secondary-color: #beff6c;
-            --gold-accent: #ffd700;
-            --silver-accent: #C0C0C0;
-            --stadium-green: #28a745;
-            --danger-red: #00BFFF;
-            --grey: #6c757d;
-
-            /* --- Theme Variables --- */
+            --danger-red: #ff4d4d;
+            --cup-blue: #00BFFF;
+            --shield-gold: #ffd700;
+            --warn-orange: #f59e0b;
+            
             --bg-main: #181818; 
             --bg-light: #222222; 
             --bg-lighter: #2a2a2a;
@@ -54,7 +51,19 @@
             padding-bottom: 70px;
         }
 
-        /* --- Navbar --- */
+        /* --- PREDICTION ENGINE STYLES (Restored from predictor.html) --- */
+        .pred-box { background: var(--bg-lighter); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .pred-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 10px; }
+        .pred-card { background: var(--bg-main); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: center; text-align: center; }
+        .pred-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .pred-val { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+        .pred-pill { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin: 2px; }
+        .pill-good { color: var(--primary-color); border: 1px solid var(--primary-color); background: rgba(144, 255, 16, 0.1); }
+        .pill-warn { color: var(--warn-orange); border: 1px solid var(--warn-orange); background: rgba(245, 158, 11, 0.1); }
+        .pill-bad { color: var(--danger-red); border: 1px solid var(--danger-red); background: rgba(239, 68, 68, 0.1); }
+        .analysis-text { font-family: monospace; font-size: 0.9rem; background: var(--bg-main); padding: 10px; border-radius: 5px; color: var(--text-secondary); border-left: 3px solid var(--primary-color); white-space: pre-wrap; }
+        /* ---------------------------------- */
+
         .custom-navbar {
             background-color: var(--bg-light);
             border-bottom: 1px solid var(--border-color);
@@ -67,121 +76,52 @@
             white-space: nowrap;
         }
 
-        .custom-nav-container {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            padding: 0 15px;
-            gap: 15px;
-        }
-        
-        .custom-nav-brand {
-            font-size: 1.2rem;
-            font-weight: 900;
-            color: var(--primary-color);
-            margin-right: 20px;
-            display: flex; align-items: center;
-        }
-
+        .custom-nav-container { display: flex; justify-content: flex-start; align-items: center; padding: 0 15px; gap: 15px; }
+        .custom-nav-brand { font-size: 1.2rem; font-weight: 900; color: var(--primary-color); margin-right: 20px; display: flex; align-items: center; text-decoration: none; }
         .custom-nav-links { display: flex; gap: 10px; }
-        .custom-nav-item {
-            color: var(--text-secondary);
-            font-weight: 500;
-            text-decoration: none;
-            padding: 8px 12px;
-            border-radius: 20px;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .custom-nav-item:hover, .custom-nav-item.active {
-            background-color: rgba(144, 255, 16, 0.1);
-            color: var(--primary-color);
-        }
-        .custom-navbar::-webkit-scrollbar { height: 4px; }
-        .custom-navbar::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 4px; }
+        .custom-nav-item { color: var(--text-secondary); font-weight: 500; text-decoration: none; padding: 8px 12px; border-radius: 20px; transition: all 0.3s; font-size: 0.9rem; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+        .custom-nav-item:hover, .custom-nav-item.active { background-color: rgba(144, 255, 16, 0.1); color: var(--primary-color); }
 
-        /* --- Tabs --- */
-        .nav-pills .nav-link {
-            color: var(--text-secondary);
-            background-color: var(--bg-lighter);
-            margin-right: 10px;
-            border: 1px solid var(--border-color);
-        }
-        .nav-pills .nav-link.active {
-            background-color: var(--primary-color);
-            color: var(--bg-main);
-            font-weight: 700;
-        }
+        .nav-pills .nav-link { color: var(--text-secondary); background-color: var(--bg-lighter); margin-right: 10px; border: 1px solid var(--border-color); }
+        .nav-pills .nav-link.active { background-color: var(--primary-color); color: var(--bg-main); font-weight: 700; }
         .tab-content { animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* --- Warning/Info Box --- */
-        .warning-box {
-            background: rgba(220, 53, 69, 0.1);
-            border: 1px solid var(--danger-red);
-            color: #ff6b6b;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .info-box {
-            background: rgba(144, 255, 16, 0.1);
-            border: 1px solid var(--primary-color);
-            color: var(--text-primary);
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-        }
-
-        /* --- Hero --- */
-        .hero {
-            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), var(--hero-bg-url);
-            background-size: cover; background-position: center;
-            color: white; text-align: center; padding: 60px 20px;
-            border-bottom: 2px solid var(--primary-color);
-        }
+        .warning-box { background: rgba(220, 53, 69, 0.1); border: 1px solid var(--danger-red); color: #ff6b6b; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 15px; text-align: center; }
+        .info-box { background: rgba(144, 255, 16, 0.1); border: 1px solid var(--primary-color); color: var(--text-primary); padding: 15px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 15px; }
+        .hero { background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.8)), var(--hero-bg-url); background-size: cover; background-position: center; color: white; text-align: center; padding: 60px 20px; border-bottom: 2px solid var(--primary-color); }
         .hero h1 { font-size: 2.5rem; font-weight: 900; text-transform: uppercase; }
-
-        /* --- General UI --- */
         .btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); color: var(--bg-main); font-weight: 700; }
         .btn-primary:hover { background-color: var(--secondary-color); border-color: var(--secondary-color); }
-        
         section { padding: 40px 0; }
         section:nth-of-type(odd) { background-color: var(--bg-light); }
         .section-title { color: var(--primary-color); font-weight: 700; font-size: 1.8rem; margin-bottom: 20px; text-transform: uppercase; text-align: center; }
-
         .card { background-color: var(--bg-light); border: 1px solid var(--border-color); color: var(--text-primary); }
-        
-        /* Table & Fixtures */
         .league-table { background-color: var(--bg-light); color: var(--text-primary); }
         .league-table thead th { background-color: var(--bg-lighter); color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
         .league-table td { border-bottom-color: var(--border-color); vertical-align: middle; }
         .form-bubble { display: inline-block; width: 20px; height: 20px; line-height: 20px; text-align: center; border-radius: 50%; font-size: 0.7rem; color: #fff; margin: 0 1px; }
-        .form-bubble-W { background-color: var(--stadium-green); }
-        .form-bubble-D { background-color: var(--grey); }
-        .form-bubble-L { background-color: var(--danger-red); }
+        .form-bubble-W { background-color: #28a745; }
+        .form-bubble-D { background-color: #6c757d; }
+        .form-bubble-L { background-color: #dc3545; }
 
-        .match-card, .result-card { background-color: var(--bg-lighter); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 0.8rem; display: flex; align-items: center; justify-content: space-between; }
-        .result-card { border-left: 5px solid var(--danger-red); }
-        .match-player img, .result-player img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; margin: 0 5px; }
+        .match-card, .result-card { background-color: var(--bg-lighter); border: none; border-radius: 25px; padding: 1rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; overflow: hidden; }
+        .match-type-league { border-left: 8px solid var(--primary-color); background: linear-gradient(90deg, rgba(40,167,69,0.05) 0%, rgba(0,0,0,0) 100%); }
+        .match-type-cup { border-left: 8px solid var(--cup-blue); background: linear-gradient(90deg, rgba(0,191,255,0.05) 0%, rgba(0,0,0,0) 100%); }
+        .match-type-shield { border-left: 8px solid var(--danger-red); background: linear-gradient(90deg, rgba(255,77,77,0.05) 0%, rgba(0,0,0,0) 100%); }
+        .match-player img, .result-player img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; margin: 0 5px; border: 2px solid var(--border-color); }
         .match-player, .result-player { display: flex; align-items: center; }
-        
-        /* Admin */
+        .match-player { max-width: 40%; } .result-player { max-width: 30%; }
+        .contact-btn { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; justify-content: center; align-items: center; margin: 0 3px; color: white; text-decoration: none; font-size: 0.8rem; flex-shrink: 0; }
+        .btn-wa { background-color: #25D366; } .btn-call { background-color: #007bff; }
         .admin-mode, .sub-admin-mode { display: none; }
-        
-        /* Intro (Disabled via CSS/JS but styles kept) */
-        #intro-overlay { display: none; } 
 
         @media (max-width: 768px) {
-            .match-card, .result-card { flex-direction: column; gap: 0.5rem; text-align: center; }
-            .match-player, .result-player { flex-direction: column; }
+            .match-card, .result-card { gap: 0.5rem; padding: 0.8rem; flex-wrap: wrap; justify-content: space-between; }
+            .match-card > div:last-child, .result-card > div:last-child { width: 100%; text-align: center; margin-top: 5px; order: 4; }
+            .match-player, .result-player { flex-direction: row; width: auto; justify-content: flex-start; max-width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem; }
+            .result-card .result-player:nth-child(3) { justify-content: flex-end; }
+            .match-player img, .result-player img { width: 25px; height: 25px; }
         }
     </style>
 </head>
@@ -194,12 +134,19 @@
             <a href="#" class="custom-nav-brand"><i class="fa-solid fa-futbol me-2"></i> EFL🎮</a>
             <div class="custom-nav-links">
                 <a href="#league-section" class="custom-nav-item"><i class="fa-solid fa-table-list"></i> League</a>
-                <a href="#cup" class="custom-nav-item"><i class="fa-solid fa-trophy"></i> FA Cup</a>
+                <a href="#cup" class="custom-nav-item"><i class="fa-solid fa-trophy"></i> Cup</a>
                 <a href="#communityShield" class="custom-nav-item"><i class="fa-solid fa-shield-halved"></i> Shield</a>
                 <a href="#players" class="custom-nav-item"><i class="fa-solid fa-users"></i> Players</a>
                 <a href="#trophyRoom" class="custom-nav-item"><i class="fa-solid fa-award"></i> History</a>
                 <button class="btn btn-sm btn-outline-light ms-2" id="theme-toggle"><i class="fa-solid fa-sun"></i></button>
                 <button class="btn btn-sm btn-outline-primary ms-2" id="admin-login-button"><i class="fa-solid fa-lock"></i></button>
+                <div class="admin-mode">
+                    <button class="btn btn-sm btn-outline-danger ms-2 position-relative" onclick="showPendingModal()">
+                        <i class="fa-solid fa-inbox"></i> Pending
+                        <span id="pendingCountBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none">0</span>
+                    </button>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary ms-2 admin-mode" id="view-activity-log-btn" onclick="showActivityLogModal()"><i class="fa-solid fa-eye-slash"></i> Log</button>
             </div>
         </div>
     </nav>
@@ -222,16 +169,9 @@
         <div class="container">
             
             <ul class="nav nav-pills mb-4 justify-content-center" id="pills-tab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="pills-standings-tab" data-bs-toggle="pill" data-bs-target="#pills-standings" type="button" role="tab">
-                        <i class="fa-solid fa-list-ol me-1"></i> Standings
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pills-fixtures-tab" data-bs-toggle="pill" data-bs-target="#pills-fixtures" type="button" role="tab">
-                        <i class="fa-solid fa-calendar-days me-1"></i> Fixtures
-                    </button>
-                </li>
+                <li class="nav-item"><button class="nav-link active" id="pills-standings-tab" data-bs-toggle="pill" data-bs-target="#pills-standings"><i class="fa-solid fa-list-ol me-1"></i> Standings</button></li>
+                <li class="nav-item"><button class="nav-link" id="pills-fixtures-tab" data-bs-toggle="pill" data-bs-target="#pills-fixtures"><i class="fa-solid fa-calendar-days me-1"></i> Fixtures</button></li>
+                <li class="nav-item"><button class="nav-link" id="pills-predictions-tab" data-bs-toggle="pill" data-bs-target="#pills-predictions"><i class="fa-solid fa-brain me-1"></i> Predictions</button></li>
             </ul>
 
             <div class="tab-content" id="pills-tabContent">
@@ -240,11 +180,7 @@
                     <div class="card p-0 mb-4 border-0">
                         <div class="table-responsive">
                             <table class="table league-table table-striped mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>#</th> <th>Player</th> <th>MP</th> <th>W</th> <th>D</th> <th>L</th> <th>GF</th> <th>GA</th> <th>GD</th> <th>Form</th> <th>Pts</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr><th>#</th> <th>Player</th> <th>MP</th> <th>W</th> <th>D</th> <th>L</th> <th>GF</th> <th>GA</th> <th>GD</th> <th>Form</th> <th>Pts</th></tr></thead>
                                 <tbody id="standingsTable"></tbody>
                             </table>
                         </div>
@@ -259,29 +195,88 @@
                 </div>
 
                 <div class="tab-pane fade" id="pills-fixtures" role="tabpanel">
-                    <div class="warning-box">
-                        <i class="fa-solid fa-triangle-exclamation"></i> 
-                        <strong>WARNING:</strong> Matches not played by midnight of their scheduled date are auto-recorded as <strong>3-0 losses</strong>.
-                    </div>
-
+                    <div class="warning-box"><i class="fa-solid fa-triangle-exclamation"></i> <strong>WARNING:</strong> Matches not played by midnight are auto-recorded as <strong>3-0 losses</strong>.</div>
                     <div class="d-flex justify-content-center align-items-center gap-3 mb-3">
                         <button class="btn btn-sm btn-primary" onclick="changeMatchday(-1)"><i class="fa-solid fa-arrow-left"></i></button>
                         <h4 id="currentMatchday" class="m-0">Matchday 1</h4>
                         <button class="btn btn-sm btn-primary" onclick="changeMatchday(1)"><i class="fa-solid fa-arrow-right"></i></button>
                     </div>
                     <div class="text-center text-muted small mb-3" id="matchdayDateDisplay"></div>
-
                     <div id="fixturesContainer"></div>
-                    
-                    <div class="alert alert-dark border-primary mt-3 text-center">
-                        <small><i class="fa-brands fa-whatsapp text-success"></i> Touch the WhatsApp icon on your match to visit your opponent's inbox. If they don't respond, report to Admin immediately.</small>
-                    </div>
-
                     <div class="admin-mode mt-4 text-center">
                         <button class="btn btn-primary m-1" onclick="showAddFixtureModal()">Add Fixture</button>
-                        <button class="btn btn-info m-1 text-white" onclick="generateFixtures()">Auto-Generate Season</button>
-                        <button class="btn btn-danger m-1" onclick="forceAutoForfeits()">Force Auto-Resolve (Admin)</button>
+                        <button class="btn btn-info m-1 text-white" onclick="openGenerateModal()">Auto-Generate Season</button>
+                        <button class="btn btn-danger m-1" onclick="forceAutoForfeits()">Force Auto-Resolve</button>
                     </div>
+                </div>
+
+                <div class="tab-pane fade" id="pills-predictions" role="tabpanel">
+                    
+                    <div class="admin-mode mb-4">
+                        <div class="pred-box border-warning" style="border-width: 2px;">
+                            <h4 class="text-warning"><i class="fa-solid fa-calculator"></i> Advanced Prediction Engine</h4>
+                            <div class="mb-3 p-2 border rounded bg-dark">
+                                <label class="text-muted small">Import External League JSON (Optional)</label>
+                                <input type="file" id="externalJsonFile" accept="application/json" class="form-control form-control-sm bg-secondary text-white border-0">
+                                <div class="small text-muted mt-1">If file is selected, engine uses external data. If not, uses app data.</div>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6"><select id="predTeamA" class="form-select"><option value="">Team A</option></select></div>
+                                <div class="col-6"><select id="predTeamB" class="form-select"><option value="">Team B</option></select></div>
+                            </div>
+                            <button class="btn btn-primary w-100" onclick="generateAdminPrediction()">Generate Full Prediction</button>
+                            
+                            <div id="predAdminOutput" class="mt-3 d-none">
+                                <div class="pred-grid">
+                                    <div class="pred-card">
+                                        <div class="pred-label">Expected Goals</div>
+                                        <div class="pred-val" id="predXg"></div>
+                                    </div>
+                                    <div class="pred-card">
+                                        <div class="pred-label">Risk Level</div>
+                                        <div class="pred-val" id="predRisk"></div>
+                                    </div>
+                                    <div class="pred-card">
+                                        <div class="pred-label">Confidence</div>
+                                        <div class="pred-val" id="predConf"></div>
+                                    </div>
+                                    <div class="pred-card">
+                                        <div class="pred-label">BTTS %</div>
+                                        <div class="pred-val" id="predBTTS"></div>
+                                    </div>
+                                </div>
+
+                                <div class="pred-box mt-2">
+                                    <div class="pred-label">1X2 Probabilities</div>
+                                    <div id="predOdds" class="mb-2"></div>
+                                    <div class="pred-label mt-2">Bookmaker Odds (Decimal)</div>
+                                    <div id="predBook" class="text-white fw-bold small"></div>
+                                </div>
+
+                                <div class="pred-grid">
+                                    <div class="pred-card">
+                                        <div class="pred-label">Over/Under</div>
+                                        <div class="small text-start ps-3" id="predOU"></div>
+                                    </div>
+                                    <div class="pred-card">
+                                        <div class="pred-label">Correct Scores</div>
+                                        <div class="small fw-bold" id="predCS"></div>
+                                    </div>
+                                </div>
+
+                                <textarea id="predAnalysisInput" class="form-control mb-2 mt-3" rows="4" placeholder="Analysis text..."></textarea>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="autoText()">Auto-Generate Text</button>
+                                    <button class="btn btn-sm btn-outline-info" onclick="exportAnalysisText()">Export Text</button>
+                                    <button class="btn btn-sm btn-success flex-grow-1" onclick="publishPrediction()">Publish</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="section-title text-start fs-5 mb-3"><i class="fa-solid fa-bullhorn"></i> Pundit's Corner</h5>
+                    <div id="predictionsList"></div>
+
                 </div>
             </div>
         </div>
@@ -290,32 +285,18 @@
     <section id="cup" class="py-5 bg-light fade-in-section">
         <div class="container">
             <h2 class="section-title text-danger"><i class="fa-solid fa-trophy me-2"></i> FA Cup</h2>
-            
-            <ul class="nav nav-pills mb-4 justify-content-center" id="cup-tabs" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#cup-about">About FA Cup</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#cup-fixtures">Fixtures</button>
-                </li>
+            <ul class="nav nav-pills mb-4 justify-content-center" id="cup-tabs">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#cup-about">About FA Cup</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#cup-fixtures">Fixtures</button></li>
             </ul>
-
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="cup-about">
-                    <div class="info-box">
+                    <div class="info-box border-primary">
                         <h5 class="fw-bold mb-3">Masharti na Vigezo (FA Cup Rules)</h5>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">👉 <strong>One game one knockout cup</strong> (Mechi ni moja, hakuna kurudiana).</li>
-                            <li class="mb-2">👉 <strong>No groups</strong> (Hakuna makundi, ukifungwa umetoka).</li>
-                            <li class="mb-2">👉 <strong>One game per day</strong> (Ratiba ni mechi moja kwa siku).</li>
-                            <li class="mb-2">👉 <strong>If you don't play you face a loss</strong> (Usipocheza unapigwa walkover).</li>
-                            <li class="mb-2">👉 <strong>WhatsApp:</strong> Gusa WhatsApp icon kwenye match card yako kumcheki mpinzani wako. Asipojibu, report kwa Admin.</li>
-                            <li class="mb-2 text-danger">👉 <strong>Submit results:</strong> Tuma matokeo kwa wakati, usichelewe!</li>
-                        </ul>
+                        <ul class="list-unstyled"><li class="mb-2">👉 <strong>One game knockout</strong>.</li><li class="mb-2">👉 <strong>Defeat = Exit</strong>.</li></ul>
                     </div>
                 </div>
-
-                <div class="tab-pane fade" id="cup-fixtures">
+                <div class="nav-panes tab-pane fade" id="cup-fixtures">
                     <div class="d-flex justify-content-center align-items-center gap-3 mb-3">
                         <button class="btn btn-primary" onclick="changeCupRound(-1)"><i class="fa-solid fa-arrow-left"></i></button>
                         <h4 id="cupRoundName" class="m-0">Cup Fixtures</h4>
@@ -335,129 +316,75 @@
     <section id="communityShield" class="py-5 fade-in-section">
         <div class="container">
             <h2 class="section-title text-warning"><i class="fa-solid fa-shield-halved me-2"></i> Community Shield</h2>
-            
-            <ul class="nav nav-pills mb-4 justify-content-center" id="shield-tabs" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#shield-about">About Shield</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#shield-match">The Match</button>
-                </li>
+            <ul class="nav nav-pills mb-4 justify-content-center" id="shield-tabs">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#shield-about">About Shield</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#shield-match">The Match</button></li>
             </ul>
-
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="shield-about">
                     <div class="info-box border-warning" style="background: rgba(255, 215, 0, 0.05);">
-                        <h5 class="fw-bold mb-3 text-warning">Kuhusu Community Shield</h5>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">👉 <strong>The Big Game:</strong> Hii mechi ni ya ufunguzi wa msimu au heshima.</li>
-                            <li class="mb-2">👉 <strong>Contenders:</strong> Winner of League vs Winner of FA Cup (Au Mshindi wa pili wa League kama Bingwa kabeba zote).</li>
-                            <li class="mb-2">👉 <strong>Duration:</strong> One game match only, duration one day.</li>
-                            <li class="mb-2">👉 <strong>WhatsApp:</strong> Touch the WhatsApp icon to visit your opponent's inbox. Kama hajibu, report kwa Admin.</li>
-                            <li class="mb-2">👉 <strong>Results:</strong> Submit results to admin on time DM (Inbox).</li>
-                        </ul>
+                        <h5 class="fw-bold mb-3 text-warning">About Community Shield</h5>
+                        <ul class="list-unstyled"><li class="mb-2">👉 <strong>The Big Game:</strong> League Winner vs Cup Winner.</li></ul>
                     </div>
                 </div>
-
-                <div class="tab-pane fade" id="shield-match">
+                <div class="nav-panes tab-pane fade" id="shield-match">
                     <div id="shieldMatchContainer" class="row justify-content-center"></div>
-                    <div class="admin-mode mt-4 text-center">
-                        <button class="btn btn-warning" onclick="showSetShieldModal()">Set Shield Match</button>
-                    </div>
+                    <div class="admin-mode mt-4 text-center"><button class="btn btn-warning" onclick="showSetShieldModal()">Set Shield Match</button></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="players" class="py-5 bg-light fade-in-section">
-        <div class="container">
-            <h2 class="section-title">Players & Stats</h2>
-            <div class="row row-cols-2 row-cols-md-4 g-4" id="playersContainer"></div>
-        </div>
-    </section>
+    <section id="players" class="py-5 bg-light fade-in-section"><div class="container"><h2 class="section-title">Players & Stats</h2><div class="row row-cols-2 row-cols-md-4 g-4" id="playersContainer"></div></div></section>
 
     <section id="trophyRoom" class="py-5 fade-in-section">
         <div class="container">
             <h2 class="section-title text-warning"><i class="fa-solid fa-award"></i> History</h2>
-            
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="trophy-nav" id="trophySeasonTabs"></div>
                 <div class="admin-mode">
-                    <button class="btn btn-sm btn-outline-success" onclick="exportHistory()"><i class="fa-solid fa-file-export"></i> Export JSON</button>
+                    <button class="btn btn-sm btn-outline-success" onclick="exportData()"><i class="fa-solid fa-file-export"></i> Export All Data</button>
                     <label class="btn btn-sm btn-outline-primary ms-1" style="cursor: pointer;">
-                        <i class="fa-solid fa-file-import"></i> Import JSON <input type="file" id="importJsonInput" style="display: none;" onchange="importHistory(this)">
+                        <i class="fa-solid fa-file-import"></i> Import All Data <input type="file" id="importJsonInput" style="display: none;" onchange="importData(this)">
                     </label>
                 </div>
             </div>
-
-            <div id="trophyContainer">
-                <p class="text-center text-secondary">No history selected or available.</p>
-            </div>
+            <div id="trophyContainer"><p class="text-center text-secondary">No history selected or available.</p></div>
         </div>
     </section>
 
     <div class="modal fade" id="adminModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Admin Login</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="password" id="adminPassword" class="form-control" placeholder="Enter Password"></div><div class="modal-footer"><button class="btn btn-primary" onclick="loginAdmin()">Login</button></div></div></div></div>
     <div class="modal fade" id="timerModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Set Season End Timer</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row"><div class="col"><input type="number" id="timerDays" class="form-control" placeholder="Days" min="0"></div><div class="col"><input type="number" id="timerHours" class="form-control" placeholder="Hours" min="0"></div><div class="col"><input type="number" id="timerMinutes" class="form-control" placeholder="Mins" min="0"></div></div></div><div class="modal-footer"><button class="btn btn-danger" onclick="clearTimer()">Clear</button><button class="btn btn-primary" onclick="setTimer()">Start</button></div></div></div></div>
-    <div class="modal fade" id="resultModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Enter Result</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><input type="hidden" id="resultMatchId"><input type="hidden" id="resultMatchType"><div class="d-flex justify-content-center align-items-center gap-2"><label id="resultPlayer1Name">P1</label><input type="number" id="resultScore1" class="form-control w-25 text-center"><span class="fw-bold">VS</span><input type="number" id="resultScore2" class="form-control w-25 text-center"><label id="resultPlayer2Name">P2</label></div></div><div class="modal-footer"><button class="btn btn-primary" onclick="submitResult()">Submit</button></div></div></div></div>
-    <div class="modal fade" id="addPlayerModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Add Player</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="playerName" class="form-control mb-2" placeholder="Name"><input type="url" id="playerAvatarUrl" class="form-control mb-2" placeholder="Avatar URL"><input type="url" id="playerSocialLink" class="form-control" placeholder="WhatsApp Link (https://wa.me/number)"></div><div class="modal-footer"><button class="btn btn-primary" onclick="submitPlayer()">Add</button></div></div></div></div>
+    <div class="modal fade" id="resultModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Enter Result (Admin)</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><input type="hidden" id="resultMatchId"><input type="hidden" id="resultMatchType"><div class="d-flex justify-content-center align-items-center gap-2"><label id="resultPlayer1Name">P1</label><input type="number" id="resultScore1" class="form-control w-25 text-center"><span class="fw-bold">VS</span><input type="number" id="resultScore2" class="form-control w-25 text-center"><label id="resultPlayer2Name">P2</label></div></div><div class="modal-footer"><button class="btn btn-primary" onclick="submitResult()">Submit</button></div></div></div></div>
+    <div class="modal fade" id="generateLeagueModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Generate League Fixtures</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><p>Choose League Format:</p><button class="btn btn-primary w-100 mb-2" onclick="generateFixtures('double')">Double Round (Home & Away)</button><button class="btn btn-secondary w-100" onclick="generateFixtures('single')">Single Round (Once vs Each)</button></div></div></div></div>
+    <div class="modal fade" id="playerSubmitModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Submit Result</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><input type="hidden" id="ps_fixtureId"><div class="mb-2 text-start"><small class="text-muted">Confirm teams (Select your team):</small></div><select id="ps_homeSelect" class="form-select mb-2"></select><select id="ps_awaySelect" class="form-select mb-2"></select><div class="d-flex justify-content-center gap-2"><input type="number" id="ps_score1" class="form-control w-25 text-center" placeholder="0"><span class="fw-bold align-self-center">VS</span><input type="number" id="ps_score2" class="form-control w-25 text-center" placeholder="0"></div><div class="small text-muted mt-2">Opponent has 6 hours to dispute.</div></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" onclick="submitPlayerResult()">Submit Result</button></div></div></div></div>
+    <div class="modal fade" id="pendingModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Pending Results (Admin)</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="d-flex justify-content-end mb-2"><button class="btn btn-success fw-bold" onclick="approveAllPending()"><i class="fa-solid fa-check-double"></i> APPROVE ALL</button></div><div id="pendingListContent" style="max-height: 50vh; overflow-y: auto;"></div></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>
+    <div class="modal fade" id="sessionTeamModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Welcome! Select Your Team</h5></div><div class="modal-body text-center"><p class="text-muted">To submit results for this session, please select which team you are managing.</p><select id="sessionTeamSelect" class="form-select mb-3"><option value="">-- Choose Team --</option></select><button class="btn btn-primary w-100 mb-2" onclick="setSessionTeam()">Select Team</button><button class="btn btn-outline-secondary w-100" onclick="skipSessionTeam()">Skip (View Only)</button></div></div></div></div>
+    <div class="modal fade" id="addPlayerModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Add Player</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="text" id="playerName" class="form-control mb-2" placeholder="Name"><input type="url" id="playerAvatarUrl" class="form-control mb-2" placeholder="Avatar URL"><input type="url" id="playerSocialLink" class="form-control mb-2" placeholder="WhatsApp Link"><input type="tel" id="playerPhone" class="form-control" placeholder="Phone Number"></div><div class="modal-footer"><button class="btn btn-primary" onclick="submitPlayer()">Add</button></div></div></div></div>
     <div class="modal fade" id="editBackgroundModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Background</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="url" id="backgroundUrl" class="form-control" placeholder="Image URL"></div><div class="modal-footer"><button class="btn btn-primary" onclick="submitBackground()">Save</button></div></div></div></div>
     <div class="modal fade" id="setShieldModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Shield Match</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><select id="shieldPlayer1" class="form-select mb-2"></select><select id="shieldPlayer2" class="form-select mb-2"></select><input type="date" id="shieldDate" class="form-control mb-2"><input type="url" id="shieldImageUrl" class="form-control" placeholder="Image URL"></div><div class="modal-footer"><button class="btn btn-primary" onclick="submitShieldMatch()">Set</button></div></div></div></div>
     <div class="modal fade" id="addFixtureModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Add Fixture</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><select id="fixturePlayer1" class="form-select mb-2"></select><select id="fixturePlayer2" class="form-select mb-2"></select><input type="date" id="fixtureDate" class="form-control mb-2"><input type="number" id="fixtureMatchday" class="form-control" placeholder="Matchday" value="1"></div><div class="modal-footer"><button class="btn btn-primary" onclick="submitFixture()">Add</button></div></div></div></div>
     <div class="modal fade" id="setCupImageModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Cup Image</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="url" id="cupImageUrlInput" class="form-control" placeholder="URL"></div><div class="modal-footer"><button class="btn btn-primary" onclick="submitCupImage()">Save</button></div></div></div></div>
     <div class="modal fade" id="subAdminModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Sub Admin</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><select id="subAdminPlayerSelect" class="form-select mb-2"></select><input type="password" id="subAdminPasswordInput" class="form-control" placeholder="Password"></div><div class="modal-footer"><button class="btn btn-danger" onclick="removeSubAdmin()">Remove</button><button class="btn btn-primary" onclick="setSubAdmin()">Set</button></div></div></div></div>
+    <div class="modal fade" id="activityLogModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Shadow Activity Log</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="activityLogContent" style="max-height:60vh; overflow:auto;"></div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div></div></div></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    
     <script>
-        // --- CONFIG ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyCLycBxpQ3MMIDLYjmBqMZv32FIu2eDXF4",
-            authDomain: "efootball-app-ce90b.firebaseapp.com",
-            projectId: "efootball-app-ce90b",
-            storageBucket: "efootball-app-ce90b.firebasestorage.app",
-            messagingSenderId: "387933114333",
-            appId: "1:387933114333:web:1c85dbadacf70d0406b034"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyCLycBxpQ3MMIDLYjmBqMZv32FIu2eDXF4", authDomain: "efootball-app-ce90b.firebaseapp.com", projectId: "efootball-app-ce90b", storageBucket: "efootball-app-ce90b.firebasestorage.app", messagingSenderId: "387933114333", appId: "1:387933114333:web:1c85dbadacf70d0406b034" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        let password = "Genie"; 
+        let password = "Genie";
 
-        // --- DATA STATE ---
-        let leagueData = {
-            seasonNumber: 1,
-            seasonEndTime: null,
-            seasonHistory: [], 
-            players: [],
-            fixtures: [],
-            results: [],
-            backgroundUrl: 'url("stadium.jpg")',
-            introImageUrl: 'https://i.imgur.com/8Qj9Y0b.png',
-            cupFixtures: [],
-            shieldMatch: null, 
-            cupImageUrl: '',
-            subAdminPlayerId: null,
-            subAdminPassword: ''
-        };
-
-        let currentMatchday = 1;
-        let totalMatchdays = 1;
-        let cupRounds = [];
-        let currentCupRoundIndex = 0;
-        let isAdmin = false;
-        let isSubAdmin = false;
-        let timerInterval;
-
+        // APP STATE
+        let leagueData = { seasonNumber: 1, seasonEndTime: null, seasonHistory: [], players: [], fixtures: [], results: [], predictions: [], backgroundUrl: 'url("stadium.jpg")', cupFixtures: [], shieldMatch: null, cupImageUrl: '', subAdminPlayerId: null, subAdminPassword: '', resultsPending: [], activityLog: [] };
+        let currentMatchday = 1, totalMatchdays = 1, cupRounds = [], currentCupRoundIndex = 0, isAdmin = false, isSubAdmin = false, timerInterval, sessionTeamId = null;
+        let externalLeagueData = null; // Store external imported JSON here
+        let currentPrediction = null; // Temp store
         const defaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%236c757d'%3E%3Cpath d='M50,0A50,50,0,1,0,50,100,50,50,0,0,0,50,0ZM76.4,26.66l-6.85,6.85a28,28,0,0,1-13.7,11.37L50,50,44.15,44.88a28,28,0,0,1-11.37-13.7L25.93,23.6A38.56,38.56,0,0,1,50,11.5a38.16,38.16,0,0,1,26.4,15.16ZM23.6,74.07l6.85-6.85a28,28,0,0,1,13.7-11.37L50,50,55.85,55.12a28,28,0,0,1,11.37,13.7l6.85,6.85A38.56,38.56,0,0,1,50,88.5,38.16,38.16,0,0,1,23.6,74.07Z'/%3E%3C/svg%3E";
 
-        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             const themeToggle = document.getElementById('theme-toggle');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => { if(entry.isIntersecting) entry.target.classList.add('is-visible'); });
-            }, { rootMargin: '0px 0px -50px 0px' });
-            document.querySelectorAll('.fade-in-section').forEach(section => observer.observe(section));
-
             themeToggle.addEventListener('click', () => {
                 const current = document.body.getAttribute('data-theme');
                 const next = current === 'dark' ? 'light' : 'dark';
@@ -466,590 +393,325 @@
                 localStorage.setItem('theme', next);
             });
             document.body.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
-            
             document.getElementById('admin-login-button').addEventListener('click', () => new bootstrap.Modal(document.getElementById('adminModal')).show());
             
+            // External File Input Listener
+            document.getElementById('externalJsonFile').addEventListener('change', (e) => {
+                const f = e.target.files[0]; if(!f) return;
+                const r = new FileReader();
+                r.onload = () => { 
+                    try {
+                        const json = JSON.parse(r.result);
+                        externalLeagueData = { players: json.players || [], results: json.results || [] };
+                        buildExternalTeams(externalLeagueData);
+                        showToast("External Data Loaded", "info");
+                    } catch(err) { showToast("Invalid JSON", "danger"); }
+                };
+                r.readAsText(f);
+            });
+
             loadData();
+            setInterval(checkPendingTimeouts, 30 * 1000); 
         });
 
-        // --- CORE FUNCTIONS ---
         async function loadData() {
             try {
                 const doc = await db.collection('league').doc('data').get();
                 if (doc.exists) {
                     leagueData = { ...leagueData, ...doc.data() };
-                    leagueData.players.forEach(p => { if(typeof p.penaltyCount === 'undefined') p.penaltyCount = 0; });
-                } else {
-                    await saveData(false);
-                }
-                applyBackground();
-                // startIntroSequence(); // INTRO DISABLED AS REQUESTED
-                calculateTotalMatchdays();
-                calculateCupRounds();
-                
-                autoResolveExpiredMatches();
-
-                updateViews();
-                checkSeasonTimer(); 
+                    leagueData.predictions = leagueData.predictions || [];
+                } else await saveData(false);
+                applyBackground(); calculateTotalMatchdays(); calculateCupRounds(); autoResolveExpiredMatches(); updateViews(); checkSeasonTimer(); promptSessionTeamSelection(); populatePredictionSelects();
             } catch (error) { console.error(error); showToast("Data Load Error", "danger"); }
         }
 
         async function saveData(toast = true) {
-            try {
-                await db.collection('league').doc('data').set(leagueData);
-                if(toast) showToast('Saved!', 'success');
-            } catch (error) { console.error(error); showToast('Save Error', 'danger'); }
+            try { await db.collection('league').doc('data').set(leagueData); if(toast) showToast('Saved!', 'success'); } catch (error) { console.error(error); showToast('Save Error', 'danger'); }
         }
 
         function updateViews() {
             document.getElementById('heroTitle').innerText = `EFOOTBALL LEAGUE SEASON ${leagueData.seasonNumber}`;
-            updateStandings();
-            renderLeagueMatches();
-            renderCupMatches();
-            renderShieldMatch();
-            renderTrophyRoomButtons();
-            updatePlayers();
-            updateLiveTicker();
-            
+            updateStandings(); renderLeagueMatches(); renderCupMatches(); renderShieldMatch(); renderTrophyRoomButtons(); updatePlayers(); updateLiveTicker(); updatePendingCount(); renderPredictionsList();
             const display = isAdmin ? 'block' : 'none';
             document.querySelectorAll('.admin-mode').forEach(el => el.style.display = display);
             if(isAdmin || isSubAdmin) document.querySelectorAll('.sub-admin-mode').forEach(el => el.style.display = 'block');
         }
 
-        // --- AUTO-MATCH LOGIC ---
-        async function autoResolveExpiredMatches() {
-            const todayStr = new Date().toISOString().split('T')[0];
-            let changesMade = false;
-
-            leagueData.fixtures.forEach(fixture => {
-                if(fixture.date < todayStr && !fixture.isPlayed) {
-                    console.log(`Auto-forfeiting fixture: ${fixture.id}`);
-                    resolveForfeit(fixture, 'league');
-                    changesMade = true;
-                }
-            });
-
-            if(changesMade) {
-                await saveData(false);
-                showToast("Midnight Auto-Results Applied", "warning");
-                updateViews();
-            }
-        }
-
-        function forceAutoForfeits() {
-            if(!isAdmin) return;
-            autoResolveExpiredMatches();
-            showToast("Checked for expired matches.", "info");
-        }
-
-        function resolveForfeit(fixture, type) {
-            const p1 = getPlayer(fixture.player1Id);
-            const p2 = getPlayer(fixture.player2Id);
-            
-            let p1Pen = p1.penaltyCount || 0;
-            let p2Pen = p2.penaltyCount || 0;
-            let s1 = 0, s2 = 0;
-
-            if(p1Pen > p2Pen) { s1 = 0; s2 = 3; p1.penaltyCount++; } 
-            else if (p2Pen > p1Pen) { s1 = 3; s2 = 0; p2.penaltyCount++; } 
-            else { if(Math.random() < 0.5) { s1 = 0; s2 = 3; p1.penaltyCount++; } else { s1 = 3; s2 = 0; p2.penaltyCount++; } }
-
-            fixture.isPlayed = true;
-            if(type === 'league') {
-                leagueData.results = leagueData.results.filter(r => r.fixtureId !== fixture.id);
-                leagueData.results.push({ fixtureId: fixture.id, player1Id: fixture.player1Id, player2Id: fixture.player2Id, score1: s1, score2: s2, timestamp: Date.now() });
-            } 
-        }
-
-        // --- GENERATORS ---
-        async function generateFixtures() {
-            if(!isAdmin || !confirm("Clear old fixtures and generate new season?")) return;
-            leagueData.fixtures = []; leagueData.results = [];
-            leagueData.players.forEach(p => p.penaltyCount = 0);
-
-            const players = leagueData.players.map(p => p.id);
-            if(players.length % 2 !== 0) players.push('BYE');
-            const n = players.length;
-            const rounds = n * 2 - 2;
-
-            for(let r = 1; r <= rounds; r++) {
-                let dayOffset = Math.ceil(r / 2) - 1;
-                let matchDate = new Date();
-                matchDate.setDate(new Date().getDate() + dayOffset);
-                let dateStr = matchDate.toISOString().split('T')[0];
-
-                for(let i = 0; i < n / 2; i++) {
-                    const p1 = players[i], p2 = players[n - 1 - i];
-                    if(p1 !== 'BYE' && p2 !== 'BYE') {
-                        leagueData.fixtures.push({ 
-                            id: `${Date.now()}-${r}-${i}`, 
-                            player1Id: (r%2===1?p1:p2), 
-                            player2Id: (r%2===1?p2:p1), 
-                            date: dateStr, 
-                            matchday: r, 
-                            isPlayed: false 
-                        });
-                    }
-                }
-                players.splice(1, 0, players.pop());
-            }
-            calculateTotalMatchdays(); await saveData(); updateViews();
-        }
-
-        // --- STANDARD RENDERERS & HELPERS ---
-        function getPlayer(id) {
-            if(id === 'BYE') return { name: 'BYE', avatar: defaultAvatar };
-            return leagueData.players.find(p => p.id === id) || { name: 'Unknown', avatar: defaultAvatar };
-        }
-        
-        // Helper to generate WhatsApp Link Icon
-        function getWaLink(player) {
-            if (player.id === 'BYE' || !player.socialLink) return '';
-            return `<a href="${player.socialLink}" target="_blank" class="text-success ms-1 me-1" style="text-decoration:none;"><i class="fa-brands fa-whatsapp"></i></a>`;
-        }
-
-        function updateStandings() {
-            leagueData.players.forEach(p => {
-                p.mp = 0; p.w = 0; p.d = 0; p.l = 0; p.gf = 0; p.ga = 0; p.gd = 0; p.pts = 0; p.form = [];
-            });
-            leagueData.results.sort((a,b) => a.timestamp - b.timestamp).forEach(r => {
-                const p1 = leagueData.players.find(p => p.id === r.player1Id);
-                const p2 = leagueData.players.find(p => p.id === r.player2Id);
-                if(p1 && p2) {
-                    p1.mp++; p2.mp++;
-                    p1.gf += r.score1; p1.ga += r.score2; p1.gd = p1.gf - p1.ga;
-                    p2.gf += r.score2; p2.ga += r.score1; p2.gd = p2.gf - p2.ga;
-                    
-                    if(r.score1 > r.score2) { 
-                        p1.w++; p1.pts+=3; p1.form.unshift('W'); 
-                        p2.l++; p2.form.unshift('L');
-                    } else if (r.score1 < r.score2) { 
-                        p2.w++; p2.pts+=3; p2.form.unshift('W'); 
-                        p1.l++; p1.form.unshift('L');
-                    } else {
-                        p1.d++; p1.pts+=1; p1.form.unshift('D');
-                        p2.d++; p2.pts+=1; p2.form.unshift('D');
-                    }
-                    if(p1.form.length > 5) p1.form.pop();
-                    if(p2.form.length > 5) p2.form.pop();
-                }
-            });
-
-            const tbody = document.getElementById('standingsTable');
-            tbody.innerHTML = '';
-            leagueData.players.sort((a,b) => (b.pts - a.pts) || (b.gd - a.gd) || (b.gf - a.gf)).forEach((p, i) => {
-                const formHtml = p.form.map(f => `<span class="form-bubble form-bubble-${f}">${f}</span>`).join('');
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="fw-bold">${i+1}</td>
-                        <td class="d-flex align-items-center"><img src="${p.avatar}" style="width:25px;height:25px;border-radius:50%;margin-right:5px;"> ${p.name}</td>
-                        <td>${p.mp}</td><td>${p.w}</td><td>${p.d}</td><td>${p.l}</td>
-                        <td>${p.gf}</td><td>${p.ga}</td><td>${p.gd > 0 ? '+'+p.gd : p.gd}</td>
-                        <td>${formHtml}</td><td class="fw-bold">${p.pts}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        function renderLeagueMatches() {
-            const container = document.getElementById('fixturesContainer');
-            container.innerHTML = '';
-            const dayFixtures = leagueData.fixtures.filter(f => f.matchday === currentMatchday);
-            
-            if(dayFixtures.length > 0) {
-                const d = new Date(dayFixtures[0].date);
-                document.getElementById('matchdayDateDisplay').innerText = "Scheduled Date: " + d.toDateString();
-            } else {
-                document.getElementById('matchdayDateDisplay').innerText = "";
-            }
-
-            if(dayFixtures.length === 0) container.innerHTML = '<p class="text-center text-secondary">No matches scheduled.</p>';
-            dayFixtures.forEach(f => {
-                const res = leagueData.results.find(r => r.fixtureId === f.id);
-                container.innerHTML += createMatchCard(f, res, 'league');
-            });
-            document.getElementById('currentMatchday').textContent = `Matchday ${currentMatchday}`;
-        }
-
-        // Updated Match Card with WhatsApp Link
-        function createMatchCard(fixture, result, type) {
-            const p1 = getPlayer(fixture.player1Id);
-            const p2 = getPlayer(fixture.player2Id);
-            const involvedSub = isSubAdmin && (fixture.player1Id === leagueData.subAdminPlayerId || fixture.player2Id === leagueData.subAdminPlayerId);
-            const canEdit = isAdmin || (isSubAdmin && !involvedSub);
-
-            if(fixture.isPlayed && result) {
-                const w1 = result.score1 > result.score2 ? 'text-warning' : '';
-                const w2 = result.score2 > result.score1 ? 'text-warning' : '';
-                return `
-                <div class="result-card">
-                    <div class="result-player">${getWaLink(p1)} <img src="${p1.avatar}"> ${p1.name}</div>
-                    <div class="text-center">
-                        <div class="h3 fw-bold m-0"><span class="${w1}">${result.score1}</span> - <span class="${w2}">${result.score2}</span></div>
-                    </div>
-                    <div class="result-player">${p2.name} <img src="${p2.avatar}"> ${getWaLink(p2)}</div>
-                    ${canEdit ? `<button class="btn btn-sm btn-danger ms-2 sub-admin-mode" onclick="undoResult('${fixture.id}', '${type}')"><i class="fa-solid fa-undo"></i></button>` : ''}
-                </div>`;
-            } else {
-                return `
-                <div class="match-card">
-                    <div class="match-player">${getWaLink(p1)} <img src="${p1.avatar}"> ${p1.name}</div>
-                    <div class="text-center small text-muted">VS</div>
-                    <div class="match-player">${p2.name} <img src="${p2.avatar}"> ${getWaLink(p2)}</div>
-                    ${canEdit ? `<button class="btn btn-sm btn-primary ms-2 sub-admin-mode" onclick="showResultModal('${fixture.id}', '${type}')"><i class="fa-solid fa-pen"></i></button>` : ''}
-                </div>`;
-            }
-        }
-
-        function renderCupMatches() {
-            const container = document.getElementById('cupContainer');
-            container.innerHTML = '';
-            if(!cupRounds.length) { container.innerHTML = '<p class="text-center text-secondary">No Cup generated.</p>'; return; }
-            const roundName = cupRounds[currentCupRoundIndex];
-            document.getElementById('cupRoundName').textContent = roundName;
-            if(leagueData.cupImageUrl && roundName !== 'Final') container.innerHTML += `<div class="col-12 text-center"><img src="${leagueData.cupImageUrl}" style="max-height:150px; border-radius:8px;"></div>`;
-            leagueData.cupFixtures.filter(f => f.roundName === roundName && f.player2Id !== 'BYE').forEach(f => {
-                container.innerHTML += `<div class="col-md-6">${createMatchCard(f, f.result, 'cup')}</div>`;
-            });
-            if(roundName === 'Final' && leagueData.cupImageUrl) container.innerHTML += `<div class="col-12 text-center mt-2"><img src="${leagueData.cupImageUrl}" class="img-fluid rounded" style="max-height:300px;"></div>`;
-        }
-
-        function renderShieldMatch() {
-            const container = document.getElementById('shieldMatchContainer');
-            if(!leagueData.shieldMatch) { container.innerHTML = '<p class="text-center text-secondary">Shield match not set.</p>'; return; }
-            const f = leagueData.shieldMatch.fixture;
-            container.innerHTML = `<div class="col-md-8">${createMatchCard(f, f.result, 'shield')}</div>`;
-            if(leagueData.shieldMatch.imageUrl) container.innerHTML += `<div class="col-12 text-center mt-3"><img src="${leagueData.shieldMatch.imageUrl}" class="img-fluid rounded" style="max-height:300px;"></div>`;
-        }
-
-        function updatePlayers() {
-            const container = document.getElementById('playersContainer');
-            container.innerHTML = '';
-            leagueData.players.forEach(p => {
-                container.innerHTML += `
-                <div class="col">
-                    <div class="card p-3 text-center h-100 position-relative">
-                        <div class="badge bg-danger position-absolute top-0 start-0 m-2" title="Penalties">${p.penaltyCount || 0} <i class="fa-solid fa-flag"></i></div>
-                        <img src="${p.avatar}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin:0 auto;" class="border border-3 border-success mb-2">
-                        <h6 class="text-truncate">${p.name}</h6>
-                        <p class="small text-muted mb-2">Pts: ${p.pts}</p>
-                        ${p.socialLink ? `<a href="${p.socialLink}" target="_blank" class="btn btn-sm btn-outline-success mb-2"><i class="fa-brands fa-whatsapp"></i> Chat</a>` : ''}
-                        <div class="admin-mode">
-                             <button class="btn btn-sm btn-danger" onclick="deletePlayer('${p.id}')"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                </div>`;
-            });
-        }
-        
-        async function submitPlayer() {
-            const name = document.getElementById('playerName').value;
-            const url = document.getElementById('playerAvatarUrl').value;
-            if(!name) return showToast("Name required", "danger");
-            const newP = { id: Date.now().toString(), name, avatar: url || defaultAvatar, socialLink: document.getElementById('playerSocialLink').value, mp:0, w:0, d:0, l:0, gf:0, ga:0, gd:0, pts:0, form:[], penaltyCount: 0 };
-            leagueData.players.push(newP);
-            await saveData(); updateViews();
-            bootstrap.Modal.getInstance(document.getElementById('addPlayerModal')).hide();
-        }
-
-        async function generateCup() {
-            if(!isAdmin || !confirm("Generate new Cup?")) return;
-            leagueData.cupFixtures = [];
-            const ids = leagueData.players.map(p => p.id).sort(() => 0.5 - Math.random());
-            const size = Math.pow(2, Math.ceil(Math.log2(ids.length)));
-            const roundName = size === 2 ? 'Final' : size === 4 ? 'Semi-Final' : `Round of ${size}`;
-            while(ids.length < size) ids.push('BYE');
-            for(let i=0; i<ids.length; i+=2) {
-                const p1 = ids[i], p2 = ids[i+1];
-                const isBye = p2 === 'BYE';
-                leagueData.cupFixtures.push({
-                    id: `cup-${Date.now()}-${i}`, player1Id: p1, player2Id: p2,
-                    roundName, date: new Date().toISOString().split('T')[0],
-                    isPlayed: isBye, result: isBye ? {score1: 1, score2: 0} : null
+        // --- PREDICTION ENGINE LOGIC ---
+        function populatePredictionSelects() {
+            // By default use App data. If external loaded, it will have repopulated this via buildExternalTeams
+            if(!externalLeagueData) {
+                const a = document.getElementById('predTeamA'), b = document.getElementById('predTeamB');
+                a.innerHTML='<option value="">Team A</option>'; b.innerHTML='<option value="">Team B</option>';
+                leagueData.players.filter(p=>p.eligible).forEach(p => { 
+                    const o = document.createElement('option'); o.value = p.id; o.textContent = p.name;
+                    a.appendChild(o); b.appendChild(o.cloneNode(true));
                 });
             }
-            await saveData(); calculateCupRounds(); updateViews();
         }
 
-        async function generateNextCupRound() {
-            if(!isAdmin) return;
-            const currentR = cupRounds[cupRounds.length-1];
-            if(currentR === 'Final') return showToast("Final already generated", "warning");
-            const matches = leagueData.cupFixtures.filter(f => f.roundName === currentR);
-            if(matches.some(f => !f.isPlayed)) return showToast("Finish current round first", "danger");
-            const winners = matches.map(f => {
-                if(f.player2Id === 'BYE') return f.player1Id;
-                return f.result.score1 > f.result.score2 ? f.player1Id : f.player2Id;
+        function buildExternalTeams(data) {
+            // Logic to calculate stats from raw external JSON results
+            // Assumes structure { players: [{id, name}], results: [{homeId, awayId, homeScore, awayScore}] }
+            const teams = {};
+            data.players.forEach(p => teams[p.id] = { ...p, mp:0, gf:0, ga:0, pts:0, form:[] });
+            data.results.forEach(m => {
+                const A = teams[m.homeId || m.player1Id], B = teams[m.awayId || m.player2Id];
+                if(!A || !B) return;
+                const hs = m.homeScore || m.score1, as = m.awayScore || m.score2;
+                A.mp++; B.mp++; A.gf+=hs; A.ga+=as; B.gf+=as; B.ga+=hs;
+                if(hs>as){A.pts+=3;A.form.push(3);B.form.push(0)} else if(hs<as){B.pts+=3;B.form.push(3);A.form.push(0)} else{A.pts+=1;B.pts+=1;A.form.push(1);B.form.push(1)}
             });
-            const nextSize = winners.length;
-            const nextName = nextSize === 2 ? 'Final' : nextSize === 4 ? 'Semi-Final' : `Round of ${nextSize}`;
-            for(let i=0; i<winners.length; i+=2) {
-                leagueData.cupFixtures.push({
-                    id: `cup-${Date.now()}-${i}`, player1Id: winners[i], player2Id: winners[i+1],
-                    roundName, date: new Date().toISOString().split('T')[0],
-                    isPlayed: false, result: null
-                });
-            }
-            await saveData(); calculateCupRounds(); currentCupRoundIndex = cupRounds.length-1; updateViews();
+            externalLeagueData.calculatedTeams = teams;
+            const a = document.getElementById('predTeamA'), b = document.getElementById('predTeamB');
+            a.innerHTML='<option value="">Team A</option>'; b.innerHTML='<option value="">Team B</option>';
+            Object.values(teams).forEach(t => { 
+                const o = document.createElement('option'); o.value = t.id; o.textContent = t.name;
+                a.appendChild(o); b.appendChild(o.cloneNode(true));
+            });
         }
 
-        // --- ADMIN / MODAL HANDLERS ---
-        function showAddPlayerModal() { new bootstrap.Modal(document.getElementById('addPlayerModal')).show(); }
-        async function deletePlayer(id) {
-            if(!confirm("Delete player? All their stats/matches will be gone.")) return;
-            leagueData.players = leagueData.players.filter(p => p.id !== id);
-            leagueData.fixtures = leagueData.fixtures.filter(f => f.player1Id !== id && f.player2Id !== id);
-            leagueData.results = leagueData.results.filter(r => r.player1Id !== id && r.player2Id !== id);
-            await saveData(); updateViews();
-        }
-        function showResultModal(id, type) {
-            const f = type === 'league' ? leagueData.fixtures.find(x => x.id === id) : 
-                      type === 'cup' ? leagueData.cupFixtures.find(x => x.id === id) : 
-                      leagueData.shieldMatch.fixture;
-            document.getElementById('resultMatchId').value = id;
-            document.getElementById('resultMatchType').value = type;
-            document.getElementById('resultPlayer1Name').textContent = getPlayer(f.player1Id).name;
-            document.getElementById('resultPlayer2Name').textContent = getPlayer(f.player2Id).name;
-            const res = type === 'league' ? leagueData.results.find(r => r.fixtureId === id) : f.result;
-            document.getElementById('resultScore1').value = res ? res.score1 : 0;
-            document.getElementById('resultScore2').value = res ? res.score2 : 0;
-            new bootstrap.Modal(document.getElementById('resultModal')).show();
-        }
-        async function submitResult() {
-            const id = document.getElementById('resultMatchId').value;
-            const type = document.getElementById('resultMatchType').value;
-            const s1 = parseInt(document.getElementById('resultScore1').value);
-            const s2 = parseInt(document.getElementById('resultScore2').value);
-            if(type === 'league') {
-                const f = leagueData.fixtures.find(x => x.id === id);
-                f.isPlayed = true;
-                leagueData.results = leagueData.results.filter(r => r.fixtureId !== id);
-                leagueData.results.push({ fixtureId: id, player1Id: f.player1Id, player2Id: f.player2Id, score1: s1, score2: s2, timestamp: Date.now() });
-            } else if (type === 'cup') {
-                const f = leagueData.cupFixtures.find(x => x.id === id);
-                f.isPlayed = true; f.result = { score1: s1, score2: s2 };
+        const avg=(n,d)=>d?n/d:0; const clamp=(x,min,max)=>Math.min(max,Math.max(min,x));
+
+        function generateAdminPrediction() {
+            const idA = document.getElementById('predTeamA').value, idB = document.getElementById('predTeamB').value;
+            if(!idA || !idB || idA === idB) return showToast('Pick two different teams', 'warning');
+
+            let A, B;
+            if (externalLeagueData) {
+                // Use external calculated data
+                A = externalLeagueData.calculatedTeams[idA]; B = externalLeagueData.calculatedTeams[idB];
+                // Normalize form array to W/D/L for compatibility if needed, but we used 3/1/0 in buildExternalTeams
             } else {
-                leagueData.shieldMatch.fixture.isPlayed = true;
-                leagueData.shieldMatch.fixture.result = { score1: s1, score2: s2 };
+                // Use internal live app data
+                // Need to convert 'W','D','L' form to numbers
+                A = leagueData.players.find(p => p.id === idA); B = leagueData.players.find(p => p.id === idB);
             }
-            await saveData(); updateViews();
-            bootstrap.Modal.getInstance(document.getElementById('resultModal')).hide();
-        }
-        async function undoResult(id, type) {
-            if(type === 'league') {
-                leagueData.fixtures.find(x => x.id === id).isPlayed = false;
-                leagueData.results = leagueData.results.filter(r => r.fixtureId !== id);
-            } else if (type === 'cup') {
-                const f = leagueData.cupFixtures.find(x => x.id === id);
-                f.isPlayed = false; f.result = null;
-            } else {
-                leagueData.shieldMatch.fixture.isPlayed = false;
-                leagueData.shieldMatch.fixture.result = null;
-            }
-            await saveData(); updateViews();
-        }
-        
-        function getWinners() {
-            const sortedPlayers = [...leagueData.players].sort((a, b) => {
-                if (b.pts !== a.pts) return b.pts - a.pts;
-                if (b.gd !== a.gd) return b.gd - a.gd;
-                return b.gf - a.gf;
-            });
-            const leagueWinner = sortedPlayers.length > 0 ? sortedPlayers[0].name : "None";
-            const leagueRunner = sortedPlayers.length > 1 ? sortedPlayers[1].name : "None";
+
+            // Stats Calculation
+            const aGF=avg(A.gf,A.mp), aGA=avg(A.ga,A.mp), bGF=avg(B.gf,B.mp), bGA=avg(B.ga,B.mp);
+            const xgA=( (aGF+bGA)/2 ), xgB=( (bGF+aGA)/2 );
+
+            // Strength / Form Logic
+            const formCalc = (arr) => {
+                if(!arr) return 0;
+                // If internal data (W,D,L strings)
+                if(typeof arr[0] === 'string') return arr.slice(0,5).reduce((s,r)=>s+(r==='W'?3:r==='D'?1:0),0)/15;
+                // If external data (3,1,0 numbers)
+                return arr.slice(-5).reduce((a,b)=>a+b,0)/15;
+            };
             
-            let cupWinner = "None", cupRunner = "None";
-            const final = leagueData.cupFixtures.find(f => f.roundName === 'Final' && f.isPlayed);
-            if(final && final.result) {
-                const p1 = getPlayer(final.player1Id).name;
-                const p2 = getPlayer(final.player2Id).name;
-                if(final.result.score1 > final.result.score2) { cupWinner = p1; cupRunner = p2; }
-                else { cupWinner = p2; cupRunner = p1; }
-            }
+            const sA=avg(A.pts,A.mp)+(A.gf-A.ga)/Math.max(1,A.mp) + formCalc(A.form);
+            const sB=avg(B.pts,B.mp)+(B.gf-B.ga)/Math.max(1,B.mp) + formCalc(B.form);
+
+            // Probabilities
+            let pA=sA/(sA+sB), pB=sB/(sA+sB); let pD=0.22; pA*=0.78; pB*=0.78;
+            const norm=pA+pB+pD; pA/=norm; pB/=norm; pD/=norm;
+
+            // Odds
+            const margin=0.06;
+            const oA=(1/((pA*(1-margin)))) , oD=(1/((pD*(1-margin)))) , oB=(1/((pB*(1-margin))));
+
+            // Over/Under & BTTS
+            const tot=xgA+xgB;
+            const pOver15 = clamp((tot-1.0)/2.5,0,1);
+            const pOver25 = clamp((tot-2.0)/2.5,0,1);
+            const pOver35 = clamp((tot-3.0)/2.5,0,1);
+            const pBTTS = clamp(((xgA+xgB)/3),0,1);
+
+            // Correct Scores
+            const cs=[`${Math.round(xgA)}-${Math.round(xgB)}`, `${Math.max(0,Math.round(xgA)-1)}-${Math.round(xgB)}`];
+
+            // Confidence & Risk
+            const conf=clamp(Math.abs(pA-pB)*100+20,35,85);
+            const riskIndex = clamp(100-conf,15,75);
+
+            // --- RENDER ADMIN UI ---
+            document.getElementById('predXg').textContent = `${A.name} ${xgA.toFixed(2)} : ${xgB.toFixed(2)} ${B.name}`;
+            document.getElementById('predRisk').innerHTML = `<span class="badge ${riskIndex>60?'bg-danger':riskIndex>40?'bg-warning':'bg-success'}">${riskIndex.toFixed(0)}</span>`;
+            document.getElementById('predConf').textContent = conf.toFixed(0)+'%';
+            document.getElementById('predBTTS').textContent = (pBTTS*100).toFixed(0)+'%';
             
-            let shieldWinner = "None", shieldRunner = "None";
-            if(leagueData.shieldMatch && leagueData.shieldMatch.fixture && leagueData.shieldMatch.fixture.isPlayed) {
-                const f = leagueData.shieldMatch.fixture;
-                const p1 = getPlayer(f.player1Id).name;
-                const p2 = getPlayer(f.player2Id).name;
-                if(f.result.score1 > f.result.score2) { shieldWinner = p1; shieldRunner = p2; }
-                else { shieldWinner = p2; shieldRunner = p1; }
-            }
-            return { league: { w: leagueWinner, r: leagueRunner }, cup: { w: cupWinner, r: cupRunner }, shield: { w: shieldWinner, r: shieldRunner } };
+            document.getElementById('predOdds').innerHTML = 
+                `<span class='pred-pill pill-good'>${A.name} ${(pA*100).toFixed(0)}%</span>` +
+                `<span class='pred-pill pill-warn'>Draw ${(pD*100).toFixed(0)}%</span>` +
+                `<span class='pred-pill pill-bad'>${B.name} ${(pB*100).toFixed(0)}%</span>`;
+            
+            document.getElementById('predBook').textContent = `Odds: ${oA.toFixed(2)} | ${oD.toFixed(2)} | ${oB.toFixed(2)}`;
+
+            document.getElementById('predOU').innerHTML = 
+                `> 1.5: ${(pOver15*100).toFixed(0)}% | > 2.5: ${(pOver25*100).toFixed(0)}% | > 3.5: ${(pOver35*100).toFixed(0)}%`;
+            
+            document.getElementById('predCS').textContent = cs.join(', ');
+
+            // Store Temp
+            currentPrediction = {
+                id: Date.now().toString(),
+                teamA: A.name, teamB: B.name, teamAId: A.id, teamBId: B.id,
+                xgA: xgA.toFixed(2), xgB: xgB.toFixed(2),
+                probA: (pA*100).toFixed(0), probD: (pD*100).toFixed(0), probB: (pB*100).toFixed(0),
+                risk: riskIndex.toFixed(0), conf: conf.toFixed(0), btts: (pBTTS*100).toFixed(0),
+                timestamp: Date.now()
+            };
+
+            autoText(); 
+            document.getElementById('predAdminOutput').classList.remove('d-none');
         }
 
-        async function endSeasonManual() {
-            if(!isAdmin) return;
-            if(confirm("Are you sure you want to END the current season?")) await endSeasonLogic(false);
+        function autoText() {
+            if(!currentPrediction) return;
+            // Access team names safely
+            const tA = currentPrediction.teamA, tB = currentPrediction.teamB;
+            
+            let txt = `Mechi kali: ${tA} vs ${tB}. `;
+            if(parseInt(currentPrediction.probA) > 50) txt += `${tA} wana nafasi kubwa ya kushinda (${currentPrediction.probA}%). `;
+            else if(parseInt(currentPrediction.probB) > 50) txt += `${tB} wanaonekana vizuri ugenini. `;
+            else txt += `Hii game ni tight, sare inawezekana sana. `;
+            
+            txt += `Tunategemea ${parseInt(currentPrediction.btts) > 55 ? "timu zote kufunga (BTTS)" : "defense kuwa ngumu"}. `;
+            txt += `Risk Level ni ${currentPrediction.risk}/100.`;
+            
+            document.getElementById('predAnalysisInput').value = txt;
         }
 
-        async function endSeasonLogic(isAuto) {
-            const winners = getWinners();
-            const historyEntry = { season: leagueData.seasonNumber, timestamp: Date.now(), champions: winners };
-            leagueData.seasonHistory.unshift(historyEntry);
-            leagueData.seasonNumber++;
-            leagueData.seasonEndTime = null; 
-            leagueData.fixtures = [];
-            leagueData.results = [];
-            leagueData.cupFixtures = [];
-            leagueData.shieldMatch = null;
-            leagueData.cupImageUrl = '';
-            leagueData.players.forEach(p => {
-                p.mp = 0; p.w = 0; p.d = 0; p.l = 0; p.gf = 0; p.ga = 0; p.gd = 0; p.pts = 0; p.form = [];
-                p.penaltyCount = 0;
-            });
-            currentMatchday = 1;
-            totalMatchdays = 1;
-            cupRounds = [];
-            currentCupRoundIndex = 0;
-            await saveData(); updateViews(); checkSeasonTimer();
-            showToast(isAuto ? "Season Timer Ended!" : "Season Ended Manually.", "success");
+        async function publishPrediction() {
+            if(!currentPrediction) return;
+            currentPrediction.analysis = document.getElementById('predAnalysisInput').value;
+            leagueData.predictions.unshift(currentPrediction);
+            if(leagueData.predictions.length > 20) leagueData.predictions.pop();
+            await saveData();
+            document.getElementById('predAdminOutput').classList.add('d-none');
+            updateViews();
         }
-        
-        // --- HISTORY EXPORT/IMPORT & TABS ---
-        function exportHistory() {
-            if(!leagueData.seasonHistory || leagueData.seasonHistory.length === 0) return showToast("No history to export", "warning");
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(leagueData.seasonHistory));
+
+        function exportAnalysisText() {
+            const txt = document.getElementById('predAnalysisInput').value;
+            const blob = new Blob([txt],{type:'text/plain'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='prediction.txt'; a.click();
+        }
+
+        function renderPredictionsList() {
+            const list = document.getElementById('predictionsList');
+            list.innerHTML = '';
+            if(!leagueData.predictions || leagueData.predictions.length === 0) { list.innerHTML = '<p class="text-muted text-center">No predictions yet.</p>'; return; }
+            leagueData.predictions.forEach(p => {
+                const date = new Date(p.timestamp).toLocaleDateString();
+                list.innerHTML += `
+                <div class="pred-box">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="m-0 fw-bold text-white">${p.teamA} vs ${p.teamB}</h5>
+                        <small class="text-muted">${date}</small>
+                    </div>
+                    <div class="d-flex gap-2 mb-2 justify-content-center">
+                        <span class="badge bg-secondary">Risk: ${p.risk}</span>
+                        <span class="badge bg-secondary">Conf: ${p.conf}%</span>
+                        <span class="badge bg-secondary">BTTS: ${p.btts}%</span>
+                    </div>
+                    <div class="pred-grid mb-2">
+                        <div class="pred-card"><div class="pred-label">Win ${p.teamA}</div><div class="text-success fw-bold">${p.probA}%</div></div>
+                        <div class="pred-card"><div class="pred-label">Draw</div><div class="text-warning fw-bold">${p.probD}%</div></div>
+                        <div class="pred-card"><div class="pred-label">Win ${p.teamB}</div><div class="text-danger fw-bold">${p.probB}%</div></div>
+                    </div>
+                    <div class="analysis-text">"${p.analysis}"</div>
+                    <div class="admin-mode text-end mt-2"><button class="btn btn-sm btn-outline-danger" onclick="deletePrediction('${p.id}')"><i class="fa-solid fa-trash"></i></button></div>
+                </div>`;
+            });
+        }
+        async function deletePrediction(id) { if(!confirm("Delete?")) return; leagueData.predictions = leagueData.predictions.filter(p => p.id !== id); await saveData(); updateViews(); }
+
+        // --- EXPORT/IMPORT ALL DATA (Includes Predictions) ---
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(leagueData));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "efootball_history.json");
+            downloadAnchorNode.setAttribute("download", `efootball_backup_S${leagueData.seasonNumber}.json`);
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
         }
-        async function importHistory(input) {
-            const file = input.files[0];
-            if(!file) return;
+        async function importData(input) {
+            if(!isAdmin) { showToast("Admin only", "danger"); return; }
+            const file = input.files[0]; if(!file) return;
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
-                    const importedHistory = JSON.parse(e.target.result);
-                    if(!Array.isArray(importedHistory)) throw new Error("Invalid Format");
-                    importedHistory.forEach(impSeason => {
-                        const exists = leagueData.seasonHistory.some(s => s.season === impSeason.season);
-                        if(!exists) { leagueData.seasonHistory.push(impSeason); }
-                    });
-                    leagueData.seasonHistory.sort((a,b) => b.season - a.season);
-                    await saveData(); updateViews(); showToast("History Imported Successfully", "success");
-                } catch(err) { console.error(err); showToast("Error importing JSON", "danger"); }
+                    const imported = JSON.parse(e.target.result);
+                    if(confirm("Overwrite all current data?")) {
+                        leagueData = { ...leagueData, ...imported };
+                        await saveData(); window.location.reload();
+                    }
+                } catch(err) { console.error(err); showToast("Error", "danger"); }
             };
             reader.readAsText(file);
         }
-        function renderTrophyRoomButtons() {
-            const nav = document.getElementById('trophySeasonTabs');
-            const container = document.getElementById('trophyContainer');
-            nav.innerHTML = '';
-            if(!leagueData.seasonHistory || leagueData.seasonHistory.length === 0) {
-                container.innerHTML = '<p class="text-center text-secondary py-4">History cabinet is empty.</p>';
-                return;
-            }
-            leagueData.seasonHistory.forEach((entry, index) => {
-                const isActive = index === 0 ? 'btn-primary' : 'btn-outline-secondary';
-                nav.innerHTML += `<button class="btn btn-sm ${isActive} trophy-btn rounded-pill" onclick="showSeasonHistory(${entry.season}, this)">Season ${entry.season}</button>`;
-            });
-            showSeasonHistory(leagueData.seasonHistory[0].season, nav.firstElementChild);
-        }
-        window.showSeasonHistory = function(seasonNum, btn) {
-            document.querySelectorAll('.trophy-btn').forEach(b => { b.classList.remove('btn-primary'); b.classList.add('btn-outline-secondary'); });
-            if(btn) { btn.classList.remove('btn-outline-secondary'); btn.classList.add('btn-primary'); }
-            const entry = leagueData.seasonHistory.find(s => s.season === seasonNum);
-            const container = document.getElementById('trophyContainer');
-            if(!entry) return;
-            container.innerHTML = `
-                <div class="card p-4 mt-3 animate__animated animate__fadeIn">
-                    <div class="text-center mb-3"><h3 class="fw-bold text-uppercase">Season ${entry.season} Summary</h3><small class="text-muted">${new Date(entry.timestamp).toLocaleDateString()}</small></div>
-                    <div class="row g-3">
-                        <div class="col-md-4"><div class="border rounded p-3 text-center bg-dark"><div class="text-warning mb-2"><i class="fa-solid fa-trophy fa-2x"></i></div><h5>LEAGUE</h5><div class="text-success fw-bold">1st: ${entry.champions.league.w}</div><div class="text-secondary">2nd: ${entry.champions.league.r}</div></div></div>
-                        <div class="col-md-4"><div class="border rounded p-3 text-center bg-dark"><div class="text-danger mb-2"><i class="fa-solid fa-wine-glass fa-2x"></i></div><h5>CUP</h5><div class="text-success fw-bold">Winner: ${entry.champions.cup.w}</div><div class="text-secondary">Runner-up: ${entry.champions.cup.r}</div></div></div>
-                        <div class="col-md-4"><div class="border rounded p-3 text-center bg-dark"><div class="text-info mb-2"><i class="fa-solid fa-shield-halved fa-2x"></i></div><h5>SHIELD</h5><div class="text-success fw-bold">Winner: ${entry.champions.shield.w}</div><div class="text-secondary">Runner-up: ${entry.champions.shield.r}</div></div></div>
-                    </div>
-                </div>`;
-        }
-        
-        // --- HELPERS ---
+
+        // --- EXISTING STANDARD FUNCTIONS ---
+        function updatePendingCount() { const count = leagueData.resultsPending.filter(p => p.status === 'pending').length; const badge = document.getElementById('pendingCountBadge'); badge.innerText = count; badge.style.display = count > 0 ? 'block' : 'none'; }
+        function promptSessionTeamSelection() { const eligible = leagueData.players.filter(p => p.eligible); if(eligible.length === 0) return; const modalEl = document.getElementById('sessionTeamModal'); const select = document.getElementById('sessionTeamSelect'); select.innerHTML = '<option value="">-- Choose Team --</option>'; eligible.forEach(p => select.innerHTML += `<option value="${p.id}">${p.name}</option>`); new bootstrap.Modal(modalEl).show(); }
+        function setSessionTeam() { const val = document.getElementById('sessionTeamSelect').value; if(!val) return showToast("Select a team", "warning"); sessionTeamId = val; const p = getPlayer(val); showToast(`Welcome back, ${p.name}!`, "success"); bootstrap.Modal.getInstance(document.getElementById('sessionTeamModal')).hide(); updateViews(); }
+        function skipSessionTeam() { sessionTeamId = null; bootstrap.Modal.getInstance(document.getElementById('sessionTeamModal')).hide(); }
+        async function checkPendingTimeouts() { const now = Date.now(); let changed = false; for(const p of [...leagueData.resultsPending]) { if(p.status === 'pending' && p.expiresAt <= now) { p.status = 'accepted'; applyPendingAsOfficial(p); logActivity(p.submittedByPlayerId, 'auto_accept', `Fixture ${p.fixtureId} auto-accepted.`); changed = true; } } if(changed) { await saveData(false); updateViews(); } }
+        function applyPendingAsOfficial(pending) { const fixture = findFixtureById(pending.fixtureId); if(fixture) { fixture.isPlayed = true; if(getFixtureType(pending.fixtureId) !== 'league') { fixture.result = { score1: pending.score1, score2: pending.score2 }; } } leagueData.results = leagueData.results.filter(r => r.fixtureId !== pending.fixtureId); leagueData.results.push({ fixtureId: pending.fixtureId, player1Id: pending.homeId, player2Id: pending.awayId, score1: pending.score1, score2: pending.score2, timestamp: Date.now() }); }
+        function getFixtureType(id) { if(leagueData.fixtures.find(f => f.id === id)) return 'league'; if(leagueData.cupFixtures.find(f => f.id === id)) return 'cup'; if(leagueData.shieldMatch && leagueData.shieldMatch.fixture && leagueData.shieldMatch.fixture.id === id) return 'shield'; return 'league'; }
+        function showPendingModal() { const container = document.getElementById('pendingListContent'); const pending = leagueData.resultsPending.filter(p => p.status === 'pending'); container.innerHTML = ''; if(pending.length === 0) { container.innerHTML = '<p class="text-center text-muted">No pending results.</p>'; } else { pending.forEach(p => { container.innerHTML += `<div class="card p-2 mb-2"><div class="d-flex justify-content-between align-items-center"><div><strong>${getPlayer(p.homeId).name} ${p.score1} - ${p.score2} ${getPlayer(p.awayId).name}</strong><br><small class="text-muted">Sub: ${getPlayer(p.submittedByPlayerId).name}</small></div><div><button class="btn btn-sm btn-success" onclick="acceptPending('${p.id}', 'admin')"><i class="fa-solid fa-check"></i></button><button class="btn btn-sm btn-danger" onclick="disputePending('${p.id}', 'admin')"><i class="fa-solid fa-times"></i></button></div></div></div>`; }); } new bootstrap.Modal(document.getElementById('pendingModal')).show(); }
+        async function approveAllPending() { const pending = leagueData.resultsPending.filter(p => p.status === 'pending'); if(pending.length === 0) return showToast("Nothing to approve.", "info"); if(!confirm(`Approve all ${pending.length}?`)) return; pending.forEach(p => { p.status = 'accepted'; applyPendingAsOfficial(p); }); logActivity('admin', 'approve_all', `Admin approved ${pending.length}`); await saveData(); showToast("Approved!", "success"); updateViews(); bootstrap.Modal.getInstance(document.getElementById('pendingModal')).hide(); }
+        async function disputePending(id, uid) { const p = leagueData.resultsPending.find(x => x.id === id); if(!p) return; p.status = 'disputed'; logActivity(uid, 'dispute', `Disputed ${id}`); await saveData(); showToast('Disputed.', 'warning'); updateViews(); if(uid==='admin') showPendingModal(); }
+        async function acceptPending(id, uid) { const p = leagueData.resultsPending.find(x => x.id === id); if(!p) return; p.status = 'accepted'; applyPendingAsOfficial(p); logActivity(uid, 'accept', `Accepted ${id}`); await saveData(); showToast('Accepted.', 'success'); updateViews(); if(uid==='admin') showPendingModal(); }
+        function findFixtureById(id) { return leagueData.fixtures.find(f => f.id === id) || leagueData.cupFixtures.find(f => f.id === id) || (leagueData.shieldMatch && leagueData.shieldMatch.fixture && leagueData.shieldMatch.fixture.id === id ? leagueData.shieldMatch.fixture : null); }
+        async function autoResolveExpiredMatches() { const today = new Date().toISOString().split('T')[0]; let chg = false; leagueData.fixtures.forEach(f => { if(f.date < today && !f.isPlayed) { resolveForfeit(f, 'league'); chg = true; } }); if(chg) { await saveData(false); updateViews(); } }
+        function forceAutoForfeits() { if(!isAdmin) return; autoResolveExpiredMatches(); showToast("Done.", "info"); }
+        function resolveForfeit(f, t) { const p1 = getPlayer(f.player1Id), p2 = getPlayer(f.player2Id); let s1=0, s2=0; if((p1.penaltyCount||0) > (p2.penaltyCount||0)) { s1=0; s2=3; p1.penaltyCount++; } else if ((p2.penaltyCount||0) > (p1.penaltyCount||0)) { s1=3; s2=0; p2.penaltyCount++; } else { if(Math.random()<0.5){s1=0;s2=3;p1.penaltyCount++}else{s1=3;s2=0;p2.penaltyCount++} } f.isPlayed = true; if(t==='league') { leagueData.results = leagueData.results.filter(r => r.fixtureId !== f.id); leagueData.results.push({ fixtureId: f.id, player1Id: f.player1Id, player2Id: f.player2Id, score1: s1, score2: s2, timestamp: Date.now() }); } }
+        function openGenerateModal() { if(!isAdmin) return; new bootstrap.Modal(document.getElementById('generateLeagueModal')).show(); }
+        async function generateFixtures(type) { bootstrap.Modal.getInstance(document.getElementById('generateLeagueModal')).hide(); if(!confirm("Generate fixtures? Clears old ones.")) return; leagueData.fixtures = []; leagueData.results = []; leagueData.resultsPending = []; leagueData.players.forEach(p => p.penaltyCount = 0); const players = leagueData.players.filter(p => p.eligible).map(p => p.id); if(players.length < 2) return showToast("Not enough players.", "danger"); if(players.length % 2 !== 0) players.push('BYE'); const n = players.length; const singleRound = n - 1; const rounds = type === 'single' ? singleRound : singleRound * 2; for(let r = 1; r <= rounds; r++) { let offset = r - 1; let d = new Date(); d.setDate(new Date().getDate() + offset); let dStr = d.toISOString().split('T')[0]; for(let i = 0; i < n / 2; i++) { const p1 = players[i], p2 = players[n - 1 - i]; if(p1 !== 'BYE' && p2 !== 'BYE') { let h = p1, a = p2; if(r > singleRound) { h = p2; a = p1; } else if (r % 2 === 1) { h = p2; a = p1; } leagueData.fixtures.push({ id: `${Date.now()}-${r}-${i}`, player1Id: h, player2Id: a, date: dStr, matchday: r, isPlayed: false }); } } players.splice(1, 0, players.pop()); } calculateTotalMatchdays(); await saveData(); updateViews(); }
+        function getPlayer(id) { if(id === 'BYE') return { name: 'BYE', avatar: defaultAvatar }; return leagueData.players.find(p => p.id === id) || { name: 'Unknown', avatar: defaultAvatar }; }
+        function getContactLinks(p) { if(p.id==='BYE')return''; let h=''; if(p.socialLink) h+=`<a href="${p.socialLink}" target="_blank" class="contact-btn btn-wa"><i class="fa-brands fa-whatsapp"></i></a>`; if(p.phone) h+=`<a href="tel:${p.phone}" class="contact-btn btn-call"><i class="fa-solid fa-phone"></i></a>`; return h; }
+        function updateStandings() { leagueData.players.forEach(p => { p.mp=0;p.w=0;p.d=0;p.l=0;p.gf=0;p.ga=0;p.gd=0;p.pts=0;p.form=[]; }); leagueData.results.sort((a,b) => a.timestamp - b.timestamp).forEach(r => { const p1 = leagueData.players.find(p => p.id === r.player1Id), p2 = leagueData.players.find(p => p.id === r.player2Id); if(p1 && p2) { p1.mp++; p2.mp++; p1.gf += r.score1; p1.ga += r.score2; p1.gd = p1.gf - p1.ga; p2.gf += r.score2; p2.ga += r.score1; p2.gd = p2.gf - p2.ga; if(r.score1 > r.score2) { p1.w++; p1.pts+=3; p1.form.unshift('W'); p2.l++; p2.form.unshift('L'); } else if (r.score1 < r.score2) { p2.w++; p2.pts+=3; p2.form.unshift('W'); p1.l++; p1.form.unshift('L'); } else { p1.d++; p1.pts+=1; p1.form.unshift('D'); p2.d++; p2.pts+=1; p2.form.unshift('D'); } if(p1.form.length > 5) p1.form.pop(); if(p2.form.length > 5) p2.form.pop(); } }); const tbody = document.getElementById('standingsTable'); tbody.innerHTML = ''; leagueData.players.filter(p => p.eligible).sort((a,b) => (b.pts - a.pts) || (b.gd - a.gd) || (b.gf - a.gf)).forEach((p, i) => { const formHtml = p.form.map(f => `<span class="form-bubble form-bubble-${f}">${f}</span>`).join(''); tbody.innerHTML += `<tr><td class="fw-bold">${i+1}</td><td class="d-flex align-items-center"><img src="${p.avatar}" style="width:25px;height:25px;border-radius:50%;margin-right:5px;"> ${p.name}</td><td>${p.mp}</td><td>${p.w}</td><td>${p.d}</td><td>${p.l}</td><td>${p.gf}</td><td>${p.ga}</td><td>${p.gd > 0 ? '+'+p.gd : p.gd}</td><td>${formHtml}</td><td class="fw-bold">${p.pts}</td></tr>`; }); }
+        function renderLeagueMatches() { const c = document.getElementById('fixturesContainer'); c.innerHTML = ''; const d = leagueData.fixtures.filter(f => f.matchday === currentMatchday); if(d.length > 0) document.getElementById('matchdayDateDisplay').innerText = "Date: " + new Date(d[0].date).toDateString(); else document.getElementById('matchdayDateDisplay').innerText = ""; if(d.length===0) c.innerHTML = '<p class="text-center text-secondary">No matches.</p>'; d.forEach(f => { const r = leagueData.results.find(x => x.fixtureId === f.id); c.innerHTML += createMatchCard(f, r, 'league'); }); document.getElementById('currentMatchday').textContent = `Matchday ${currentMatchday}`; }
+        function createMatchCard(f, r, type) { const p1 = getPlayer(f.player1Id), p2 = getPlayer(f.player2Id), pend = leagueData.resultsPending.filter(x => x.fixtureId === f.id), allow = (f.date === new Date().toISOString().split('T')[0]), cls = type === 'league' ? 'match-type-league' : type === 'cup' ? 'match-type-cup' : 'match-type-shield'; if(f.isPlayed && r) { const w1 = r.score1 > r.score2 ? 'text-warning' : '', w2 = r.score2 > r.score1 ? 'text-warning' : ''; return `<div class="result-card ${cls}"><div class="result-player">${getContactLinks(p1)} <img src="${p1.avatar}"> ${p1.name}</div><div class="text-center"><div class="h3 fw-bold m-0"><span class="${w1}">${r.score1}</span> - <span class="${w2}">${r.score2}</span></div><div class="small text-muted">${type.toUpperCase()}</div></div><div class="result-player">${p2.name} <img src="${p2.avatar}"> ${getContactLinks(p2)}</div>${isAdmin ? `<button class="btn btn-sm btn-danger ms-2 admin-mode" onclick="undoResult('${f.id}', '${type}')"><i class="fa-solid fa-undo"></i></button>` : ''}</div>`; } else { if(pend.length > 0) { const h = pend.map(p => `<div class="border rounded p-2 mb-1 bg-white"><div class="d-flex justify-content-between align-items-center"><div><small class="text-muted">By <strong>${getPlayer(p.submittedByPlayerId).name}</strong></small><div>${getPlayer(p.homeId).name} <strong>${p.score1}-${p.score2}</strong> ${getPlayer(p.awayId).name}</div><div class="small text-${p.status==='disputed'?'danger':'warning'}">${p.status}</div></div><div>${(sessionTeamId===p.homeId||sessionTeamId===p.awayId) && p.status === 'pending' ? `<button class="btn btn-sm btn-success me-1" onclick="acceptPending('${p.id}', '${sessionTeamId}')"><i class="fa-solid fa-check"></i></button><button class="btn btn-sm btn-danger" onclick="disputePending('${p.id}', '${sessionTeamId}')"><i class="fa-solid fa-times"></i></button>` : ''}</div></div></div>`).join(''); return `<div class="match-card ${cls} flex-column"><div class="d-flex justify-content-between w-100 align-items-center mb-2"><div class="match-player">${getContactLinks(p1)} <img src="${p1.avatar}"> ${p1.name}</div><div class="small fw-bold">VS</div><div class="match-player">${p2.name} <img src="${p2.avatar}"> ${getContactLinks(p2)}</div></div><div style="width:100%">${h}</div></div>`; } const subBtn = (allow && (sessionTeamId===f.player1Id||sessionTeamId===f.player2Id)) ? `<button class="btn btn-sm btn-outline-success ms-2" onclick="openPlayerSubmitModal('${f.id}')"><i class="fa-solid fa-check"></i> Submit</button>` : ''; return `<div class="match-card ${cls}"><div class="match-player">${getContactLinks(p1)} <img src="${p1.avatar}"> ${p1.name}</div><div class="text-center small text-muted">VS</div><div class="match-player">${p2.name} <img src="${p2.avatar}"> ${getContactLinks(p2)}</div><div>${isAdmin ? `<button class="btn btn-sm btn-primary ms-2 admin-mode" onclick="showResultModal('${f.id}', '${type}')"><i class="fa-solid fa-pen"></i></button>` : ''}${subBtn}</div></div>`; } }
+        function openPlayerSubmitModal(fid) { const f = findFixtureById(fid); if(!f) return; const hS = document.getElementById('ps_homeSelect'), aS = document.getElementById('ps_awaySelect'), h = getPlayer(f.player1Id), a = getPlayer(f.player2Id); hS.innerHTML = `<option value="${f.player1Id}">${h.name}</option><option value="${f.player2Id}">${a.name}</option>`; aS.innerHTML = `<option value="${f.player2Id}">${a.name}</option><option value="${f.player1Id}">${h.name}</option>`; document.getElementById('ps_fixtureId').value = fid; document.getElementById('ps_score1').value = 0; document.getElementById('ps_score2').value = 0; if(sessionTeamId) { if(sessionTeamId === f.player1Id) hS.value = f.player1Id; if(sessionTeamId === f.player2Id) hS.value = f.player2Id; } new bootstrap.Modal(document.getElementById('playerSubmitModal')).show(); }
+        async function submitPlayerResult() { const fid = document.getElementById('ps_fixtureId').value, hid = document.getElementById('ps_homeSelect').value, aid = document.getElementById('ps_awaySelect').value, s1 = parseInt(document.getElementById('ps_score1').value)||0, s2 = parseInt(document.getElementById('ps_score2').value)||0; if(!sessionTeamId || (sessionTeamId!==hid && sessionTeamId!==aid)) return showToast("Submit for own team only.", "danger"); if(leagueData.resultsPending.find(p=>p.fixtureId===fid && p.status==='pending')) return showToast("Result pending.", "danger"); leagueData.resultsPending.push({ id:'p'+Date.now(), fixtureId:fid, submittedByPlayerId:sessionTeamId, homeId:hid, awayId:aid, score1:s1, score2:s2, timestamp:Date.now(), expiresAt:Date.now()+21600000, status:'pending' }); logActivity(sessionTeamId,'result_submit',`Sub ${s1}-${s2}`); await saveData(); new bootstrap.Modal(document.getElementById('playerSubmitModal')).hide(); showToast("Pending.", "info"); updateViews(); }
+        function showResultModal(id, type) { const f = findFixtureById(id); document.getElementById('resultMatchId').value = id; document.getElementById('resultMatchType').value = type; document.getElementById('resultPlayer1Name').textContent = getPlayer(f.player1Id).name; document.getElementById('resultPlayer2Name').textContent = getPlayer(f.player2Id).name; const r = type==='league'?leagueData.results.find(x=>x.fixtureId===id):f.result; document.getElementById('resultScore1').value = r?r.score1:0; document.getElementById('resultScore2').value = r?r.score2:0; new bootstrap.Modal(document.getElementById('resultModal')).show(); }
+        async function submitResult() { const id = document.getElementById('resultMatchId').value, type = document.getElementById('resultMatchType').value, s1 = parseInt(document.getElementById('resultScore1').value), s2 = parseInt(document.getElementById('resultScore2').value); if(type === 'league') { const f = leagueData.fixtures.find(x => x.id === id); f.isPlayed = true; leagueData.results = leagueData.results.filter(r => r.fixtureId !== id); leagueData.results.push({ fixtureId: id, player1Id: f.player1Id, player2Id: f.player2Id, score1: s1, score2: s2, timestamp: Date.now() }); } else if (type === 'cup') { const f = leagueData.cupFixtures.find(x => x.id === id); f.isPlayed = true; f.result = { score1: s1, score2: s2 }; } else { leagueData.shieldMatch.fixture.isPlayed = true; leagueData.shieldMatch.fixture.result = { score1: s1, score2: s2 }; } await saveData(); updateViews(); bootstrap.Modal.getInstance(document.getElementById('resultModal')).hide(); }
+        async function undoResult(id, type) { if(type === 'league') { leagueData.fixtures.find(x => x.id === id).isPlayed = false; leagueData.results = leagueData.results.filter(r => r.fixtureId !== id); } else if (type === 'cup') { const f = leagueData.cupFixtures.find(x => x.id === id); f.isPlayed = false; f.result = null; } else { leagueData.shieldMatch.fixture.isPlayed = false; leagueData.shieldMatch.fixture.result = null; } await saveData(); updateViews(); }
+        function getWinners() { const s = leagueData.players.filter(p=>p.eligible).sort((a,b)=>(b.pts-a.pts)||(b.gd-a.gd)||(b.gf-a.gf)); const lw=s[0]?s[0].name:"None", lr=s[1]?s[1].name:"None"; let cw="None", cr="None"; const cf = leagueData.cupFixtures.find(f=>f.roundName==='Final'&&f.isPlayed); if(cf&&cf.result) { const p1=getPlayer(cf.player1Id).name, p2=getPlayer(cf.player2Id).name; if(cf.result.score1>cf.result.score2){cw=p1;cr=p2}else{cw=p2;cr=p1} } let sw="None", sr="None"; if(leagueData.shieldMatch&&leagueData.shieldMatch.fixture.isPlayed){const f=leagueData.shieldMatch.fixture, p1=getPlayer(f.player1Id).name, p2=getPlayer(f.player2Id).name; if(f.result.score1>f.result.score2){sw=p1;sr=p2}else{sw=p2;sr=p1}} return {league:{w:lw,r:lr},cup:{w:cw,r:cr},shield:{w:sw,r:sr}}; }
+        async function endSeasonManual() { if(!isAdmin || !confirm("End Season?")) return; const w = getWinners(); leagueData.seasonHistory.unshift({season:leagueData.seasonNumber, timestamp:Date.now(), champions:w}); leagueData.seasonNumber++; leagueData.seasonEndTime = null; leagueData.fixtures=[]; leagueData.results=[]; leagueData.resultsPending=[]; leagueData.cupFixtures=[]; leagueData.shieldMatch=null; leagueData.players.forEach(p=>{p.mp=0;p.w=0;p.d=0;p.l=0;p.gf=0;p.ga=0;p.gd=0;p.pts=0;p.form=[];p.penaltyCount=0;}); await saveData(); updateViews(); showToast("Season Ended", "success"); }
+        function renderTrophyRoomButtons() { const n = document.getElementById('trophySeasonTabs'), c = document.getElementById('trophyContainer'); n.innerHTML = ''; if(!leagueData.seasonHistory.length) { c.innerHTML = '<p class="text-center text-secondary py-4">No history.</p>'; return; } leagueData.seasonHistory.forEach((e,i) => n.innerHTML += `<button class="btn btn-sm ${i===0?'btn-primary':'btn-outline-secondary'} trophy-btn rounded-pill" onclick="showSeasonHistory(${e.season}, this)">S${e.season}</button>`); showSeasonHistory(leagueData.seasonHistory[0].season, n.firstElementChild); }
+        window.showSeasonHistory = function(sn, btn) { document.querySelectorAll('.trophy-btn').forEach(b => { b.classList.remove('btn-primary'); b.classList.add('btn-outline-secondary'); }); if(btn) { btn.classList.remove('btn-outline-secondary'); btn.classList.add('btn-primary'); } const e = leagueData.seasonHistory.find(s => s.season === sn); if(!e) return; document.getElementById('trophyContainer').innerHTML = `<div class="card p-4 mt-3 animate__animated animate__fadeIn"><div class="text-center mb-3"><h3 class="fw-bold text-uppercase">Season ${e.season}</h3><small>${new Date(e.timestamp).toLocaleDateString()}</small></div><div class="row g-3"><div class="col-md-4"><div class="border rounded p-3 text-center bg-dark"><div class="text-warning mb-2"><i class="fa-solid fa-trophy fa-2x"></i></div><h5>LEAGUE</h5><div class="text-success fw-bold">1st: ${e.champions.league.w}</div><div>2nd: ${e.champions.league.r}</div></div></div><div class="col-md-4"><div class="border rounded p-3 text-center bg-dark"><div class="text-danger mb-2"><i class="fa-solid fa-wine-glass fa-2x"></i></div><h5>CUP</h5><div class="text-success fw-bold">Winner: ${e.champions.cup.w}</div><div>Runner: ${e.champions.cup.r}</div></div></div><div class="col-md-4"><div class="border rounded p-3 text-center bg-dark"><div class="text-info mb-2"><i class="fa-solid fa-shield-halved fa-2x"></i></div><h5>SHIELD</h5><div class="text-success fw-bold">Winner: ${e.champions.shield.w}</div><div>Runner: ${e.champions.shield.r}</div></div></div></div></div>`; }
         function calculateTotalMatchdays() { totalMatchdays = Math.max(1, ...leagueData.fixtures.map(f => f.matchday)); }
-        function calculateCupRounds() {
-            const rounds = [...new Set(leagueData.cupFixtures.map(f => f.roundName))];
-            const order = { 'Final': 10, 'Semi-Final': 5, 'Quarter-Final': 3 };
-            cupRounds = rounds.sort((a,b) => (order[a]||1) - (order[b]||1));
-            currentCupRoundIndex = Math.max(0, cupRounds.length - 1);
-        }
+        function calculateCupRounds() { const r = [...new Set(leagueData.cupFixtures.map(f => f.roundName))]; const o = { 'Final': 10, 'Semi-Final': 5, 'Quarter-Final': 3 }; cupRounds = r.sort((a,b) => (o[a]||1) - (o[b]||1)); currentCupRoundIndex = Math.max(0, cupRounds.length - 1); }
         function changeMatchday(d) { if(currentMatchday+d > 0 && currentMatchday+d <= totalMatchdays) { currentMatchday+=d; renderLeagueMatches(); }}
         function changeCupRound(d) { if(currentCupRoundIndex+d >= 0 && currentCupRoundIndex+d < cupRounds.length) { currentCupRoundIndex+=d; renderCupMatches(); }}
-        function loginAdmin() {
-            const p = document.getElementById('adminPassword').value;
-            if(p === password) { isAdmin = true; isSubAdmin = false; showToast("Admin Logged In", "success"); }
-            else if(p === leagueData.subAdminPassword) { isSubAdmin = true; isAdmin = false; showToast("Sub-Admin Logged In", "success"); }
-            else { showToast("Wrong Password", "danger"); }
-            bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
-            updateViews();
-        }
-        function showToast(msg, type) {
-            const box = document.getElementById('toast-container');
-            box.innerHTML += `<div class="toast show bg-${type} text-white"><div class="toast-body">${msg}</div></div>`;
-            setTimeout(() => box.firstElementChild.remove(), 3000);
-        }
-        // INTRO DISABLED FUNCTION
-        // function startIntroSequence() { ... }
-        
+        function loginAdmin() { const p = document.getElementById('adminPassword').value; if(p === password) { isAdmin = true; isSubAdmin = false; showToast("Admin", "success"); } else if(p === leagueData.subAdminPassword) { isSubAdmin = true; isAdmin = false; showToast("Sub-Admin", "success"); } else showToast("Wrong", "danger"); bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide(); updateViews(); populatePredictionSelects(); }
+        function updatePlayers() { const c = document.getElementById('playersContainer'); c.innerHTML = ''; leagueData.players.forEach(p => { c.innerHTML += `<div class="col"><div class="card p-3 text-center h-100 position-relative"><div class="badge bg-danger position-absolute top-0 start-0 m-2">${p.penaltyCount || 0} <i class="fa-solid fa-flag"></i></div><img src="${p.avatar}" style="width:80px;height:80px;border-radius:50%;margin:0 auto;" class="border border-3 border-success mb-2"><h6 class="text-truncate">${p.name}</h6><div class="d-flex justify-content-center mb-2">${getContactLinks(p)}</div><div class="admin-mode"><button class="btn btn-sm btn-danger" onclick="deletePlayer('${p.id}')"><i class="fa-solid fa-trash"></i></button>${p.eligible ? `<button class="btn btn-sm btn-outline-warning" onclick="setEligibility('${p.id}', false)">Block</button>` : `<button class="btn btn-sm btn-outline-success" onclick="setEligibility('${p.id}', true)">Approve</button>`}</div></div></div>`; }); }
+        async function setEligibility(id, v) { if(!isAdmin) return; const p = leagueData.players.find(x => x.id === id); p.eligible = !!v; await saveData(); updateViews(); }
+        async function submitPlayer() { const n = document.getElementById('playerName').value; if(!n) return; leagueData.players.push({ id: Date.now().toString(), name: n, avatar: document.getElementById('playerAvatarUrl').value || defaultAvatar, socialLink: document.getElementById('playerSocialLink').value, phone: document.getElementById('playerPhone').value, mp:0, w:0, d:0, l:0, gf:0, ga:0, gd:0, pts:0, form:[], penaltyCount: 0, eligible: true }); await saveData(); updateViews(); bootstrap.Modal.getInstance(document.getElementById('addPlayerModal')).hide(); }
+        async function deletePlayer(id) { if(!confirm("Delete?")) return; leagueData.players = leagueData.players.filter(p => p.id !== id); await saveData(); updateViews(); }
+        async function generateCup() { if(!isAdmin) return; leagueData.cupFixtures = []; const ids = leagueData.players.filter(p => p.eligible).map(p => p.id).sort(() => 0.5 - Math.random()); if(ids.length < 2) return; const size = Math.pow(2, Math.ceil(Math.log2(ids.length))), rn = size === 2 ? 'Final' : size === 4 ? 'Semi-Final' : `Round of ${size}`; while(ids.length < size) ids.push('BYE'); for(let i=0; i<ids.length; i+=2) { const bye = ids[i+1] === 'BYE'; leagueData.cupFixtures.push({ id: `cup-${Date.now()}-${i}`, player1Id: ids[i], player2Id: ids[i+1], roundName: rn, date: new Date().toISOString().split('T')[0], isPlayed: bye, result: bye ? {score1: 1, score2: 0} : null }); } await saveData(); calculateCupRounds(); updateViews(); }
+        async function generateNextCupRound() { if(!isAdmin) return; const cr = cupRounds[cupRounds.length-1]; const m = leagueData.cupFixtures.filter(f => f.roundName === cr); if(m.some(f => !f.isPlayed)) return showToast("Finish round first", "danger"); const w = m.map(f => { if(f.player2Id === 'BYE') return f.player1Id; return f.result.score1 > f.result.score2 ? f.player1Id : f.player2Id; }); const ns = w.length, nn = ns === 2 ? 'Final' : ns === 4 ? 'Semi-Final' : `Round of ${ns}`; for(let i=0; i<w.length; i+=2) { leagueData.cupFixtures.push({ id: `cup-${Date.now()}-${i}`, player1Id: w[i], player2Id: w[i+1], roundName: nn, date: new Date().toISOString().split('T')[0], isPlayed: false, result: null }); } await saveData(); calculateCupRounds(); currentCupRoundIndex = cupRounds.length-1; updateViews(); }
+        function showAddPlayerModal() { new bootstrap.Modal(document.getElementById('addPlayerModal')).show(); }
+        function showActivityLogModal() { const c = document.getElementById('activityLogContent'); c.innerHTML = leagueData.activityLog.slice().reverse().map(e => `<div class="border-bottom py-2"><div class="small text-muted">${new Date(e.timestamp).toLocaleTimeString()} - ${e.userId}</div><div>${e.details}</div></div>`).join('') || 'None'; new bootstrap.Modal(document.getElementById('activityLogModal')).show(); }
         function showTimerModal() { if(!isAdmin) return; new bootstrap.Modal(document.getElementById('timerModal')).show(); }
-        async function setTimer() {
-            const d = parseInt(document.getElementById('timerDays').value) || 0;
-            const h = parseInt(document.getElementById('timerHours').value) || 0;
-            const m = parseInt(document.getElementById('timerMinutes').value) || 0;
-            if(d===0 && h===0 && m===0) return showToast("Enter time", "warning");
-            leagueData.seasonEndTime = Date.now() + (d*24*3600*1000) + (h*3600*1000) + (m*60*1000);
-            await saveData(); checkSeasonTimer(); bootstrap.Modal.getInstance(document.getElementById('timerModal')).hide();
-        }
+        async function setTimer() { const d=parseInt(document.getElementById('timerDays').value)||0, h=parseInt(document.getElementById('timerHours').value)||0, m=parseInt(document.getElementById('timerMinutes').value)||0; if(!d&&!h&&!m) return; leagueData.seasonEndTime = Date.now()+(d*86400000)+(h*3600000)+(m*60000); await saveData(); checkSeasonTimer(); bootstrap.Modal.getInstance(document.getElementById('timerModal')).hide(); }
         async function clearTimer() { leagueData.seasonEndTime = null; await saveData(); checkSeasonTimer(); bootstrap.Modal.getInstance(document.getElementById('timerModal')).hide(); }
-        function checkSeasonTimer() {
-            clearInterval(timerInterval);
-            const container = document.getElementById('seasonTimerContainer');
-            if (!leagueData.seasonEndTime) { container.style.display = 'none'; return; }
-            container.style.display = 'block';
-            timerInterval = setInterval(() => {
-                const now = Date.now();
-                const distance = leagueData.seasonEndTime - now;
-                if (distance < 0) { clearInterval(timerInterval); container.style.display = 'none'; endSeasonLogic(true); } 
-                else {
-                    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-                    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                    document.getElementById('seasonTimerDisplay').innerText = `${d}d ${h}h ${m}m`;
-                }
-            }, 60000);
-        }
+        function checkSeasonTimer() { clearInterval(timerInterval); const c = document.getElementById('seasonTimerContainer'); if (!leagueData.seasonEndTime) { c.style.display = 'none'; return; } c.style.display = 'block'; timerInterval = setInterval(() => { const dist = leagueData.seasonEndTime - Date.now(); if (dist < 0) { clearInterval(timerInterval); c.style.display = 'none'; endSeasonManual(); } else { const d = Math.floor(dist / (1000 * 60 * 60 * 24)), h = Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), m = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60)); document.getElementById('seasonTimerDisplay').innerText = `${d}d ${h}h ${m}m`; } }, 60000); }
         async function submitBackground() { leagueData.backgroundUrl = `url('${document.getElementById('backgroundUrl').value}')`; await saveData(); applyBackground(); bootstrap.Modal.getInstance(document.getElementById('editBackgroundModal')).hide(); }
         function applyBackground() { document.documentElement.style.setProperty('--hero-bg-url', leagueData.backgroundUrl); }
         async function submitCupImage() { leagueData.cupImageUrl = document.getElementById('cupImageUrlInput').value; await saveData(); updateViews(); bootstrap.Modal.getInstance(document.getElementById('setCupImageModal')).hide(); }
         function showSetShieldModal() { populateSelectors(['shieldPlayer1', 'shieldPlayer2']); new bootstrap.Modal(document.getElementById('setShieldModal')).show(); }
-        async function submitShieldMatch() {
-            leagueData.shieldMatch = { fixture: { id:'shield', player1Id: document.getElementById('shieldPlayer1').value, player2Id: document.getElementById('shieldPlayer2').value, date: document.getElementById('shieldDate').value, isPlayed:false, result:null }, imageUrl: document.getElementById('shieldImageUrl').value };
-            await saveData(); updateViews(); bootstrap.Modal.getInstance(document.getElementById('setShieldModal')).hide();
-        }
+        async function submitShieldMatch() { leagueData.shieldMatch = { fixture: { id:'shield', player1Id: document.getElementById('shieldPlayer1').value, player2Id: document.getElementById('shieldPlayer2').value, date: document.getElementById('shieldDate').value, isPlayed:false, result:null }, imageUrl: document.getElementById('shieldImageUrl').value }; await saveData(); updateViews(); bootstrap.Modal.getInstance(document.getElementById('setShieldModal')).hide(); }
         function showAddFixtureModal() { populateSelectors(['fixturePlayer1', 'fixturePlayer2']); new bootstrap.Modal(document.getElementById('addFixtureModal')).show(); }
-        async function submitFixture() {
-            leagueData.fixtures.push({ id: Date.now().toString(), player1Id: document.getElementById('fixturePlayer1').value, player2Id: document.getElementById('fixturePlayer2').value, date: document.getElementById('fixtureDate').value, matchday: parseInt(document.getElementById('fixtureMatchday').value), isPlayed: false });
-            calculateTotalMatchdays(); await saveData(); updateViews(); bootstrap.Modal.getInstance(document.getElementById('addFixtureModal')).hide();
-        }
+        async function submitFixture() { leagueData.fixtures.push({ id: Date.now().toString(), player1Id: document.getElementById('fixturePlayer1').value, player2Id: document.getElementById('fixturePlayer2').value, date: document.getElementById('fixtureDate').value, matchday: parseInt(document.getElementById('fixtureMatchday').value), isPlayed: false }); calculateTotalMatchdays(); await saveData(); updateViews(); bootstrap.Modal.getInstance(document.getElementById('addFixtureModal')).hide(); }
         function showSetSubAdminModal() { if(!isAdmin) return; populateSelectors(['subAdminPlayerSelect']); new bootstrap.Modal(document.getElementById('subAdminModal')).show(); }
         async function setSubAdmin() { leagueData.subAdminPlayerId = document.getElementById('subAdminPlayerSelect').value; leagueData.subAdminPassword = document.getElementById('subAdminPasswordInput').value; await saveData(); bootstrap.Modal.getInstance(document.getElementById('subAdminModal')).hide(); }
         async function removeSubAdmin() { leagueData.subAdminPlayerId = null; leagueData.subAdminPassword = ''; await saveData(); bootstrap.Modal.getInstance(document.getElementById('subAdminModal')).hide(); }
         function showEditBackgroundModal() { new bootstrap.Modal(document.getElementById('editBackgroundModal')).show(); }
         function showSetCupImageModal() { new bootstrap.Modal(document.getElementById('setCupImageModal')).show(); }
-        function populateSelectors(ids) {
-            ids.forEach(id => {
-                const sel = document.getElementById(id); sel.innerHTML = '<option value="">Select Player</option>';
-                leagueData.players.forEach(p => sel.innerHTML += `<option value="${p.id}">${p.name}</option>`);
-            });
-        }
-        function updateLiveTicker() {
-            const t = document.querySelector('.live-ticker-content');
-            if(leagueData.results.length === 0) { t.textContent = "Welcome to E-Football League! Season " + leagueData.seasonNumber; return; }
-            const r = leagueData.results.sort((a,b)=>b.timestamp-a.timestamp)[0];
-            const p1 = getPlayer(r.player1Id).name, p2 = getPlayer(r.player2Id).name;
-            t.textContent = `LATEST: ${p1} ${r.score1} - ${r.score2} ${p2} | SEASON ${leagueData.seasonNumber} LIVE`;
-        }
+        function populateSelectors(ids) { ids.forEach(id => { const s = document.getElementById(id); s.innerHTML = '<option value="">Select Player</option>'; leagueData.players.filter(p => p.eligible).forEach(p => s.innerHTML += `<option value="${p.id}">${p.name}</option>`); }); }
+        function updateLiveTicker() { const t = document.querySelector('.live-ticker-content'); if(!leagueData.results.length) { t.textContent = "Welcome to E-Football League! Season " + leagueData.seasonNumber; return; } const r = leagueData.results.sort((a,b)=>b.timestamp-a.timestamp)[0]; const p1 = getPlayer(r.player1Id).name, p2 = getPlayer(r.player2Id).name; t.textContent = `LATEST: ${p1} ${r.score1} - ${r.score2} ${p2} | SEASON ${leagueData.seasonNumber} LIVE`; }
+        function logActivity(uid, act, det) { leagueData.activityLog = leagueData.activityLog || []; leagueData.activityLog.push({ userId: uid || 'unknown', action: act, details: det, timestamp: Date.now() }); if(leagueData.activityLog.length > 1000) leagueData.activityLog.splice(0, 100); db.collection('league').doc('data').set({ ...leagueData }).catch(console.error); }
+        function showToast(m, t) { const b = document.getElementById('toast-container'); const el = document.createElement('div'); el.className = `toast show bg-${t} text-white`; el.innerHTML = `<div class="toast-body">${m}</div>`; b.appendChild(el); setTimeout(() => el.remove(), 3000); }
+        function renderCupMatches() { const c = document.getElementById('cupContainer'); c.innerHTML = ''; if(!cupRounds.length) { c.innerHTML = '<p class="text-center text-secondary">No Cup generated.</p>'; return; } const rn = cupRounds[currentCupRoundIndex]; document.getElementById('cupRoundName').textContent = rn; if(leagueData.cupImageUrl && rn !== 'Final') c.innerHTML += `<div class="col-12 text-center"><img src="${leagueData.cupImageUrl}" style="max-height:150px; border-radius:8px;"></div>`; leagueData.cupFixtures.filter(f => f.roundName === rn && f.player2Id !== 'BYE').forEach(f => { c.innerHTML += `<div class="col-md-6">${createMatchCard(f, f.result, 'cup')}</div>`; }); if(rn === 'Final' && leagueData.cupImageUrl) c.innerHTML += `<div class="col-12 text-center mt-2"><img src="${leagueData.cupImageUrl}" class="img-fluid rounded" style="max-height:300px;"></div>`; }
+        function renderShieldMatch() { const c = document.getElementById('shieldMatchContainer'); if(!leagueData.shieldMatch) { c.innerHTML = '<p class="text-center text-secondary">Shield match not set.</p>'; return; } const f = leagueData.shieldMatch.fixture; c.innerHTML = `<div class="col-md-8">${createMatchCard(f, f.result, 'shield')}</div>`; if(leagueData.shieldMatch.imageUrl) c.innerHTML += `<div class="col-12 text-center mt-3"><img src="${leagueData.shieldMatch.imageUrl}" class="img-fluid rounded" style="max-height:300px;"></div>`; }
     </script>
 </body>
 </html>
